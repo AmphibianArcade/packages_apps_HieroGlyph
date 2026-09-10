@@ -68,13 +68,10 @@
     <string name="glyph_settings_volume_level_toggle_summary">Показывать уровень громкости при регулировке</string>
 
     <string name="glyph_settings_misc_title">Прочее</string>
-    <string name="glyph_settings_music_visualizer_toggle_title">Музыкальный визуализатор</string>
-    <string name="glyph_settings_music_visualizer_toggle_summary">СВЕТОВАЯ ДИСКОТЕКА!</string>
 
     <!-- QS tile -->
     <string name="glyph_accessibility_quick_settings">Glyph</string>
     <string name="glyph_accessibility_quick_settings_torch">Фонарик Glyph</string>
-    <string name="glyph_accessibility_quick_settings_music_visualizer">Музыкальный визуализатор Glyph</string>
 
     <string name="glyph_accessibility_quick_settings_off">Выкл</string>
     <string name="glyph_accessibility_quick_settings_on">Вкл</string>

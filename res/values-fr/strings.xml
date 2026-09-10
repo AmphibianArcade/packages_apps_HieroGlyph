@@ -61,11 +61,8 @@
     <string name="glyph_settings_volume_level_toggle_title">Indicateur de volume</string>
     <string name="glyph_settings_volume_level_toggle_summary">Afficher le niveau de volume lors du réglage</string>
     <string name="glyph_settings_misc_title">Divers</string>
-    <string name="glyph_settings_music_visualizer_toggle_title">Visualiseur de musique</string>
-    <string name="glyph_settings_music_visualizer_toggle_summary">Cela fera réagir les voyants Glyph au lecteur audio sur l\'appareil.\nToutes les autres fonctions Glyph seront désactivées lors de son utilisation.</string>
     <string name="glyph_accessibility_quick_settings">Glyph</string>
     <string name="glyph_accessibility_quick_settings_torch">Torche Glyph</string>
-    <string name="glyph_accessibility_quick_settings_music_visualizer">Visualiseur de musique Glyph</string>
     <string name="glyph_accessibility_quick_settings_off">Désactivé</string>
     <string name="glyph_accessibility_quick_settings_on">Activé</string>
     <string name="glyph_accessibility_quick_settings_unavailable">Indisponible</string>

@@ -126,18 +126,6 @@ public final class ServiceUtils {
                 UserHandle.CURRENT);
     }
 
-    public static void startMusicVisualizerService() {
-        if (DEBUG) Log.d(TAG, "Starting Music Visualizer service");
-        getContext().startServiceAsUser(new Intent(getContext(), MusicVisualizerService.class),
-                UserHandle.CURRENT);
-    }
-
-    protected static void stopMusicVisualizerService() {
-        if (DEBUG) Log.d(TAG, "Stopping Music Visualizer service");
-        getContext().stopServiceAsUser(new Intent(getContext(), MusicVisualizerService.class),
-                UserHandle.CURRENT);
-    }
-
     private static void startPowershareService() {
         if (Constants.isPowershareSupported()) {
             if (DEBUG) Log.d(TAG, "Starting Glyph powershare service");
@@ -284,11 +272,6 @@ public final class ServiceUtils {
             } else {
                 stopToneHelperService();
             }
-            if (SettingsManager.isGlyphMusicVisualizerEnabled()) {
-                startMusicVisualizerService();
-            } else {
-                stopMusicVisualizerService();
-            }
             if (SettingsManager.isGlyphVolumeLevelEnabled()) {
                 startVolumeLevelService();
             } else {
@@ -299,8 +282,7 @@ public final class ServiceUtils {
             } else {
                 stopAutoBrightnessService();
             }
-            if (SettingsManager.isGlyphProgressEnabled()
-                    && !SettingsManager.isGlyphMusicVisualizerEnabled()) {
+            if (SettingsManager.isGlyphProgressEnabled()) {
                 startProgressService();
             } else {
                 stopProgressService();
@@ -317,7 +299,6 @@ public final class ServiceUtils {
         stopToneHelperService();
         stopMicActivityService();
         stopFlipToGlyphService();
-        stopMusicVisualizerService();
         stopVolumeLevelService();
         stopAutoBrightnessService();
         stopProgressService();

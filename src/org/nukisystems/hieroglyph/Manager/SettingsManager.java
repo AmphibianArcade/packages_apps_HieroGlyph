@@ -261,25 +261,6 @@ public final class SettingsManager {
                         + pkg, Context.MODE_PRIVATE)
                 .getBoolean(Constants.GLYPH_CALL_REVERSE_ANIMATION_ENABLE,
                         false);
-    }
-
-    public static boolean isGlyphMusicVisualizerEnabled() {
-        Context ctx = getContext();
-        return PreferenceManager.getDefaultSharedPreferences(ctx)
-                .getBoolean(Constants.GLYPH_MUSIC_VISUALIZER_ENABLE, false) && isGlyphEnabled();
-    }
-
-    public static int getGlyphMusicVisualizerMode() {
-        Context ctx = getContext();
-        return Integer.parseInt(PreferenceManager.getDefaultSharedPreferences(ctx)
-                .getString(Constants.GLYPH_MUSIC_VISUALIZER_MODE, "0"));
-    }
-
-    public static void setGlyphMusicVisualizer(boolean state) {
-        Context ctx = getContext();
-        PreferenceManager.getDefaultSharedPreferences(ctx).edit()
-                .putBoolean(Constants.GLYPH_MUSIC_VISUALIZER_ENABLE, state).apply();
-    }
 
     public static boolean isGlyphVolumeLevelEnabled() {
         Context ctx = getContext();

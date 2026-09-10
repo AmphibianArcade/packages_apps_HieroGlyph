@@ -85,8 +85,6 @@ public class SettingsFragment extends SettingsBasePreferenceFragment implements 
     private SwitchPreferenceCompat mChargingPowersharePreference;
     private PreferenceCategory mVolumeCategory;
     private SwitchPreferenceCompat mVolumeLevelPreference;
-    private SwitchPreferenceCompat mMusicVisualizerPreference;
-    private ListPreference mMusicVisualizerModePreference;
     private PreferenceCategory mProgressCategory;
     private SwitchPreferenceCompat mProgressPreference;
     private SwitchPreferenceCompat mProgressMediaPreference;
@@ -226,14 +224,6 @@ public class SettingsFragment extends SettingsBasePreferenceFragment implements 
         mVolumeLevelPreference.setEnabled(glyphEnabled);
         mVolumeLevelPreference.setOnPreferenceChangeListener(this);
 
-        mMusicVisualizerPreference = (SwitchPreferenceCompat) findPreference(Constants.GLYPH_MUSIC_VISUALIZER_ENABLE);
-        mMusicVisualizerPreference.setEnabled(glyphEnabled);
-        mMusicVisualizerPreference.setOnPreferenceChangeListener(this);
-
-        mMusicVisualizerModePreference = findPreference(Constants.GLYPH_MUSIC_VISUALIZER_MODE);
-        mMusicVisualizerPreference.setEnabled(glyphEnabled);
-        mMusicVisualizerModePreference.setOnPreferenceChangeListener(this);
-
         mSchedulePreference = (Preference) findPreference(Constants.GLYPH_SCHEDULE);
         updateScheduleSummary();
 
@@ -341,23 +331,6 @@ public class SettingsFragment extends SettingsBasePreferenceFragment implements 
             }
             case Constants.GLYPH_BATTERY_SAVER_ENABLE -> {
                 updateBatterySaver((Boolean) newValue);
-            }
-            case Constants.GLYPH_MUSIC_VISUALIZER_ENABLE -> {
-                if ((Boolean) newValue && SettingsManager.Pulse.isAnyPulseEnabled()) {
-                    showDialog(
-                            requireActivity(),
-                            R.string.glyph_settings_music_visualizer_warning_title,
-                            R.string.glyph_settings_music_visualizer_warning_message,
-                            R.string.glyph_settings_music_visualizer_disable_pulse,
-                            () -> {
-                                mMusicVisualizerPreference.setOnPreferenceChangeListener(null);
-                                mMusicVisualizerPreference.setChecked(true);
-                                mMusicVisualizerPreference.setOnPreferenceChangeListener(this);
-                                mHandler.post(ServiceUtils::checkGlyphService);
-                            },
-                            android.R.string.cancel, null);
-                    return false;
-                }
             }
         }
 

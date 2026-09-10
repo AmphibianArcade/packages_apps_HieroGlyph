@@ -123,22 +123,6 @@
 
     <string name="glyph_settings_misc_title">Miscellaneous</string>
 
-    <string name="glyph_settings_music_visualizer_title">Music Visualizer</string>
-    <string name="glyph_settings_music_visualizer_toggle_title">@string/glyph_settings_music_visualizer_title</string>
-    <string name="glyph_settings_music_visualizer_toggle_summary">DISCO LIGHTS!</string>
-
-    <string name="glyph_settings_music_visualizer_mode_title">Visualizer mode</string>
-    <string name="glyph_settings_music_visualizer_mode_beat_trigger">Beat trigger</string>
-    <string name="glyph_settings_music_visualizer_mode_band_intensity">Band intensity</string>
-    <string name="glyph_settings_music_visualizer_mode_band_intensity_inverted">Band intensity (inverted)</string>
-
-
-    <string name="glyph_settings_music_visualizer_warning_title">Conflicting Service Detected</string>
-    <string name="glyph_settings_music_visualizer_warning_message">Due to Android limitations, only one process may capture audio for session 0 \(Global\). 
-          Your current ROM has Pulse built in and will stop working when Glyph music visualizer is enabled.
-     </string>
-     <string name="glyph_settings_music_visualizer_disable_pulse">Disable Pulse</string>
-
     <string name="glyph_settings_user_animation_incompatible">Selected animation is not compatible with this device!</string>
     <string name="glyph_settings_user_animation_invalid">Selected animation is not valid!</string>
     <string name="glyph_settings_user_animation_is_complex">Complex animations cannot be displayed, use Live Preview instead!</string>
@@ -146,15 +130,12 @@
     <!-- QS tile -->
     <string name="glyph_accessibility_quick_settings">Glyph</string>
     <string name="glyph_accessibility_quick_settings_torch">Glyph torch</string>
-    <string name="glyph_accessibility_quick_settings_music_visualizer">Glyph Music Visualizer</string>
 
     <string name="glyph_accessibility_quick_settings_flip_to_glyph">@string/glyph_settings_flip_title</string>
 
     <string name="glyph_accessibility_quick_settings_off">Off</string>
     <string name="glyph_accessibility_quick_settings_on">On</string>
     <string name="glyph_accessibility_quick_settings_unavailable">Unavailable</string>
-
-    <string name="glyph_music_visualizer_pulse_toast_message">Pulse visualizer has been disabled to avoid conflicts.</string>
 
     <!-- Glyph Schedule Settings -->
     <string name="glyph_settings_schedule_title">Schedule Glyph</string>
