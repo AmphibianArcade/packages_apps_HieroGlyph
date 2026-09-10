@@ -4,7 +4,10 @@
 //
 
 soong_namespace {
-    imports: ["vendor/nothing/NanoGlyph"],
+    imports: [
+        "vendor/nothing/NanoGlyph",
+        "packages/apps/GlyphBridge",
+    ],
 }
 
 java_defaults {
