@@ -1,13 +1,11 @@
-# Setting up Paranoid Glyph
+# Setting up HieroGlyph
 
 
-To build Paranoid Glyph you have to build the respective package in your device tree.
+To build HieroGlyph you have to build the respective package in your device tree.
 ```bash
-    # Paranoid Glyph
-    PRODUCT_SOONG_NAMESPACES += packages/apps/ParanoidGlyph
+    # HieroGlyph
+    PRODUCT_SOONG_NAMESPACES += packages/apps/HieroGlyph
     PRODUCT_PACKAGES += \ 
-        ParanoidGlyphPhone1 # Phone (1)
-        ParanoidGlyphPhone2 # Phone (2)
-        ParanoidGlyphPhone2a # Phone (2a) and (2a) Plus
-        ParanoidGlyphPhone3a # Phone (3a) and (3a) Pro
+        HieroGlyphFroggerPro # Phone (4a) Pro
+        HieroGlyphMetroid # Phone (3)
 ```

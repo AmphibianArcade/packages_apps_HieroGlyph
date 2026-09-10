@@ -1,19 +1,14 @@
-// Copyright (C) 2022-2024 Paranoid Android
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
+// SPDX-FileCopyrightText: The LineageOS Project
+// SPDX-License-Identifier: Apache-2.0
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
+soong_namespace {
+    imports: ["vendor/nothing/NanoGlyph"],
+}
 
 java_defaults {
-    name: "ParanoidGlyph_defaults",
+    name: "HieroGlyph_defaults",
 
     srcs: [
         "src/**/*.java",
@@ -32,11 +27,12 @@ java_defaults {
         "com.google.android.material_material",
         "SettingsLib",
         "IGlyphService-java",
+        "vendor.nukisystems.nanoglyph-java",
     ],
 
     required: [
-        "privapp_whitelist_co.aospa.glyph.xml",
-        "whitelist_co.aospa.glyph.xml",
+        "privapp_whitelist_org.nukisystems.hieroglyph.xml",
+        "whitelist_org.nukisystems.hieroglyph.xml",
     ],
 
     optimize: {
@@ -45,45 +41,29 @@ java_defaults {
 }
 
 android_app {
-    name: "ParanoidGlyphPhone1",
-    defaults: ["ParanoidGlyph_defaults"],
-    asset_dirs: ["phone1/assets"],
-    resource_dirs: ["phone1/res"],
+    name: "HieroGlyphMetroid",
+    defaults: ["HieroGlyph_defaults"],
+    asset_dirs: ["Metroid/assets"],
+    resource_dirs: ["Metroid/res"],
 }
 
 android_app {
-    name: "ParanoidGlyphPhone2",
-    defaults: ["ParanoidGlyph_defaults"],
-    asset_dirs: ["phone2/assets"],
-    resource_dirs: ["phone2/res"],
-
-}
-
-android_app {
-    name: "ParanoidGlyphPhone2a",
-    defaults: ["ParanoidGlyph_defaults"],
-    asset_dirs: ["phone2a/assets"],
-    resource_dirs: ["phone2a/res"],
-}
-
-android_app {
-    name: "ParanoidGlyphPhone3a",
-    defaults: ["ParanoidGlyph_defaults"],
-    asset_dirs: ["phone3a/assets"],
-    resource_dirs: ["phone3a/res"],
-    required: ["ParanoidGlyphPhone3aProRes"],
+    name: "HieroGlyphFroggerPro",
+    defaults: ["HieroGlyph_defaults"],
+    asset_dirs: ["FroggerPro/assets"],
+    resource_dirs: ["FroggerPro/res"],
 }
 
 prebuilt_etc {
-    name: "privapp_whitelist_co.aospa.glyph.xml",
-    src: "permissions/privapp_whitelist_co.aospa.glyph.xml",
+    name: "privapp_whitelist_org.nukisystems.hieroglyph.xml",
+    src: "permissions/privapp_whitelist_org.nukisystems.hieroglyph.xml",
     sub_dir: "permissions",
     system_ext_specific: true,
 }
 
 prebuilt_etc {
-    name: "whitelist_co.aospa.glyph.xml",
-    src: "permissions/whitelist_co.aospa.glyph.xml",
+    name: "whitelist_org.nukisystems.hieroglyph.xml",
+    src: "permissions/whitelist_org.nukisystems.hieroglyph.xml",
     sub_dir: "sysconfig",
     system_ext_specific: true,
 }

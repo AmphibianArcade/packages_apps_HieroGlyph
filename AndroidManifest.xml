@@ -17,7 +17,7 @@
      limitations under the License.
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="co.aospa.glyph"
+    package="org.nukisystems.hieroglyph"
     android:versionCode="1"
     android:versionName="1.0"
     android:sharedUserId="android.uid.system">
@@ -58,8 +58,8 @@
             android:name=".Manager.GlyphScheduleManager$ScheduleReceiver"
             android:exported="false">
             <intent-filter>
-                <action android:name="co.aospa.glyph.ACTION_SCHEDULE_START" />
-                <action android:name="co.aospa.glyph.ACTION_SCHEDULE_END" />
+                <action android:name="org.nukisystems.hieroglyph.ACTION_SCHEDULE_START" />
+                <action android:name="org.nukisystems.hieroglyph.ACTION_SCHEDULE_END" />
             </intent-filter>
         </receiver>
 
@@ -182,7 +182,7 @@
             android:exported="true"
             android:permission="android.permission.BIND_SERVICE">
             <intent-filter>
-                <action android:name="co.aospa.glyph.Services.ThirdPartyService" />
+                <action android:name="org.nukisystems.hieroglyph.Services.ThirdPartyService" />
             </intent-filter>
         </service>
 

@@ -52,8 +52,8 @@
             android:title="@string/glyph_settings_flip_toggle_title"
             android:summary="@string/glyph_settings_flip_toggle_summary">
             <intent android:action="android.intent.action.MAIN"
-                android:targetPackage="co.aospa.glyph"
-                android:targetClass="co.aospa.glyph.Settings.AnimationSettingsActivity">
+                android:targetPackage="org.nukisystems.hieroglyph"
+                android:targetClass="org.nukisystems.hieroglyph.Settings.AnimationSettingsActivity">
                 <extra android:name="type" android:value="flip" />
             </intent>
 
@@ -72,8 +72,8 @@
             android:title="@string/glyph_settings_call_toggle_title"
             android:summary="@string/glyph_settings_call_toggle_summary" >
             <intent android:action="android.intent.action.MAIN"
-                 android:targetPackage="co.aospa.glyph"
-                 android:targetClass="co.aospa.glyph.Settings.AnimationSettingsActivity">
+                 android:targetPackage="org.nukisystems.hieroglyph"
+                 android:targetClass="org.nukisystems.hieroglyph.Settings.AnimationSettingsActivity">
                 <extra android:name="type" android:value="call" />
             </intent>
 
@@ -91,8 +91,8 @@
             android:title="@string/glyph_settings_notifs_toggle_title"
             android:summary="@string/glyph_settings_notifs_toggle_summary" >
             <intent android:action="android.intent.action.MAIN"
-                android:targetPackage="co.aospa.glyph"
-                android:targetClass="co.aospa.glyph.Settings.AnimationSettingsActivity">
+                android:targetPackage="org.nukisystems.hieroglyph"
+                android:targetClass="org.nukisystems.hieroglyph.Settings.AnimationSettingsActivity">
                 <extra android:name="type" android:value="notifs" />
             </intent>
         </com.android.settingslib.PrimarySwitchPreference>
@@ -198,8 +198,8 @@
             android:icon="@drawable/ic_schedule"
             android:summary="@string/glyph_settings_schedule_summary">
             <intent android:action="android.intent.action.MAIN"
-                android:targetPackage="co.aospa.glyph"
-                android:targetClass="co.aospa.glyph.Settings.ScheduleSettingsActivity"/>
+                android:targetPackage="org.nukisystems.hieroglyph"
+                android:targetClass="org.nukisystems.hieroglyph.Settings.ScheduleSettingsActivity"/>
         </Preference>
 
     <PreferenceCategory
@@ -232,8 +232,8 @@
             android:title="@string/glyph_settings_utilities_title"
             android:summary="@string/glyph_settings_utilities_summary">
             <intent android:action="android.intent.action.MAIN"
-                android:targetPackage="co.aospa.glyph"
-                android:targetClass="co.aospa.glyph.Settings.SubSettingsActivity">
+                android:targetPackage="org.nukisystems.hieroglyph"
+                android:targetClass="org.nukisystems.hieroglyph.Settings.SubSettingsActivity">
                 <extra android:name="fragment" android:value=".Settings.Utilities.UtilitiesFragment" />
             </intent>
         </Preference>
