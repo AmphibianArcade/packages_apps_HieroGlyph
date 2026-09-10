@@ -110,32 +110,20 @@ public final class Constants {
 
     public static class Device {
 
-        public static final String PHONE1 = "phone1";
-        public static final String PHONE2 = "phone2";
-        public static final String PHONE2A = "phone2a";
-        public static final String PHONE3A = "phone3a";
+        public static final String PHONE4A_PRO = "phone4apro";
+        public static final String PHONE3 = "phone3";
 
         public static String getDevice() {
-            if (device == null)
-                device = ResourceUtils.getString("glyph_settings_device");
-
+            if (device == null) device = ResourceUtils.getString("glyph_settings_device");
             return device;
         }
 
-        public static boolean isPhone1() {
-            return getDevice().equals(PHONE1);
+        public static boolean isPhone4aPro() {
+            return getDevice().equals(PHONE4A_PRO);
         }
 
-        public static boolean isPhone2() {
-            return getDevice().equals(PHONE2);
-        }
-
-        public static boolean isPhone2a() {
-            return getDevice().equals(PHONE2A);
-        }
-
-        public static boolean isPhone3a() {
-            return getDevice().equals(PHONE3A);
+        public static boolean isPhone3() {
+            return getDevice().equals(PHONE3);
         }
     }
     
