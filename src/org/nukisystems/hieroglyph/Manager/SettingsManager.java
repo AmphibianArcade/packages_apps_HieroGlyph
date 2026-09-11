@@ -261,6 +261,7 @@ public final class SettingsManager {
                         + pkg, Context.MODE_PRIVATE)
                 .getBoolean(Constants.GLYPH_CALL_REVERSE_ANIMATION_ENABLE,
                         false);
+    }
 
     public static boolean isGlyphVolumeLevelEnabled() {
         Context ctx = getContext();
@@ -411,28 +412,5 @@ public final class SettingsManager {
         int currentUser = ActivityManager.getCurrentUser();
         Settings.Secure.putIntForUser(ctx.getContentResolver(),
                 key, state ? 1 : 0, currentUser);
-    }
-
-
-    public static class Pulse {
-
-        public static boolean isLockscreenPulseEnabled() {
-            Context ctx = getContext();
-            int currentUser = ActivityManager.getCurrentUser();
-            return Settings.Secure.getIntForUser(ctx.getContentResolver(),
-                    Constants.PULSE_LOCKSCREEN_ENABLED_SETTING, 0, currentUser) == 1;
-        }
-
-        public static boolean isPulseEnabled() {
-            Context ctx = getContext();
-            int currentUser = ActivityManager.getCurrentUser();
-            return Settings.Secure.getIntForUser(ctx.getContentResolver(),
-                    Constants.PULSE_ENABLED_SETTING, 0, currentUser) == 1;
-        }
-
-        public static boolean isAnyPulseEnabled() {
-            return isLockscreenPulseEnabled() || isPulseEnabled();
-        }
-
     }
 }
