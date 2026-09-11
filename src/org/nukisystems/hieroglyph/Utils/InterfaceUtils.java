@@ -49,6 +49,15 @@ public class InterfaceUtils {
     }
 
     public static <T> void showDialog(Context ctx, T title, T message,
+                                      T neutralText, Runnable onNeutral) {
+        showDialog(ctx, title, message,
+                (String) null, null,
+                (String) null, null,
+                neutralText, onNeutral);
+    }
+
+
+    public static <T> void showDialog(Context ctx, T title, T message,
                                       T positiveText, Runnable onPositive,
                                       T negativeText, Runnable onNegative) {
         showDialog(ctx, title, message,
