@@ -54,7 +54,7 @@ public class BatterySaverService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if ("org.nukisystems.hieroglyph.UPDATE_BATTERY_SAVER".equals(intent.getAction())){
+        if (intent.getAction() != null && "org.nukisystems.hieroglyph.UPDATE_BATTERY_SAVER".equals(intent.getAction())){
             trackBatterySaver = intent.getBooleanExtra("status", false);
         }
         updateStatus();
