@@ -9,6 +9,7 @@ import org.nukisystems.hieroglyph.Constants.Constants;
 import org.nukisystems.hieroglyph.Manager.AnimationManager;
 import org.nukisystems.hieroglyph.Manager.StatusManager;
 import org.nukisystems.hieroglyph.Utils.FileUtils;
+import org.nukisystems.hieroglyph.aidl.NanoGlyphManager;
 
 public class TorchService extends Service {
 
@@ -62,10 +63,9 @@ public class TorchService extends Service {
     
     public void setTorch(boolean state) {
         if (state && !wakeLock.isHeld()) wakeLock.acquire();
+        NanoGlyphManager.Java.Matrix.setBrightness(state ? 255 : 0);
 
         StatusManager.setAllLedsActive(state);
-        FileUtils.writeAllLed(state ? Constants.getMaxBrightness() : 0);
-        if (StatusManager.isEssentialLedActive() && !state) AnimationManager.playEssential();
         if (!state && wakeLock.isHeld()) wakeLock.release();
     }
 
