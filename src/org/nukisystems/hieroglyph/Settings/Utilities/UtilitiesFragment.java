@@ -141,7 +141,7 @@ public class  UtilitiesFragment extends SettingsBasePreferenceFragment {
         }
 
         private void showUserOggMeta(Uri contentUri) throws Exception {
-            AnimationUtils.Holder.oggMeta.setMap(resolveUserOggMeta(contentUri));
+            CSVUtils.Holder.oggMeta.setMap(resolveUserOggMeta(contentUri));
             Intent intent = new Intent(requireContext(), SubSettingsActivity.class);
             intent.putExtra("fragment", OggSettingsFragment.class.getName());
             startActivity(intent);

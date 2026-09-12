@@ -239,7 +239,7 @@ public class CSVUtils {
     }
 
     public static Iterator<String> iterateCsvLines(BufferedReader reader)
-            throws IOException {
+            throws Exception {
 
         return iterateCsvLines(reader, false, false);
     }

@@ -46,7 +46,7 @@ import java.util.concurrent.Future;
 import org.nukisystems.hieroglyph.Constants.Constants;
 import org.nukisystems.hieroglyph.Manager.AnimationManager;
 import org.nukisystems.hieroglyph.Manager.SettingsManager;
-import org.nukisystems.hieroglyph.Utils.AnimationUtils;
+import org.nukisystems.hieroglyph.Utils.CSVUtils;
 
 public class NotificationService extends NotificationListenerService
         implements SharedPreferences.OnSharedPreferenceChangeListener {
@@ -176,9 +176,9 @@ public class NotificationService extends NotificationListenerService
                     }
                 } else {
                     if (SettingsManager.isGlyphNotifsSyncEnabled()
-                            && AnimationUtils.Holder.Notification.isAvailable()) {
+                            && CSVUtils.Holder.Notification.isAvailable()) {
                         AnimationManager.playExternalCsv(
-                                AnimationUtils.Holder.Notification.getCsv(),
+                                CSVUtils.Holder.Notification.getCsv(),
                                 "notification"
                         );
                     } else {
