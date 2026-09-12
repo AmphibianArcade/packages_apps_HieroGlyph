@@ -42,6 +42,6 @@ public class BootCompletedReceiver extends BroadcastReceiver {
             if (DEBUG) Log.d(TAG, "Schedule alarms restored on boot");
         }
         
-        ServiceUtils.checkGlyphService();
+        ServiceUtils.checkGlyphService(true);
     }
 }

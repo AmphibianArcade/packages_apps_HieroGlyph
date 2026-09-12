@@ -33,6 +33,7 @@ import org.nukisystems.hieroglyph.Manager.StatusManager;
 import org.nukisystems.hieroglyph.Services.*;
 
 import org.nukisystems.hieroglyph.Utils.MatrixUtils;
+import org.nukisystems.hieroglyph.aidl.NanoGlyphManager;
 
 public final class ServiceUtils {
 
@@ -214,12 +215,12 @@ public final class ServiceUtils {
                 UserHandle.CURRENT);
     }
 
-    public static void checkGlyphService() {
+    public static void checkGlyphService(boolean checkNano) {
 
         boolean glyphEnabled = SettingsManager.isGlyphEnabled();
         boolean glyphBaseEnabled = SettingsManager.isGlyphEnabledIgnoreSchedule();
 
-        if (StatusManager.isBatterySavingActive()) {
+        if ((checkNano && !NanoGlyphManager.Java.tryConnect(150))|| StatusManager.isBatterySavingActive()) {
             stopGlyphServices();
             return;
         }
@@ -288,7 +289,11 @@ public final class ServiceUtils {
         }
     }
 
-    public static void stopGlyphServices(){
+    public static void checkGlyphService() {
+        checkGlyphService(false);
+    }
+
+    public static void stopGlyphServices() {
         stopChargingService();
         stopPowershareService();
         stopCallReceiverService();

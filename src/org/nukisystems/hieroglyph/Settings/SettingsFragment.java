@@ -63,10 +63,14 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.nukisystems.hieroglyph.Utils.FileUtils;
 import org.nukisystems.hieroglyph.Utils.ResourceUtils;
 import org.nukisystems.hieroglyph.Utils.ServiceUtils;
+import org.nukisystems.hieroglyph.aidl.NanoGlyphManager;
 
 public class SettingsFragment extends SettingsBasePreferenceFragment implements OnPreferenceChangeListener,
         OnCheckedChangeListener {
@@ -108,6 +112,8 @@ public class SettingsFragment extends SettingsBasePreferenceFragment implements 
     private Handler mHandler = new Handler();
 
     private Context context;
+
+    private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
 
     String[] mediaPermissions = {
             Manifest.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK
@@ -263,7 +269,7 @@ public class SettingsFragment extends SettingsBasePreferenceFragment implements 
         IntentFilter filter = new IntentFilter("org.nukisystems.hieroglyph.UPDATE_MAIN_SWITCH");
         requireContext().registerReceiver(mScheduleUpdateReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
 
-        mHandler.post(ServiceUtils::checkGlyphService);
+        tryNanoGlyph();
     }
 
     @Override
@@ -374,6 +380,26 @@ public class SettingsFragment extends SettingsBasePreferenceFragment implements 
             ServiceUtils.checkGlyphService();
             updateTorchTile();
             updateMainSwitchState();
+        });
+    }
+
+    private void tryNanoGlyph() {
+        mExecutor.execute(() -> {
+            boolean connected = NanoGlyphManager.Java.tryConnect(500);
+            if (!isAdded()) return;
+            requireActivity().runOnUiThread(() -> {
+                if (!isAdded()) return;
+                if (!connected) {
+                    showDialog(
+                            requireActivity(),
+                            R.string.glyph_settings_nanoglyph_failure_title,
+                            R.string.glyph_settings_nanoglyph_failure_message,
+                            android.R.string.ok, () -> {
+                                requireActivity().finish();
+                            });
+                }
+            });
+            ServiceUtils.checkGlyphService(false);
         });
     }
     
