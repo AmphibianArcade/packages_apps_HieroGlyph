@@ -32,6 +32,8 @@ import org.nukisystems.hieroglyph.Manager.SettingsManager;
 import org.nukisystems.hieroglyph.Manager.StatusManager;
 import org.nukisystems.hieroglyph.Services.*;
 
+import org.nukisystems.hieroglyph.Utils.MatrixUtils;
+
 public final class ServiceUtils {
 
     private static final String TAG = "GlyphServiceUtils";
@@ -238,6 +240,8 @@ public final class ServiceUtils {
         }
 
         if (glyphEnabled) {
+            MatrixUtils.init();
+
             if (SettingsManager.isGlyphChargingEnabled()) {
                 startChargingService();
             } else {

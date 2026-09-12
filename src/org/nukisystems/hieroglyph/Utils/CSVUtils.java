@@ -245,17 +245,23 @@ public class CSVUtils {
     }
 
     public static Iterator<String> iterateCsvLines(BufferedReader reader, boolean reverse)
-            throws IOException {
+            throws Exception {
 
         return iterateCsvLines(reader, reverse, false);
     }
 
     public static Iterator<String> iterateCsvLines(BufferedReader reader, boolean reverse,
-                                                   boolean alternate) throws IOException {
+                                                   boolean alternate) throws Exception {
         List<String> lines = new ArrayList<>();
         String line;
         while ((line = reader.readLine()) != null) {
             line = sanitizeCsvLine(line);
+            try {
+                line = MatrixUtils.trimToValidFrame(line);
+            } catch (Exception e) {
+                Log.d("CSVUtils", e.getMessage());
+                throw new IllegalArgumentException();
+            }
             lines.add(line);
         }
         if (alternate) {

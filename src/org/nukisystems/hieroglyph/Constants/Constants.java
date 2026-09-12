@@ -19,6 +19,7 @@ package org.nukisystems.hieroglyph.Constants;
 import android.content.Context;
 
 import org.nukisystems.hieroglyph.Utils.ResourceUtils;
+import org.nukisystems.hieroglyph.Utils.MatrixUtils;
 
 public final class Constants {
 
@@ -126,6 +127,11 @@ public final class Constants {
             return getDevice().equals(PHONE3);
         }
     }
+
+    public static class Res  {
+        public static String ARRAY_MATRIX_ROWS = "matrix_row_leds";
+        public static String ARRAY_BRIGHTNESS_LEVELS = "matrix_brightness_levels";
+    }
     
 
     public static final String[] APPS_TO_IGNORE = {
@@ -168,15 +174,16 @@ public final class Constants {
 
     public static int[] getBrightnessLevels() {
         if (brightnessLevels == null)
-            brightnessLevels = ResourceUtils.getIntArray("glyph_settings_brightness_levels");
+            brightnessLevels = ResourceUtils.getIntArray(Res.ARRAY_BRIGHTNESS_LEVELS);
 
         return brightnessLevels;
     }
 
     public static int[] getSupportedAnimationPatternLengths() {
-        if (supportedAnimationPatternLengths == null)
-            supportedAnimationPatternLengths = ResourceUtils.getIntArray(
-                    "glyph_settings_animations_supported_pattern_lengths");
+        if (supportedAnimationPatternLengths == null) {
+            supportedAnimationPatternLengths = 
+                new int[]{MatrixUtils.getMinFrameLength(), MatrixUtils.getMaxFrameLength()};
+        }
 
         return supportedAnimationPatternLengths;
     }

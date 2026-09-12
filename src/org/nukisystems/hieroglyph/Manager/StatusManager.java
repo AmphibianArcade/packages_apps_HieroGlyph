@@ -17,6 +17,7 @@
 package org.nukisystems.hieroglyph.Manager;
 
 import org.nukisystems.hieroglyph.Utils.ResourceUtils;
+import org.nukisystems.hieroglyph.Utils.MatrixUtils;
 
 public final class StatusManager {
 
@@ -34,10 +35,10 @@ public final class StatusManager {
     private static int progressType = 0;
     private static int progressLedLast = 0;
     private static int chargingLedLast = 0;
-    private static int[] batteryArray = new int[ResourceUtils.getInteger("glyph_settings_battery_levels_num")];
+    private static int[] batteryArray;
     private static int volumeLedLast = 0;
-    private static int[] volumeArray = new int[ResourceUtils.getInteger("glyph_settings_volume_levels_num")];
-    private static int[] progressArray = new int[ResourceUtils.getInteger("glyph_settings_volume_levels_num")];
+    private static int[] volumeArray;
+    private static int[] progressArray;
 
     private static boolean callLedEnabled = false;
 
@@ -106,6 +107,9 @@ public final class StatusManager {
     }
 
     public static int[] getBatteryArray() {
+        if (batteryArray == null) {
+            batteryArray = new int[MatrixUtils.getMinFrameLength()];
+        }
         return batteryArray;
     }
 
@@ -122,6 +126,9 @@ public final class StatusManager {
     }
 
     public static int[] getVolumeArray() {
+        if (volumeArray == null) {
+            volumeArray =  new int[MatrixUtils.getMinFrameLength()];
+        }
         return volumeArray;
     }
 
@@ -162,6 +169,9 @@ public final class StatusManager {
     }
 
     public static int[] getProgressArray() {
+        if (progressArray == null) {
+            progressArray = new int[MatrixUtils.getMinFrameLength()];
+        }
         return progressArray;
     }
 
