@@ -49,11 +49,11 @@ public class InterfaceUtils {
     }
 
     public static <T> void showDialog(Context ctx, T title, T message,
-                                      T neutralText, Runnable onNeutral) {
+                                      T positiveText, Runnable onPositive) {
         showDialog(ctx, title, message,
+                positiveText, onPositive,
                 (String) null, null,
-                (String) null, null,
-                neutralText, onNeutral);
+                (String) null, null);
     }
 
 
