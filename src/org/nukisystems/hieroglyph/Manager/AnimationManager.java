@@ -642,7 +642,6 @@ public final class AnimationManager {
 
         brightness = brightness / maxPatternBrightness * currentBrightness;
 
-        FileUtils.writeSingleLed(led, brightness);
     }
 
     public static void playProgress(Context context, int progressPercent, int progressType, boolean wait) {

@@ -108,7 +108,7 @@ public final class SettingsManager {
 
     public static int getGlyphBrightnessSetting() {
         Context ctx = getContext();
-        int d = 3; if (FileUtils.readLine("/mnt/vendor/persist/color") == "white") d = 2;
+        int d = 3;
         return PreferenceManager.getDefaultSharedPreferences(ctx)
                 .getInt(Constants.GLYPH_BRIGHTNESS, d);
     }
