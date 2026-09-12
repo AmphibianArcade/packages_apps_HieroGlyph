@@ -69,7 +69,7 @@ import org.nukisystems.hieroglyph.R;
 import org.nukisystems.hieroglyph.Constants.Constants;
 import org.nukisystems.hieroglyph.Manager.SettingsManager;
 import org.nukisystems.hieroglyph.Preference.GlyphAnimationPreference;
-import org.nukisystems.hieroglyph.Utils.AnimationUtils;
+import org.nukisystems.hieroglyph.Utils.CSVUtils;
 import org.nukisystems.hieroglyph.Utils.ResourceUtils;
 import org.nukisystems.hieroglyph.Utils.ServiceUtils;
 
@@ -409,14 +409,7 @@ public class AnimationSettingsFragment
 
         if (mListPreference.getValue().startsWith(userAnimationPrefix)) {
             String animationName = mListPreference.getValue();
-            AnimationUtils.checkUserAnimation(animationName);
-            try {
-                String csv = new String(ResourceUtils.getAnimation(animationName).readAllBytes(),
-                        StandardCharsets.UTF_8);
-                isPlayable = !AnimationUtils.isAnimationComplex(csv);
-            } catch (Exception e) {
-
-            }
+            CSVUtils.checkUserAnimation(animationName);
         }
         if (isPlayable) {
             mGlyphAnimationPreference.updateAnimation(
@@ -446,16 +439,7 @@ public class AnimationSettingsFragment
 
             if (shouldAlternate) animationName = SettingsManager.getGlyphNotifsAnimation();
             if (animationName.startsWith(userAnimationPrefix)) {
-                if (!AnimationUtils.checkUserAnimation(animationName)) return false;
-                try {
-                    String csv = new String(ResourceUtils.getAnimation(animationName).readAllBytes(),
-                            StandardCharsets.UTF_8);
-                    isPlayable = !AnimationUtils.isAnimationComplex(csv);
-                } catch (Exception e) {
-
-                }
-            }
-            mGlyphAnimationPreference.updateAnimation(
+                if (!CSVUtils.checkUserAnimation(animationName)) return false;
                     isAnimationEnabled(),
                     animationName,
                     1500,

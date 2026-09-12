@@ -19,7 +19,7 @@ import org.nukisystems.hieroglyph.Constants.Constants;
 
 import org.nukisystems.hieroglyph.R;
 
-public class AnimationUtils {
+public class CSVUtils {
 
     private final String TAG = this.getClass().getSimpleName();
 
@@ -135,14 +135,14 @@ public class AnimationUtils {
             }
         } catch (Exception e) {
             showToast(R.string.glyph_settings_user_animation_invalid);
-            Log.w(AnimationUtils.class.getSimpleName(), e.getMessage());
+            Log.w(CSVUtils.class.getSimpleName(), e.getMessage());
             e.printStackTrace();
             return false;
         }
         return true;
     }
 
-     static boolean allSame(int[] arr, int start, int end) {
+    static boolean allSame(int[] arr, int start, int end) {
         int first = arr[start];
         for (int i = start + 1; i <= end; i++) {
             if (arr[i] != first) return false;

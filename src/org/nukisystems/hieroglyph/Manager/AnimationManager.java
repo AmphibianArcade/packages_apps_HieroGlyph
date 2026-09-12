@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.nukisystems.hieroglyph.Constants.Constants;
-import org.nukisystems.hieroglyph.Utils.AnimationUtils;
+import org.nukisystems.hieroglyph.Utils.CSVUtils;
 import org.nukisystems.hieroglyph.Utils.FileUtils;
 import org.nukisystems.hieroglyph.Utils.ResourceUtils;
 
@@ -113,7 +113,7 @@ public final class AnimationManager {
         StatusManager.setAnimationActive(true);
         BufferedReader reader = new BufferedReader(new StringReader(csv));
         try {
-            Iterator<String> it = AnimationUtils.iterateCsvLines(reader, false, false);
+            Iterator<String> it = CSVUtils.iterateCsvLines(reader, false, false);
             while (it.hasNext()) {
                 if (checkInterruption("csv")) throw new InterruptedException();
                 String[] pattern = it.next().split(",");
@@ -172,7 +172,7 @@ public final class AnimationManager {
 
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(
                 ResourceUtils.getAnimation(name)))) {
-            Iterator<String> it = AnimationUtils.iterateCsvLines(reader, reverse, shouldAlternate);
+            Iterator<String> it = CSVUtils.iterateCsvLines(reader, reverse, shouldAlternate);
             while (it.hasNext()) {
                 if (checkInterruption("csv")) throw new InterruptedException();
                 String[] pattern = it.next().split(",");
@@ -375,7 +375,7 @@ public final class AnimationManager {
         while (StatusManager.isCallLedEnabled()) {
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(
                     ResourceUtils.getCallAnimation(name)))) {
-                Iterator<String> it = AnimationUtils.iterateCsvLines(reader, reversed);
+                Iterator<String> it = CSVUtils.iterateCsvLines(reader, reversed);
                 while (it.hasNext()) {
                     if (checkInterruption("call")) throw new InterruptedException();
                     String[] pattern = it.next().split(",");

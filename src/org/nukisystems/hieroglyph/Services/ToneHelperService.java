@@ -22,7 +22,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.nukisystems.hieroglyph.Manager.SettingsManager;
-import org.nukisystems.hieroglyph.Utils.AnimationUtils;
+import org.nukisystems.hieroglyph.Utils.CSVUtils;
 import org.nukisystems.hieroglyph.Utils.OGGParser;
 
 import org.nukisystems.hieroglyph.R;
@@ -71,14 +71,14 @@ public class ToneHelperService extends Service {
             String key = Settings.System.NOTIFICATION_SOUND;
             handleSettingChange(key, Settings.System.getString(resolver, key), false);
         } else {
-            AnimationUtils.Holder.Notification.clear();
+            CSVUtils.Holder.Notification.clear();
         }
 
 //        if (saveRing) {
 //            String key = Settings.System.RINGTONE;
 //            handleSettingChange(key, Settings.System.getString(resolver, key), false);
 //        } else {
-//            AnimationUtils.Holder.Call.clear();
+//            CSVUtils.Holder.Call.clear();
 //        }
         return START_STICKY;
     }
@@ -141,8 +141,8 @@ public class ToneHelperService extends Service {
         if (settingsObserver != null) {
             getContentResolver().unregisterContentObserver(settingsObserver);
         }
-        AnimationUtils.Holder.Call.clear();
-        AnimationUtils.Holder.Notification.clear();
+        CSVUtils.Holder.Call.clear();
+        CSVUtils.Holder.Notification.clear();
     }
 
     @Override
@@ -197,10 +197,10 @@ public class ToneHelperService extends Service {
             Log.w(TAG, "Unable to obtain animation data from OGG file.");
             switch (key) {
 //                case Settings.System.RINGTONE -> {
-//                    AnimationUtils.Holder.Call.clear();
+//                    CSVUtils.Holder.Call.clear();
 //                }
                 case Settings.System.NOTIFICATION_SOUND -> {
-                    AnimationUtils.Holder.Notification.clear();
+                    CSVUtils.Holder.Notification.clear();
                 }
             }
             return;
@@ -213,15 +213,15 @@ public class ToneHelperService extends Service {
         }
         if (animationData != null && !animationData.isEmpty()) {
             Log.d(TAG,"Animation data found!");
-            boolean compatible = AnimationUtils.isCompatible(animationData);
+            boolean compatible = CSVUtils.isCompatible(animationData);
             if (!compatible) {
                 Log.w(TAG, "Animation is not compatible with this device!");
                 switch (key) {
 //                    case Settings.System.RINGTONE -> {
-//                        AnimationUtils.Holder.Call.clear();
+//                        CSVUtils.Holder.Call.clear();
 //                    }
                     case Settings.System.NOTIFICATION_SOUND -> {
-                        AnimationUtils.Holder.Notification.clear();
+                        CSVUtils.Holder.Notification.clear();
                     }
                 }
                 return;
@@ -230,21 +230,21 @@ public class ToneHelperService extends Service {
             switch (key) {
 //                case Settings.System.RINGTONE -> {
 //                    if (saveRing) {
-//                        if (AnimationUtils.Holder.Call.isAvailable()
-//                                && AnimationUtils.Holder.Call.getCsv().equals(animationData)) {
+//                        if (CSVUtils.Holder.Call.isAvailable()
+//                                && CSVUtils.Holder.Call.getCsv().equals(animationData)) {
 //                            return;
 //                        }
-//                        AnimationUtils.Holder.Call.setCsv(animationData);
+//                        CSVUtils.Holder.Call.setCsv(animationData);
 //                        if (shouldNotify) notifyUser(key, value);
 //                    }
 //                }
                 case Settings.System.NOTIFICATION_SOUND -> {
                     if (saveNotif) {
-                        if (AnimationUtils.Holder.Notification.isAvailable()
-                                && AnimationUtils.Holder.Notification.getCsv().equals(animationData)) {
+                        if (CSVUtils.Holder.Notification.isAvailable()
+                                && CSVUtils.Holder.Notification.getCsv().equals(animationData)) {
                             return;
                         }
-                        AnimationUtils.Holder.Notification.setCsv(animationData);
+                        CSVUtils.Holder.Notification.setCsv(animationData);
                         if (shouldNotify) notifyUser(key, value);
                     }
                 }

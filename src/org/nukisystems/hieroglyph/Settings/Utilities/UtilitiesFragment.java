@@ -36,7 +36,7 @@ import org.nukisystems.hieroglyph.Constants.Constants;
 import org.nukisystems.hieroglyph.R;
 import org.nukisystems.hieroglyph.Settings.OggSettingsFragment;
 import org.nukisystems.hieroglyph.Settings.SubSettingsActivity;
-import org.nukisystems.hieroglyph.Utils.AnimationUtils;
+import org.nukisystems.hieroglyph.Utils.CSVUtils;
 import org.nukisystems.hieroglyph.Utils.OGGParser;
 
 public class  UtilitiesFragment extends SettingsBasePreferenceFragment {
@@ -81,7 +81,7 @@ public class  UtilitiesFragment extends SettingsBasePreferenceFragment {
                             InputStream is
                                     = requireContext().getContentResolver().openInputStream(uri);
                             csvContent = new String(is.readAllBytes(), StandardCharsets.UTF_8);
-                            showCSVresult(AnimationUtils.validateAnimationWithList(csvContent), uri);
+                            showCSVresult(CSVUtils.validateAnimationWithList(csvContent), uri);
                         } catch (Exception e) {
                             showDialog(requireActivity(),
                                     "Error reading CSV file!", "",
@@ -151,12 +151,12 @@ public class  UtilitiesFragment extends SettingsBasePreferenceFragment {
             Map<String, String> newMeta = new HashMap<>();
 
             String csv = parser.getAnimation();
-            String device = AnimationUtils.getDevice(csv);
+            String device = CSVUtils.getDevice(csv);
             String fileName = getFileName(requireContext(), contentUri);
 
             newMeta.put(mapKeyFilename, fileName);
             newMeta.put(mapKeyDevice, device);
-            newMeta.put(mapKeyAnimLength, String.valueOf(Math.round(AnimationUtils.calcAnimPlaytime(csv))));
+            newMeta.put(mapKeyAnimLength, String.valueOf(Math.round(CSVUtils.calcAnimPlaytime(csv))));
             newMeta.put("csv", csv);
 
             return newMeta;

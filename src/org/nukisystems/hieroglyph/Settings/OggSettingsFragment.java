@@ -29,7 +29,7 @@ import java.util.Map;
 import org.nukisystems.hieroglyph.Constants.Constants;
 import org.nukisystems.hieroglyph.Manager.AnimationManager;
 import org.nukisystems.hieroglyph.R;
-import org.nukisystems.hieroglyph.Utils.AnimationUtils;
+import org.nukisystems.hieroglyph.Utils.CSVUtils;
 
 public class OggSettingsFragment extends SettingsBasePreferenceFragment {
 
@@ -51,7 +51,7 @@ public class OggSettingsFragment extends SettingsBasePreferenceFragment {
 
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
-        metadata = AnimationUtils.Holder.oggMeta.getMap();
+        metadata = CSVUtils.Holder.oggMeta.getMap();
         origFilename = metadata.get(mapKeyFilename);
 
         mScreen = getPreferenceManager().createPreferenceScreen(requireContext());
@@ -92,7 +92,7 @@ public class OggSettingsFragment extends SettingsBasePreferenceFragment {
 
                 case mapKeyAnimLength -> {
                     pref.setTitle(R.string.metadata_pattern_duration);
-                    pref.setSummary(AnimationUtils.toReadableDuration(Long.parseLong(value)));
+                    pref.setSummary(CSVUtils.toReadableDuration(Long.parseLong(value)));
                 }
                 case mapKeyFilename -> {
                     pref.setTitle(R.string.metadata_filename);
@@ -108,7 +108,7 @@ public class OggSettingsFragment extends SettingsBasePreferenceFragment {
 
         mLivePreviewPreference = findPreference(Constants.GLYPH_OGG_LIVE_PREVIEW);
 
-        boolean incompatible = !AnimationUtils.isCompatible(csv);
+        boolean incompatible = !CSVUtils.isCompatible(csv);
         if (incompatible) {
             mLivePreviewPreference.setSummary(R.string.glyph_settings_user_animation_incompatible);
             mLivePreviewPreference.setEnabled(false);
@@ -260,7 +260,7 @@ public class OggSettingsFragment extends SettingsBasePreferenceFragment {
             livePreviewThread.interrupt();
             livePreviewThread = null;
         }
-        AnimationUtils.Holder.oggMeta.clear();
+        CSVUtils.Holder.oggMeta.clear();
     }
 
 }
