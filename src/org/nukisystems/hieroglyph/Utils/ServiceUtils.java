@@ -101,14 +101,12 @@ public final class ServiceUtils {
     }
 
     private static void startChargingService() {
-        if (Constants.Device.isPhone2a()) return;
         if (DEBUG) Log.d(TAG, "Starting Glyph charging service");
         getContext().startServiceAsUser(new Intent(getContext(), ChargingService.class),
                 UserHandle.CURRENT);
     }
 
     private static void stopChargingService() {
-        if (Constants.Device.isPhone2a()) return;
         if (DEBUG) Log.d(TAG, "Stopping Glyph charging service");
         getContext().stopServiceAsUser(new Intent(getContext(), ChargingService.class),
                 UserHandle.CURRENT);
@@ -143,14 +141,12 @@ public final class ServiceUtils {
     }
 
     public static void startVolumeLevelService() {
-        if (Constants.Device.isPhone1()) return;
         if (DEBUG) Log.d(TAG, "Starting Volume Level service");
         getContext().startServiceAsUser(new Intent(getContext(), VolumeLevelService.class),
                 UserHandle.CURRENT);
     }
 
     protected static void stopVolumeLevelService() {
-        if (Constants.Device.isPhone1()) return;
         if (DEBUG) Log.d(TAG, "Stopping Volume Listener service");
         getContext().stopServiceAsUser(new Intent(getContext(), VolumeLevelService.class),
                 UserHandle.CURRENT);
@@ -181,28 +177,24 @@ public final class ServiceUtils {
     }
 
     public static void startProgressService() {
-        if (Constants.Device.isPhone1()) return;
         if (DEBUG) Log.d(TAG, "Starting Progress service");
         context.startServiceAsUser(new Intent(context, ProgressService.class),
                 UserHandle.CURRENT);
     }
 
     public static void stopProgressService() {
-        if (Constants.Device.isPhone1()) return;
         if (DEBUG) Log.d(TAG, "Stopping Progress service");
         context.stopServiceAsUser(new Intent(context, ProgressService.class),
                 UserHandle.CURRENT);
     }
 
     public static void startMicActivityService() {
-        if (!(Constants.Device.isPhone1() || Constants.Device.isPhone2())) return;
         if (DEBUG) Log.d(TAG, "Starting Mic activity service");
         context.startServiceAsUser(new Intent(context, MicActivityService.class),
                 UserHandle.CURRENT);
     }
 
     public static void stopMicActivityService() {
-        if (!(Constants.Device.isPhone1() || Constants.Device.isPhone2())) return;
         if (DEBUG) Log.d(TAG, "Starting Mic activity service");
         context.stopServiceAsUser(new Intent(context, MicActivityService.class),
                 UserHandle.CURRENT);

@@ -418,22 +418,11 @@ public final class AnimationManager {
                 try {
                     if (checkInterruption("essential")) throw new InterruptedException();
                     int[] steps = {12, 24, 36, 48, 60};
-                    if (Constants.Device.isPhone3a()) {
-                        int[] essentialPattern = new int[11];
-                        for (int i : steps) {
-                            if (checkInterruption("essential")) throw new InterruptedException();
-                            int patternBrightness = Constants.MAX_PATTERN_BRIGHTNESS / 100 * i;
-                            Arrays.fill(essentialPattern, patternBrightness);
-                            updateLedFrame(essentialPattern);
-                            Thread.sleep(16, 666000);
-                        }
-                    } else {
-                        int led = ResourceUtils.getInteger("glyph_settings_notifs_essential_led");
-                        for (int i : steps) {
-                            if (checkInterruption("essential")) throw new InterruptedException();
-                            updateLedSingle(led, Constants.MAX_PATTERN_BRIGHTNESS / 100 * i);
-                            Thread.sleep(16, 666000);
-                        }
+                    int led = ResourceUtils.getInteger("glyph_settings_notifs_essential_led");
+                    for (int i : steps) {
+                        if (checkInterruption("essential")) throw new InterruptedException();
+                        updateLedSingle(led, Constants.MAX_PATTERN_BRIGHTNESS / 100 * i);
+                        Thread.sleep(16, 666000);
                     }
                 } catch (InterruptedException ignored) {}
                 StatusManager.setAnimationActive(false);
@@ -441,12 +430,6 @@ public final class AnimationManager {
                 if (DEBUG) Log.d(TAG, "Done playing animation | name: essential");
             });
         } else {
-            if (Constants.Device.isPhone3a()) {
-                int[] essentialPattern = new int[11];
-                int patternBrightness = Constants.MAX_PATTERN_BRIGHTNESS / 100 * 60;
-                Arrays.fill(essentialPattern, patternBrightness);
-                updateLedFrame(essentialPattern);
-            } else {
                 int led = ResourceUtils.getInteger("glyph_settings_notifs_essential_led");
                 updateLedSingle(led, Constants.MAX_PATTERN_BRIGHTNESS / 100 * 60);
             }

@@ -124,52 +124,6 @@ public class AnimationUtils {
         validateFrameBrightness(frame, true);
     }
 
-    public static boolean isAnimationComplex(String csv) throws IOException {
-        try (BufferedReader reader = new BufferedReader(new StringReader(csv))) {
-            Iterator<String> it = iterateCsvLines(reader, false);
-            String line;
-            String device = getDevice(csv);
-            while (it.hasNext()) {
-                line = it.next();
-                int[] arr = Arrays.stream(line.split(","))
-                        .mapToInt(Integer::parseInt)
-                        .toArray();
-                if (arr.length == 5) return false;
-                switch (device) {
-                    case Constants.Device.PHONE3A -> {
-                        if (allSame(arr, 0, 20)
-                                && allSame(arr, 21, 31)
-                                && allSame(arr, 32, 35)) {
-                            continue;
-                        } else {
-                            return true;
-                        }
-                    }
-                    case Constants.Device.PHONE2 -> {
-                        if (allSame(arr, 0, 2)
-                                && allSame(arr, 3, 18)
-                                && allSame(arr, 19, 32)) {
-                            continue;
-                        } else {
-                            return true;
-                        }
-                    }
-                    case Constants.Device.PHONE2A -> {
-                        if (allSame(arr, 0, 23)) {
-                            continue;
-                        } else {
-                            return true;
-                        }
-                    }
-                }
-            }
-            return false;
-        } catch (Exception e) {
-
-        }
-        return false;
-    }
-
     public static boolean checkUserAnimation(String animationName) {
         try {
             String csv = new String(ResourceUtils.getAnimation(animationName).readAllBytes(),
@@ -201,34 +155,18 @@ public class AnimationUtils {
         int frameLength = getFrameLength(sanitizeCsvLine(csv.lines().findFirst().orElse("")));
 
             switch (frameLength) {
-                case 5 -> {
-                    return Constants.Device.PHONE1;
+                case 137, (13 * 13)  -> {
+                    return Constants.Device.PHONE4A_PRO;
                 }
-                case 26 -> {
-                    return Constants.Device.PHONE2A;
-                }
-                case 33 -> {
-                    return Constants.Device.PHONE2;
-                }
-                case 36 -> {
-                    return Constants.Device.PHONE3A;
+                case 489, (25 * 25) -> {
+                    return Constants.Device.PHONE3;
                 }
             }
         return "";
     }
 
     public static boolean isCompatible(String csv) {
-
-        boolean compatible;
-
-        compatible = getDevice(csv).equals(Constants.Device.getDevice());
-
-        if (Constants.Device.isPhone2()) {
-            compatible = getDevice(csv).equals(Constants.Device.getDevice())
-                    || getDevice(csv).equals(Constants.Device.PHONE1);
-        }
-
-        return compatible;
+        return getDevice(csv).equals(Constants.Device.getDevice());
     }
 
     public static float[] buildPatternArray(float[]... arrays) {

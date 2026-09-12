@@ -206,8 +206,6 @@ public class SettingsFragment extends SettingsBasePreferenceFragment implements 
         mChargingLevelPreference.setEnabled(glyphEnabled);
         mChargingLevelPreference.setOnPreferenceChangeListener(this);
 
-        mChargingCategory.setVisible(!Constants.Device.isPhone2a());
-
         mChargingPowersharePreference = (SwitchPreferenceCompat) findPreference(Constants.GLYPH_CHARGING_POWERSHARE_ENABLE);
 
         if (Constants.isPowershareSupported()) {
@@ -218,7 +216,6 @@ public class SettingsFragment extends SettingsBasePreferenceFragment implements 
         }
 
         mVolumeCategory = findPreference(Constants.GLYPH_VOLUME_CATEGORY);
-        mVolumeCategory.setVisible(!Constants.Device.isPhone1());
 
         mVolumeLevelPreference = (SwitchPreferenceCompat) findPreference(Constants.GLYPH_VOLUME_LEVEL_ENABLE);
         mVolumeLevelPreference.setEnabled(glyphEnabled);
@@ -228,8 +225,6 @@ public class SettingsFragment extends SettingsBasePreferenceFragment implements 
         updateScheduleSummary();
 
         mProgressCategory = findPreference(Constants.GLYPH_PROGRESS_CATEGORY);
-
-        mProgressCategory.setVisible(!Constants.Device.isPhone1());
 
         mProgressPreference = (SwitchPreferenceCompat) findPreference(Constants.GLYPH_PROGRESS_ENABLE);
         mProgressPreference.setEnabled(glyphEnabled);
@@ -246,7 +241,6 @@ public class SettingsFragment extends SettingsBasePreferenceFragment implements 
                 ResourceUtils.getApplicationsWithPermission(false, mediaPermissions));
 
         mRedLedCategory = findPreference(Constants.GLYPH_RED_LED_CATEGORY);
-        mRedLedCategory.setVisible(Constants.Device.isPhone2() || Constants.Device.isPhone1());
 
         mMicActivityPreference = findPreference(Constants.GLYPH_MIC_ACTIVITY_ENABLE);
         mMicActivityPreference.setOnPreferenceChangeListener(this);
