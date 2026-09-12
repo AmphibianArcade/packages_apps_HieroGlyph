@@ -14,6 +14,8 @@ import java.util.List;
 import java.util.Set;
 
 import org.nukisystems.hieroglyph.Manager.SettingsManager;
+
+import org.nukisystems.hieroglyph.aidl.NanoGlyphManager;
 import org.nukisystems.hieroglyph.Utils.FileUtils;
 import org.nukisystems.hieroglyph.Utils.ResourceUtils;
 
@@ -22,7 +24,6 @@ public class MicActivityService extends Service {
     private AudioManager mAudioManager;
     private final Handler mHandler = new Handler(Looper.getMainLooper());
 
-    private int redLED;
     private final int BLINK_INTERVAL = 800;
 
     private int MAX_BRIGHTNESS = 255;
@@ -51,10 +52,8 @@ public class MicActivityService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-
-        try {
-            redLED = ResourceUtils.getInteger("glyph_red_led_index");
-        } catch (Exception e) {
+        
+        if (!NanoGlyphManager.Java.RedLed.isSupported()) {
             Log.w(TAG, "Attempted to start service on unsupported device?");
             stopSelf();
         }
@@ -72,11 +71,11 @@ public class MicActivityService extends Service {
     }
 
     private void toggleLed(boolean state) {
-        FileUtils.writeSingleLed(redLED, state ? MAX_BRIGHTNESS : 0);
+        NanoGlyphManager.Java.RedLed.setBrightness(state ? MAX_BRIGHTNESS : 0);
     }
 
     private void setLedBrightness(int brightness) {
-        FileUtils.writeSingleLed(redLED, brightness);
+        NanoGlyphManager.Java.RedLed.setBrightness(brightness);
     }
 
     private void stopLed () {
