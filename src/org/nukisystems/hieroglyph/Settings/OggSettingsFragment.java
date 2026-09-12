@@ -72,17 +72,11 @@ public class OggSettingsFragment extends SettingsBasePreferenceFragment {
                 case mapKeyDevice -> {
                     pref.setTitle(R.string.metadata_device);
                     switch (value) {
-                        case Constants.Device.PHONE1 -> {
-                            pref.setSummary(R.string.metadata_device_phone1_proper);
+                        case Constants.Device.PHONE4A_PRO -> {
+                            pref.setSummary(R.string.metadata_device_phone4a_pro_proper);
                         }
-                        case Constants.Device.PHONE2 -> {
-                            pref.setSummary(R.string.metadata_device_phone2_proper);
-                        }
-                        case Constants.Device.PHONE2A -> {
-                            pref.setSummary(R.string.metadata_device_phone2a_proper);
-                        }
-                        case Constants.Device.PHONE3A -> {
-                            pref.setSummary(R.string.metadata_device_phone3a_proper);
+                        case Constants.Device.PHONE3 -> {
+                            pref.setSummary(R.string.metadata_device_phone3_proper);
                         }
                         default -> {
                             pref.setSummary(R.string.metadata_device_unsupported);
