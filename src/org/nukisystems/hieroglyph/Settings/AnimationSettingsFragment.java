@@ -68,7 +68,7 @@ import org.nukisystems.hieroglyph.Manager.AnimationManager;
 import org.nukisystems.hieroglyph.R;
 import org.nukisystems.hieroglyph.Constants.Constants;
 import org.nukisystems.hieroglyph.Manager.SettingsManager;
-import org.nukisystems.hieroglyph.Preference.GlyphAnimationPreference;
+import org.nukisystems.hieroglyph.Preference.MatrixPreference;
 import org.nukisystems.hieroglyph.Utils.CSVUtils;
 import org.nukisystems.hieroglyph.Utils.ResourceUtils;
 import org.nukisystems.hieroglyph.Utils.ServiceUtils;
@@ -110,7 +110,7 @@ public class AnimationSettingsFragment
 
     private SwitchPreferenceCompat mGlyphFlipAnimationSwitch;
 
-    private GlyphAnimationPreference mGlyphAnimationPreference;
+    private MatrixPreference mMatrixPreference;
 
     private String fragmentTitle = null;
 
@@ -241,7 +241,7 @@ public class AnimationSettingsFragment
         }
 
         mLivePreviewPreference = findPreference(livePreviewKey);
-        mGlyphAnimationPreference = findPreference(animationPreviewKey);
+        mMatrixPreference = findPreference(animationPreviewKey);
 
         mReverseAnimationSwitch = findPreference(reverseAnimationKey);
         mReverseAnimationSwitch.setOnPreferenceChangeListener(this);
@@ -412,7 +412,7 @@ public class AnimationSettingsFragment
             CSVUtils.checkUserAnimation(animationName);
         }
         if (isPlayable) {
-            mGlyphAnimationPreference.updateAnimation(
+            mMatrixPreference.updateAnimation(
                     isAnimationEnabled(),
                     getGlyphAnimation(),
                     1500,
@@ -420,7 +420,7 @@ public class AnimationSettingsFragment
                     shouldAlternate
             );
         }
-        mGlyphAnimationPreference.setVisible(isPlayable);
+        mMatrixPreference.setVisible(isPlayable);
     }
 
     @Override
@@ -440,13 +440,15 @@ public class AnimationSettingsFragment
             if (shouldAlternate) animationName = SettingsManager.getGlyphNotifsAnimation();
             if (animationName.startsWith(userAnimationPrefix)) {
                 if (!CSVUtils.checkUserAnimation(animationName)) return false;
+            }
+            mMatrixPreference.updateAnimation(
                     isAnimationEnabled(),
                     animationName,
                     1500,
                     shouldReverse,
                     shouldAlternate
             );
-            mGlyphAnimationPreference.setVisible(isPlayable);
+            mMatrixPreference.setVisible(isPlayable);
             if (livePreviewThread != null && livePreviewThread.isAlive()) {
                 livePreviewThread.interrupt();
             }
@@ -464,11 +466,11 @@ public class AnimationSettingsFragment
                     && getGlyphAnimation().equals(Constants.GLYPH_NOTIF_ANIMATION_ALTERNATE);
             boolean shouldReverse = mReverseAnimationSwitch.isChecked() && !shouldAlternate;
 
-            mGlyphAnimationPreference.updateAnimation((Boolean) newValue, 1500, shouldReverse);
+            mMatrixPreference.updateAnimation((Boolean) newValue, 1500, shouldReverse);
         }
 
         if (preferenceKey.equals(reverseAnimationKey)) {
-            mGlyphAnimationPreference.updateAnimation(isAnimationEnabled(), 1500, (Boolean) newValue);
+            mMatrixPreference.updateAnimation(isAnimationEnabled(), 1500, (Boolean) newValue);
         }
 
         if (preferenceKey.equals(Constants.GLYPH_NOTIFS_TONE_SYNC)) {
@@ -881,7 +883,7 @@ public class AnimationSettingsFragment
     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
         setAnimationEnabled(isChecked);
         ServiceUtils.checkGlyphService();
-        mGlyphAnimationPreference.updateAnimation(isChecked, getGlyphAnimation(), 1500);
+        mMatrixPreference.updateAnimation(isChecked, getGlyphAnimation(), 1500);
     }
 
 

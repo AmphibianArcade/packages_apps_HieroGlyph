@@ -18,7 +18,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:title="@string/glyph_settings_notifs_toggle_title">
 
-    <org.nukisystems.hieroglyph.Preference.GlyphAnimationPreference
+    <org.nukisystems.hieroglyph.Preference.MatrixPreference
         android:key="glyph_settings_notifs_sub_preview"
         android:selectable="false" />
 

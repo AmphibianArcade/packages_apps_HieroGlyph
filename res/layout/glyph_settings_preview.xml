@@ -18,7 +18,10 @@
         android:paddingBottom="28dp"
         android:background="@drawable/bg_protection_background">
 
-        <include layout="@layout/glyph_settings_preview_device" />
+        <org.nukisystems.hieroglyph.View.MatrixDisplayView
+            android:id="@+id/matrixDisplay"
+            android:layout_width="match_parent"
+            android:layout_height="200dp" />
 
     </FrameLayout>
 </LinearLayout>
