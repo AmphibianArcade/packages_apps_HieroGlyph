@@ -166,7 +166,7 @@ public final class ResourceUtils {
     public static List<String> getBundledCallAnimations() {
         if (bundledCallAnimations == null) {
             try {
-                String[] assets = getAssetManager().list("call");
+                String[] assets = getAssetManager().list("ring");
                 for (int i=0; i < assets.length; i++) {
                     assets[i] = assets[i].replaceAll(".csv", "");
                 }
@@ -179,7 +179,7 @@ public final class ResourceUtils {
     public static List<String> getBundledNotificationAnimations() {
         if (bundledNotificationAnimations == null) {
             try {
-                String[] assets = getAssetManager().list("notification");
+                String[] assets = getAssetManager().list("notif");
                 for (int i=0; i < assets.length; i++) {
                     assets[i] = assets[i].replaceAll(".csv", "");
                 }
@@ -251,10 +251,10 @@ public final class ResourceUtils {
             return stream;
         }
         if (bundledCallAnimations.contains(name))
-            return getAssetManager().open("call/" + name + ".csv");
+            return getAssetManager().open("ring/" + name + ".csv");
 
         if (stream == null) {
-            stream = getAssetManager().open("call/"
+            stream = getAssetManager().open("ring/"
                     + ResourceUtils.getString("glyph_settings_call_animations_default") + ".csv");
         }
         return stream;
@@ -274,12 +274,12 @@ public final class ResourceUtils {
         }
 
         if (bundledNotificationAnimations.contains(name)) {
-            stream = getAssetManager().open("notification/" + name + ".csv");
+            stream = getAssetManager().open("notif/" + name + ".csv");
             return stream;
         }
 
         if (stream == null) {
-            stream = getAssetManager().open("notification/"
+            stream = getAssetManager().open("notif/"
                     + ResourceUtils.getString("glyph_settings_notifs_animations_default")
                         + ".csv");
         }
