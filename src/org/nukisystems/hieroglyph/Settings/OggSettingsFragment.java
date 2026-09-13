@@ -226,7 +226,7 @@ public class OggSettingsFragment extends SettingsBasePreferenceFragment {
                     resetLivePreview();
                     return;
                 }
-                AnimationManager.playExternalCsv(csv, metadata.get(mapKeyFilename));
+                AnimationManager.streamCsv(requireContext(), csv, metadata.get(mapKeyFilename));
 
                 if (activity != null) {
                     activity.runOnUiThread(this::resetLivePreview);

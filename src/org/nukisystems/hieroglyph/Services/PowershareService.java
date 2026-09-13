@@ -144,7 +144,7 @@ public class PowershareService extends Service {
             if (FileUtils.readLineInt(POWERSHARE_ACTIVE) == 1) {
                 if (lastState) return;
                 lastState = true;
-                AnimationManager.playCsv(mContext, "powershare", true);
+                AnimationManager.stream(mContext, "powershare");
             } else {
                 lastState = false;
             }

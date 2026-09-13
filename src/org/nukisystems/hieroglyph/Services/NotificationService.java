@@ -164,12 +164,13 @@ public class NotificationService extends NotificationListenerService
             Runnable runnable = () -> {
                 if (SettingsManager.appHasGlyphNotifsConfig(packageName)) {
                     if (SettingsManager.isGlyphNotifsAnimationReversed(packageName)) {
-                        AnimationManager.playCsvReverse(
+                        AnimationManager.stream(
                                 mContext,
-                                SettingsManager.getGlyphNotifsAnimation(packageName))
-                        ;
+                                SettingsManager.getGlyphNotifsAnimation(packageName),
+                                true
+                        );
                     } else {
-                        AnimationManager.playCsv(
+                        AnimationManager.stream(
                                 mContext,
                                 SettingsManager.getGlyphNotifsAnimation(packageName)
                         );
@@ -177,18 +178,20 @@ public class NotificationService extends NotificationListenerService
                 } else {
                     if (SettingsManager.isGlyphNotifsSyncEnabled()
                             && CSVUtils.Holder.Notification.isAvailable()) {
-                        AnimationManager.playExternalCsv(
+                        AnimationManager.streamCsv(
+                                mContext,
                                 CSVUtils.Holder.Notification.getCsv(),
                                 "notification"
                         );
                     } else {
                         if (SettingsManager.isGlyphNotifsAnimationReversed()) {
-                            AnimationManager.playCsvReverse(
+                            AnimationManager.stream(
                                     mContext,
-                                    SettingsManager.getGlyphNotifsAnimation()
+                                    SettingsManager.getGlyphNotifsAnimation(),
+                                    true
                             );
                         } else {
-                            AnimationManager.playCsv(
+                            AnimationManager.stream(
                                     mContext,
                                     SettingsManager.getGlyphNotifsAnimation()
                             );

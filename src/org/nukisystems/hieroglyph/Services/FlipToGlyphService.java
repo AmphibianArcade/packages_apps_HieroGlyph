@@ -92,11 +92,11 @@ public class FlipToGlyphService extends Service {
             String animationName = SettingsManager.getGlyphFlipAnimation();
             boolean shouldReverse = SettingsManager.isGlyphFlipAnimationReversed();
             if (animationName.equals(Constants.GLYPH_NOTIF_ANIMATION_ALTERNATE)) {
-                AnimationManager.playCsvAlternate(mContext, SettingsManager.getGlyphNotifsAnimation());
+                AnimationManager.stream(mContext, SettingsManager.getGlyphNotifsAnimation());
             } else if (shouldReverse) {
-                AnimationManager.playCsvReverse(mContext, animationName);
+                AnimationManager.stream(mContext, animationName, true);
             } else {
-                AnimationManager.playCsv(mContext, animationName);
+                AnimationManager.stream(mContext, animationName);
             }
 
             ringerMode = mAudioManager.getRingerModeInternal();

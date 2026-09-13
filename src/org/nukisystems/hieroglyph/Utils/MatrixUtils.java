@@ -1,16 +1,11 @@
 package org.nukisystems.hieroglyph.Utils;
 
 import org.nukisystems.hieroglyph.Constants.Constants;
-import org.nukisystems.hieroglyph.Utils.CSVUtils;
-import org.nukisystems.hieroglyph.Utils.CSVUtils;
-import org.nukisystems.hieroglyph.Utils.ResourceUtils;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -70,6 +65,41 @@ public class MatrixUtils {
         }
 
         return String.join(",", newFields);
+    }
+
+    public static int[] trimToValidFrame(int[] pattern) throws Exception {
+        int len = pattern.length;
+
+        if (len != getMaxFrameLength() && len != getMinFrameLength()) {
+            throw new IllegalArgumentException(
+                    "Expected length " + getMaxFrameLength() + " or " + getMinFrameLength() + ", found " + len);
+        }
+
+        if (len == getMinFrameLength()) {
+            return pattern;
+        }
+
+        int[] rows = getMatrixRows();
+        int gridSize = getGridSize();
+
+        int[] newPattern = new int[getMinFrameLength()];
+        int pos = 0;
+
+        for (int i = 0; i < gridSize; i++) {
+            int rowCount = rows[i];
+            int from = (gridSize - rowCount) / 2;
+            int start = gridSize * i + from;
+
+            System.arraycopy(pattern, start, newPattern, pos, rowCount);
+            pos += rowCount;
+        }
+
+        if (pos != getMinFrameLength()) {
+            throw new IllegalStateException(
+                    "Trimmed length " + pos + " != expected " + getMinFrameLength());
+        }
+
+        return newPattern;
     }
 
     private static int[] getMatrixRows() {

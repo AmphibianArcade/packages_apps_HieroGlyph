@@ -75,6 +75,31 @@ object NanoGlyphManager {
         }
     }
 
+    suspend fun playMatrixPatternAndAwaitCompletion(frames: List<IntArray>, fps: Int): Boolean {
+        if (!ensureMatrixConnected()) return false
+        return withContext(Dispatchers.IO) {
+            val info = matrix.getInfo() ?: return@withContext false
+            val pixelsPerFrame = info.pixelCount
+            val frameData = ByteArray(frames.size * pixelsPerFrame)
+            var offset = 0
+            for (frame in frames) {
+                for (value in frame) frameData[offset++] = value.coerceIn(0, 255).toByte()
+            }
+            try {
+                matrix.playPatternAndAwaitCompletion(pixelsPerFrame, frames.size, frameData, fps)
+            } catch (e: Exception) {
+                false
+            }
+        }
+    }
+
+    suspend fun setMatrixFrame(frame: IntArray) {
+        if (!ensureMatrixConnected()) return
+        withContext(Dispatchers.IO) {
+            matrix.setFrame(frame)
+        }
+    }
+
     suspend fun stopMatrix() {
         if (!ensureMatrixConnected()) return
         withContext(Dispatchers.IO) { matrix.stop() }
@@ -140,6 +165,23 @@ object NanoGlyphManager {
             fun playPattern(frames: List<IntArray>, fps: Int, onComplete: Runnable? = null) {
                 scope.launch {
                     playMatrixPattern(frames, fps)
+                    onComplete?.run()
+                }
+            }
+
+            @JvmStatic
+            fun playPatternAndAwaitCompletion(frames: List<IntArray>, fps: Int, onComplete: BoolCallback) {
+                scope.launch {
+                    val result = playMatrixPatternAndAwaitCompletion(frames, fps)
+                    onComplete.onResult(result)
+                }
+            }
+
+            @JvmStatic
+            @JvmOverloads
+            fun setFrame(frame: IntArray, onComplete: Runnable? = null) {
+                scope.launch {
+                    setFrame(frame)
                     onComplete?.run()
                 }
             }

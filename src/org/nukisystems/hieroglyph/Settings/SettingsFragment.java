@@ -303,7 +303,7 @@ public class SettingsFragment extends SettingsBasePreferenceFragment implements 
                     mHandler.removeCallbacks(mStopBrightnessPreview);
                     mHandler.post(() -> {
                         if (StatusManager.isGlyphIdle()) { 
-                            FileUtils.writeAllLed(rawBrightness);
+                            NanoGlyphManager.Java.Matrix.setBrightness(rawBrightness);
                             mHandler.postDelayed(mStopBrightnessPreview, BRIGHTNESS_PREVIEW_TIMEOUT_MS);
                         }
                     });

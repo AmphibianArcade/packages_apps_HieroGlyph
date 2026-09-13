@@ -138,7 +138,6 @@ public class AnimationSettingsFragment
 
     private boolean isAppSpecific = false;
 
-
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
 
@@ -862,17 +861,17 @@ public class AnimationSettingsFragment
                 shouldAlternate = fragmentType.equals(FRAGMENT_TYPE_FLIP)
                         && mListPreference.getValue().equals(Constants.GLYPH_NOTIF_ANIMATION_ALTERNATE);
                 boolean shouldReverse = mReverseAnimationSwitch.isChecked() && !shouldAlternate;
-                AnimationManager.playCsv(
+                AnimationManager.stream(
                         requireContext(),
                         getGlyphAnimation(),
-                        false,
                         shouldReverse,
-                        shouldAlternate
+                        shouldAlternate,
+                        () -> {
+                            if (activity != null) {
+                                activity.runOnUiThread(this::resetLivePreview);
+                            }
+                        }
                 );
-
-                if (activity != null) {
-                    activity.runOnUiThread(this::resetLivePreview);
-                }
             });
             livePreviewThread.start();
         }
@@ -892,6 +891,15 @@ public class AnimationSettingsFragment
         super.onResume();
         updatePrimarySwitches();
         resetLivePreview();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (livePreviewThread != null && livePreviewThread.isAlive()) {
+            livePreviewThread.interrupt();
+            livePreviewThread = null;
+        }
     }
 
     private void updatePrimarySwitches() {

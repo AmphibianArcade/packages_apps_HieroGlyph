@@ -1,10 +1,15 @@
 package org.nukisystems.hieroglyph.aidl
 
 import android.os.ServiceSpecificException
+import kotlinx.coroutines.suspendCancellableCoroutine
 import vendor.nukisystems.nanoglyph.DeviceInfo
 import vendor.nukisystems.nanoglyph.IMatrixLeds
 import vendor.nukisystems.nanoglyph.IMatrixLedsCallback
 import vendor.nukisystems.nanoglyph.MatrixPattern
+import vendor.nukisystems.nanoglyph.StreamState
+import java.io.IOException
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 
 class MatrixLedsClient : HalClientBase("MatrixLedsClient") {
     private var service: IMatrixLeds? = null
@@ -64,6 +69,58 @@ class MatrixLedsClient : HalClientBase("MatrixLedsClient") {
             logInfo("pattern loaded and streaming ($frameCount frames @ ${fps}fps)")
         } catch (e: ServiceSpecificException) {
             logError("loadPattern/startStream", e)
+        }
+    }
+
+    suspend fun playPatternAndAwaitCompletion(
+        pixelsPerFrame: Int,
+        frameCount: Int,
+        frameData: ByteArray,
+        fps: Int = 10
+    ): Boolean {
+        val svc = service ?: return false
+
+        return suspendCancellableCoroutine { cont ->
+            val callback = object : IMatrixLedsCallback.Stub() {
+                override fun onStreamStateChanged(newState: Int) {
+                    if (newState == StreamState.STOPPED && cont.isActive) {
+                        runCatching { svc.setCallback(null) }
+                        cont.resume(true)
+                    }
+                }
+
+                override fun onDeviceError(errnoValue: Int) {
+                    if (cont.isActive) {
+                        runCatching { svc.setCallback(null) }
+                        cont.resumeWithException(IOException("device error: $errnoValue"))
+                    }
+                }
+
+                override fun getInterfaceVersion(): Int = IMatrixLedsCallback.VERSION
+                override fun getInterfaceHash(): String = IMatrixLedsCallback.HASH
+            }
+
+            try {
+                svc.setCallback(callback)
+                val pattern = MatrixPattern().apply {
+                    this.pixelsPerFrame = pixelsPerFrame
+                    this.frameCount = frameCount
+                    this.frameData = frameData
+                    this.brightness = 255
+                    this.fps = fps
+                }
+                svc.loadPattern(pattern)
+                svc.startStream()
+                logInfo("pattern loaded and streaming, awaiting completion ($frameCount frames @ ${fps}fps)")
+            } catch (e: ServiceSpecificException) {
+                logError("playPatternAndAwaitCompletion", e)
+                if (cont.isActive) cont.resumeWithException(e)
+                return@suspendCancellableCoroutine
+            }
+
+            cont.invokeOnCancellation {
+                runCatching { svc.stopStream() }
+            }
         }
     }
 

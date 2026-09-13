@@ -25,26 +25,29 @@ import com.android.internal.util.ArrayUtils;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.StringReader;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Objects;
-import java.util.Set;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.nukisystems.hieroglyph.Constants.Constants;
 import org.nukisystems.hieroglyph.Utils.CSVUtils;
-import org.nukisystems.hieroglyph.Utils.FileUtils;
+import org.nukisystems.hieroglyph.Utils.MatrixUtils;
 import org.nukisystems.hieroglyph.Utils.ResourceUtils;
+import org.nukisystems.hieroglyph.aidl.NanoGlyphManager;
 
 public final class AnimationManager {
 
     private static final String TAG = "GlyphAnimationManager";
     private static final boolean DEBUG = true;
     private static PowerManager.WakeLock sWakeLock;
+
+    private static final ExecutorService animationExecutor = Executors.newSingleThreadExecutor();
 
     private static void acquireWakeLock(Context context) {
         if (sWakeLock == null) {
@@ -104,94 +107,115 @@ public final class AnimationManager {
                 || (Objects.equals(name, "progress") && StatusManager.isVolumeAnimationActive());
     }
 
-    public static void playExternalCsv(String csv, String name)  {
-        if (!check(name, false))
-            return;
+    public static void stream(Context ctx, String name) {
+        streamToHardware(ctx, null, name, false, false, null);
+    }
 
-        acquireWakeLock(Constants.CONTEXT);
+    public static void stream(Context ctx, String name, Runnable onComplete) {
+        streamToHardware(ctx, null, name, false, false, onComplete);
+    }
 
+    public static void stream(Context ctx, String name, boolean reverse) {
+        streamToHardware(ctx, null, name, reverse, false, null);
+    }
+
+    public static void stream(Context ctx, String name, boolean reverse, Runnable onComplete) {
+        streamToHardware(ctx, null, name, reverse, false, onComplete);
+    }
+
+    public static void stream(Context ctx, String name, boolean reverse, boolean alternateOnce) {
+        streamToHardware(ctx, null, name, reverse, alternateOnce, null);
+    }
+
+    public static void stream(Context ctx, String name, boolean reverse, boolean alternateOnce, Runnable onComplete) {
+        streamToHardware(ctx, null, name, reverse, alternateOnce, onComplete);
+    }
+
+    public static void streamCsv(Context ctx, String csv, String name, boolean reverse, boolean alternateOnce) {
+        streamToHardware(ctx, csv, name, reverse, alternateOnce, null);
+    }
+
+    public static void streamCsv(Context ctx, String csv, String name) {
+        streamToHardware(ctx, csv, name, false, false, null);
+    }
+
+    public static void streamCsv(Context ctx, String csv, String name, Runnable onComplete) {
+        streamToHardware(ctx, csv, name, false, false, onComplete);
+    }
+
+    public static void streamCsv(Context ctx, String csv, String name, boolean reverse) {
+        streamToHardware(ctx, csv, name, reverse, false, null);
+    }
+
+    public static void streamCsv(Context ctx, String csv, String name, boolean reverse, Runnable onComplete) {
+        streamToHardware(ctx, csv, name, reverse, false, onComplete);
+    }
+
+    private static void streamToHardware(Context ctx, String csv, String name,
+                                        boolean reverse, boolean alternateOnce,
+                                        final Runnable onComplete) {
         StatusManager.setAnimationActive(true);
-        BufferedReader reader = new BufferedReader(new StringReader(csv));
-        try {
-            Iterator<String> it = CSVUtils.iterateCsvLines(reader, false, false);
-            while (it.hasNext()) {
-                if (checkInterruption("csv")) throw new InterruptedException();
-                String[] pattern = it.next().split(",");
-                if (ArrayUtils.contains(Constants.getSupportedAnimationPatternLengths(), pattern.length)) {
-                    updateLedFrame(pattern);
-                } else {
-                    if (DEBUG)
-                        Log.d(TAG, "Animation line length mismatch | name: " + name + " | line: " + it.next());
-                    throw new InterruptedException();
+        acquireWakeLock(ctx);
+        animationExecutor.execute(() -> {
+            int pixelCount = MatrixUtils.getMinFrameLength();
+
+            List<int[]> frames = new ArrayList<>();
+            try (BufferedReader reader = new BufferedReader(csv != null ? new StringReader(csv)
+                    : new InputStreamReader(ResourceUtils.getAnimation(name)))) {
+                Iterator<String> it = CSVUtils.iterateCsvLines(reader, reverse, alternateOnce);
+                while (it.hasNext()) {
+                    String[] split = it.next().split(",");
+                    if (split.length != pixelCount) {
+                        Log.w(TAG, "streamToHardware: line length " + split.length
+                                + " != pixelCount " + pixelCount + ", skipping frame");
+                        continue;
+                    }
+                    int[] frame = new int[pixelCount];
+                    for (int i = 0; i < pixelCount; i++) {
+                        frame[i] = Integer.parseInt(split[i]);
+                    }
+                    frames.add(frame);
                 }
-                Thread.sleep(16, 666000);
-            }
-        } catch (Exception e) {
-            if (DEBUG)
-                Log.d(TAG, "Exception while playing animation | name: " + name + " | exception: " + e);
-        } finally {
-            clearLEDs();
-            StatusManager.setAnimationActive(false);
-            if (DEBUG) Log.d(TAG, "Done playing animation | name: " + name);
-            releaseWakeLock();
-        }
-    }
-
-    public static void playCsv(Context context, String name) {
-        playCsv(context, name, false, false);
-    }
-
-    public static void playCsvAlternate(Context context, String name) {
-        playCsv(context, name, false, false, true);
-    }
-
-    public static void playCsv(Context context, String name, boolean wait) {
-        playCsv(context, name, wait, false);
-    }
-
-    public static void playCsvReverse(Context context, String name) {
-        playCsv(context, name, false, true);
-    }
-
-    public static void playCsvReverse(Context context, String name, boolean wait) {
-        playCsv(context, name, wait, true);
-    }
-
-    public static void playCsv(Context context, String name, boolean wait, boolean reverse) {
-        playCsv(context, name, wait, reverse, false);
-    }
-
-    public static void playCsv(Context context, String name, boolean wait, boolean reverse,
-                               boolean shouldAlternate) {
-        if (!check(name, wait))
+            } catch (Exception e) {
+                Log.e(TAG, "streamToHardware: failed to read animation " + name, e);
+                StatusManager.setAnimationActive(false);
                 return;
-
-        acquireWakeLock(context);
-
-        StatusManager.setAnimationActive(true);
-
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(
-                ResourceUtils.getAnimation(name)))) {
-            Iterator<String> it = CSVUtils.iterateCsvLines(reader, reverse, shouldAlternate);
-            while (it.hasNext()) {
-                if (checkInterruption("csv")) throw new InterruptedException();
-                String[] pattern = it.next().split(",");
-                if (ArrayUtils.contains(Constants.getSupportedAnimationPatternLengths(), pattern.length)) {
-                    updateLedFrame(pattern);
-                } else {
-                    if (DEBUG) Log.d(TAG, "Animation line length mismatch | name: " + name + " | line: " + it.next());
-                    throw new InterruptedException();
-                }
-                Thread.sleep(16, 666000);
             }
-        } catch (Exception e) {
-            if (DEBUG) Log.d(TAG, "Exception while playing animation | name: " + name + " | exception: " + e);
-        } finally {
-            clearLEDs();
-            StatusManager.setAnimationActive(false);
-            if (DEBUG) Log.d(TAG, "Done playing animation | name: " + name);
-            releaseWakeLock();
-        }
+
+            if (frames.isEmpty()) {
+                Log.w(TAG, "streamToHardware: no valid frames for " + name);
+                StatusManager.setAnimationActive(false);
+                return;
+            }
+
+            final int fps = 60;
+            CountDownLatch latch = new CountDownLatch(1);
+            boolean[] success = {false};
+
+            NanoGlyphManager.Java.Matrix.playPatternAndAwaitCompletion(frames, fps, result -> {
+                success[0] = result;
+                latch.countDown();
+            });
+
+            try {
+                latch.await();
+            } catch (InterruptedException e) {
+                NanoGlyphManager.Java.Matrix.stop(null);
+            }
+
+            if (!success[0]) {
+                Log.w(TAG, "streamToHardware: animation ended abnormally");
+            }
+
+            if (onComplete != null) onComplete.run();
+            stopHardwareAnimation();
+        });
+    }
+
+    public static void stopHardwareAnimation() {
+        StatusManager.setAnimationActive(false);
+        releaseWakeLock();
+        NanoGlyphManager.Java.Matrix.stop(null);
     }
 
     public static void playCharging(int batteryLevel, boolean wait) {
@@ -449,108 +473,8 @@ public final class AnimationManager {
         }
     }
 
-    public static void playMusic(int[] bandBrightness) {
-
-        int[] pattern;
-
-        if (Constants.Device.isPhone3a()) {
-
-            int[] zoneDefs = ResourceUtils.getIntArray("glyph_zone_channel_count");
-
-            int[] zone1 = new int[zoneDefs[1]]; // largest (left 1)
-            int[] zone2 = new int[zoneDefs[0]]; // medium (right)
-            int[] zone3 = new int[zoneDefs[2]]; // smallest (left 2)
-
-            Arrays.fill(zone1, bandBrightness[1]); // mid-low
-            Arrays.fill(zone2, bandBrightness[2]); // mid
-            Arrays.fill(zone3, bandBrightness[4]); // high
-
-            pattern = AnimationUtils.buildPatternArray(zone1, zone2, zone3);
-        } else {
-                pattern = new int[5];
-                pattern[4] = bandBrightness[0]; // low
-                pattern[3] = bandBrightness[1]; // mid-low
-                pattern[2] = bandBrightness[2]; // mid
-                pattern[0] = bandBrightness[3]; // mid-high
-                pattern[1] = bandBrightness[4]; // high
-            }
-
-        try {
-            if (StatusManager.isGlyphIdle()) {
-                updateLedFrame(pattern);
-                Thread.sleep(106);
-            }
-        } catch (Exception e) {
-            if (DEBUG)
-                Log.d(TAG, "Exception while playing animation | name: music " + " | exception: " + e);
-        } finally {
-            if (StatusManager.isGlyphIdle()) {
-                clearLEDs();
-                if (DEBUG) Log.d(TAG, "Done playing animation | name: music");
-            }
-        }
-    }
-
-    public static void playMusic(Set<String> snapshot) {
-        float maxPatternBrightness = (float) Constants.MAX_PATTERN_BRIGHTNESS;
-
-        float[] pattern;
-
-        if (Constants.Device.isPhone3a()) {
-
-            int[] zoneDefs = ResourceUtils.getIntArray("glyph_zone_channel_count");
-
-            float[] zone1 = new float[zoneDefs[1]]; // largest (left 1)
-            float[] zone2 = new float[zoneDefs[0]]; // medium (right)
-            float[] zone3 = new float[zoneDefs[2]]; // smallest (left 2)
-
-            if (snapshot.contains("low")) {
-                Arrays.fill(zone1, maxPatternBrightness);
-            }
-            if (snapshot.contains("mid")) {
-                Arrays.fill(zone2, maxPatternBrightness);
-            }
-            if (snapshot.contains("high")) {
-                Arrays.fill(zone3, maxPatternBrightness);
-            }
-
-            pattern = AnimationUtils.buildPatternArray(zone1, zone2, zone3);
-            // pattern = float[zone1.length + zone2.length + zone3.length] fill with zone values
-
-        } else {
-            pattern = new float[5];
-
-            if (snapshot.contains("low")) {
-                pattern[4] = maxPatternBrightness;
-            }
-            if (snapshot.contains("mid_low")) {
-                pattern[3] = maxPatternBrightness;
-            }
-            if (snapshot.contains("mid")) {
-                pattern[2] = maxPatternBrightness;
-            }
-            if (snapshot.contains("mid_high")) {
-                pattern[0] = maxPatternBrightness;
-            }
-            if (snapshot.contains("high")) {
-                pattern[1] = maxPatternBrightness;
-            }
-        }
-
-        try {
-            if (StatusManager.isGlyphIdle()) {
-                updateLedFrame(pattern);
-                Thread.sleep(106);
-            }
-        } catch (Exception e) {
-            if (DEBUG)
-                Log.d(TAG, "Exception while playing animation | name: music: " + snapshot + " | exception: " + e);
-        } finally {
-            if (StatusManager.isGlyphIdle()) {
-                clearLEDs();
-                if (DEBUG) Log.d(TAG, "Done playing animation | name: music " + snapshot);
-            }
-        }
+    public static void updateLedFrame(int[] pattern) {
+        NanoGlyphManager.Java.Matrix.setFrame(pattern);
     }
 
     private static void updateLedFrame(String[] pattern) {
@@ -559,88 +483,37 @@ public final class AnimationManager {
                 .toArray());
     }
 
-    public static void updateLedFrame(int[] pattern) {
-        float[] floatPattern = new float[pattern.length];
-        for (int i = 0; i < pattern.length; i++) {
-            floatPattern[i] = (float) pattern[i];
-        }
-        updateLedFrame(floatPattern);
-    }
-
     private static void updateLedFrame(float[] pattern) {
-        //if (DEBUG) Log.d(TAG, "Updating pattern: " + pattern);
         float maxPatternBrightness = (float) Constants.MAX_PATTERN_BRIGHTNESS;
         float currentBrightness = (float) Constants.getBrightness();
-
-        if (StatusManager.isEssentialLedActive()) {
-            if (pattern.length == 5 && !Constants.Device.isPhone3a()) { // Phone (1) pattern
-                if (pattern[1] < (maxPatternBrightness / 100 * 60)) {
-                    pattern[1] = maxPatternBrightness / 100 * 60;
-                } 
-            } else if (pattern.length == 33) { // Phone (2) pattern
-                if (pattern[2] < (maxPatternBrightness / 100 * 60)) {
-                    pattern[2] = maxPatternBrightness / 100 * 60;
-                }
-            } else if (pattern.length == 36) { // Phone (3a) / Phone (3a) Pro pattern
-                    if (pattern[21] < (maxPatternBrightness / 100 * 60)) {
-                    Arrays.fill(pattern, 20, 31, maxPatternBrightness / 100 * 60);
-                }
-            }
-        }
+        int[] newPattern = new int[pattern.length];
 
         for (int i = 0; i < pattern.length; i++) {
-            pattern[i] = pattern[i] / maxPatternBrightness * currentBrightness;
+            newPattern[i] = Math.round(pattern[i] / maxPatternBrightness * currentBrightness);
         }
 
-        if (Constants.Device.isPhone3a()) {
-            int[] supportedLengths = Constants.getSupportedAnimationPatternLengths();
-            int[] zoneDefs = ResourceUtils.getIntArray("glyph_zone_channel_count");
-
-            Set<Integer> matchedLengths = Stream.concat(Arrays.stream(zoneDefs).boxed(),
-                            Arrays.stream(supportedLengths).boxed())
-                    .collect(Collectors.toSet());
-
-            boolean containsSize = matchedLengths.contains(pattern.length);
-
-            if (containsSize) {
-                final int volumeSize = ResourceUtils.getInteger("glyph_settings_volume_levels_num");
-                final int batterySize = ResourceUtils.getInteger("glyph_settings_battery_levels_num");
-                if (pattern.length == batterySize) { // Same size as essential
-                    pattern = AnimationUtils.buildPatternArray(new float[zoneDefs[1]],
-                            AnimationUtils.reverseFrameArray(pattern), new float[zoneDefs[2]]);
-                } else if (pattern.length == volumeSize) { // also progress
-                    pattern = AnimationUtils.buildPatternArray(pattern, new float[zoneDefs[0]],
-                            new float[zoneDefs[2]]);
-                }
-            } else {
-                Log.w(TAG, "Unsupported pattern length: " + pattern.length);
-                return;
-            }
-        }
-
-        FileUtils.writeFrameLed(pattern);
+        updateLedFrame(newPattern);
     }
 
     private static void updateLedSingle(int led, String brightness) {
-        updateLedSingle(led, Float.parseFloat(brightness));
-    }
-
-    private static void updateLedSingle(int led, int brightness) {
-        updateLedSingle(led, (float) brightness);
+        updateLedSingle(led, Integer.parseInt(brightness));
     }
 
     private static void updateLedSingle(int led, float brightness) {
-        //if (DEBUG) Log.d(TAG, "Updating led | led: " + led + " | brightness: " + brightness);
+        updateLedSingle(led, Math.round(brightness));
+    }
+
+    private static void updateLedSingle(int led, int brightness) {
+        if (led > (MatrixUtils.getMinFrameLength() - 1) || led < 0) {
+            Log.w(TAG, "Invalid led index: " + led  + " in updateLedSingle");
+            return;
+        }
         float maxPatternBrightness = (float) Constants.MAX_PATTERN_BRIGHTNESS;
         float currentBrightness = (float) Constants.getBrightness();
-        int essentialLed = ResourceUtils.getInteger("glyph_settings_notifs_essential_led");
-        if (StatusManager.isEssentialLedActive()
-        && led == essentialLed
-        && brightness < (maxPatternBrightness / 100 * 60)) {
-            brightness = maxPatternBrightness / 100 * 60;
-        }
 
-        brightness = brightness / maxPatternBrightness * currentBrightness;
+        brightness = Math.round(brightness / maxPatternBrightness * currentBrightness);
+
+        NanoGlyphManager.Java.Matrix.setSingle(led, brightness);
 
     }
 
@@ -738,7 +611,6 @@ public final class AnimationManager {
     }
 
     public static void clearLEDs() {
-        int[] pattern = new int[Constants.getSupportedAnimationPatternLengths()[0]];
-        updateLedFrame(pattern);
+        NanoGlyphManager.Java.Matrix.setBrightness(0, null);
     }
 }
