@@ -60,7 +60,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -84,6 +90,9 @@ public class AnimationSettingsFragment
     private static final String FRAGMENT_TYPE_FLIP = "FLIP";
 
     private Handler mHandler = new Handler(Looper.getMainLooper());
+
+    private final ExecutorService mAppExecutor =
+            Executors.newSingleThreadExecutor();
 
     private String fragmentType = null;
     private String targetPkg = null;
@@ -392,6 +401,8 @@ public class AnimationSettingsFragment
         }
     }
 
+    private record AppEntry(ApplicationInfo app, PackageInfo packageInfo, String label) { }
+
     @Override
     public void onViewCreated (View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -505,53 +516,12 @@ public class AnimationSettingsFragment
                 return;
             }
 
-            for (String pkg : callApps) {
-                addAppPreference(pkg);
-            }
+            for (String pkg : callApps) addAppPreference(pkg);
 
         }
 
-        if (fragmentType.equals(FRAGMENT_TYPE_NOTIF)) {
-            List<ApplicationInfo> mApps =
-                    mPackageManager.getInstalledApplications(PackageManager.GET_GIDS);
-            mApps.sort(new ApplicationInfo.DisplayNameComparator(mPackageManager));
-            for (ApplicationInfo app : mApps) {
-                if (mPackageManager.getLaunchIntentForPackage(app.packageName) != null
-                        // apps with launcher intent
-                        && !ArrayUtils.contains(Constants.APPS_TO_IGNORE, app.packageName)) {
+        if (fragmentType.equals(FRAGMENT_TYPE_NOTIF)) loadNotificationApps();
 
-                    boolean canNotify = true;
-
-                    if (app.targetSdkVersion >= Build.VERSION_CODES.TIRAMISU) {
-                        try {
-                            PackageInfo info = mPackageManager.getPackageInfo(
-                                    app.packageName,
-                                    PackageManager.GET_PERMISSIONS);
-
-                            if (info.requestedPermissions == null) {
-                                canNotify = false;
-                            } else {
-                                canNotify = Arrays.asList(info.requestedPermissions)
-                                        .contains(Manifest.permission.POST_NOTIFICATIONS);
-                            }
-                        } catch (PackageManager.NameNotFoundException e) {
-                            continue;
-                        }
-                    }
-
-                    if (canNotify) {
-                        addAppPreference(app.packageName);
-
-                        mEssentialApps.add(app.packageName);
-                        mEssentialAppsNames.add(app.loadLabel(mPackageManager).toString());
-                    }
-                }
-            }
-            mMultiSelectListPreference = findPreference(Constants.GLYPH_NOTIFS_SUB_ESSENTIAL);
-            mMultiSelectListPreference.setOnPreferenceChangeListener(this);
-            mMultiSelectListPreference.setEntries(mEssentialAppsNames.toArray(new CharSequence[0]));
-            mMultiSelectListPreference.setEntryValues(mEssentialApps.toArray(new CharSequence[0]));
-        }
     }
 
     private void addAppPreference(String pkg) {
@@ -635,6 +605,150 @@ public class AnimationSettingsFragment
         } catch (PackageManager.NameNotFoundException e) {
             return packageName; // fall back to package name if not found
         }
+    }
+
+    private void loadNotificationApps() {
+        mAppExecutor.execute(() -> {
+            List<AppEntry> apps = getNotificationApps();
+            if (!isAdded()) return;
+            requireActivity().runOnUiThread(() -> {
+                if (!isAdded()) return;
+                populateNotificationApps(apps);
+            });
+        });
+    }
+
+    private List<AppEntry> getNotificationApps() {
+        List<ApplicationInfo> installedApps =
+                mPackageManager.getInstalledApplications(0);
+
+
+        Intent launcherIntent = new Intent(Intent.ACTION_MAIN);
+        launcherIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+
+        List<ResolveInfo> launcherApps =
+                mPackageManager.queryIntentActivities(launcherIntent, 0);
+
+        Set<String> launchablePackages = new HashSet<>();
+
+        for (ResolveInfo resolveInfo : launcherApps) {
+            if (resolveInfo.activityInfo != null) {
+                launchablePackages.add(
+                        resolveInfo.activityInfo.packageName);
+            }
+        }
+
+        List<PackageInfo> packageInfos =
+                mPackageManager.getInstalledPackages(
+                        PackageManager.GET_PERMISSIONS);
+
+        Map<String, PackageInfo> packageInfoMap = new HashMap<>();
+
+        for (PackageInfo info : packageInfos) {
+            packageInfoMap.put(info.packageName, info);
+        }
+
+        List<AppEntry> result = new ArrayList<>();
+
+        for (ApplicationInfo app : installedApps) {
+            String packageName = app.packageName;
+
+            if (!launchablePackages.contains(packageName)) continue;
+            if (ArrayUtils.contains(Constants.APPS_TO_IGNORE, packageName)) continue;
+
+            boolean canNotify = true;
+
+            if (app.targetSdkVersion >= Build.VERSION_CODES.TIRAMISU) {
+                PackageInfo info = packageInfoMap.get(packageName);
+
+                if (info == null || info.requestedPermissions == null) {
+                    canNotify = false;
+                } else {
+                    canNotify = Arrays.asList(info.requestedPermissions)
+                            .contains(Manifest.permission.POST_NOTIFICATIONS);
+                }
+            }
+
+            if (!canNotify) continue;
+            String label = app.loadLabel(mPackageManager).toString();
+            result.add(new AppEntry(app, packageInfoMap.get(packageName), label));
+        }
+
+        result.sort(Comparator.comparing(
+                entry -> entry.label,
+                String.CASE_INSENSITIVE_ORDER));
+
+        return result;
+    }
+
+    private void populateNotificationApps(List<AppEntry> apps) {
+        mEssentialApps.clear();
+        mEssentialAppsNames.clear();
+
+        for (AppEntry entry : apps) {
+            addAppPreference(entry);
+        }
+
+        mMultiSelectListPreference =
+                findPreference(Constants.GLYPH_NOTIFS_SUB_ESSENTIAL);
+
+        if (mMultiSelectListPreference != null) {
+            mMultiSelectListPreference.setOnPreferenceChangeListener(this);
+
+            mMultiSelectListPreference.setEntries(
+                    mEssentialAppsNames.toArray(new CharSequence[0]));
+
+            mMultiSelectListPreference.setEntryValues(
+                    mEssentialApps.toArray(new CharSequence[0]));
+        }
+    }
+
+    private void addAppPreference(AppEntry entry) {
+        ApplicationInfo app = entry.app;
+        String pkg = app.packageName;
+
+        PrimarySwitchPreference preference =
+                new PrimarySwitchPreference(
+                        getPreferenceScreen().getContext());
+
+        preference.setKey(pkg);
+        preference.setTitle(" " + entry.label);
+
+        try {
+            preference.setIcon(app.loadIcon(mPackageManager));
+        } catch (Exception e) {
+            preference.setIcon(mPackageManager.getDefaultActivityIcon());
+        }
+
+        preference.setChecked(isAnimationEnabled(pkg));
+
+        preference.setOnPreferenceClickListener(pref -> {
+            String key = pref.getKey();
+
+            Intent intent = new Intent(requireContext(), AnimationSettingsActivity.class);
+
+            intent.putExtra("type", fragmentType);
+            intent.putExtra("package", key);
+
+            startActivity(intent);
+
+            return true;
+        });
+
+        preference.setOnPreferenceChangeListener(
+            (pref, newValue) -> {
+                String key = pref.getKey();
+                setAnimationEnabled(key, (Boolean) newValue);
+                return true;
+            }
+        );
+        
+        resolveAppSummary(preference, pkg);
+
+        appListCategory.addPreference(preference);
+
+        mEssentialApps.add(pkg);
+        mEssentialAppsNames.add(entry.label);
     }
 
     private String getDefaultDialer() {
