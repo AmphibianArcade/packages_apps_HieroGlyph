@@ -146,16 +146,21 @@ public class MatrixPreference extends Preference {
                         }
                         Thread.sleep(16, 666000);
                     }
+                    blankDisplay();
                     Thread.sleep(animationTimeBetween);
                 } catch (Exception e) {
                     if (DEBUG) Log.d(TAG, "Exception while displaying animation | name: " + animationName + " | exception: " + e);
                 } finally {
                     if (animationPaused && matrixDisplay != null) {
-                        int[] blank = new int[matrixDisplay.countValidCells()];
-                        matrixDisplay.post(() -> matrixDisplay.setFrameFromFlatValues((blank)));
+                        blankDisplay();
                     }
                 }
             }
         }
     };
+
+    private void blankDisplay() {
+        int[] blank = new int[matrixDisplay.countValidCells()];
+        matrixDisplay.post(() -> matrixDisplay.setFrameFromFlatValues((blank)));
+    }
 }
