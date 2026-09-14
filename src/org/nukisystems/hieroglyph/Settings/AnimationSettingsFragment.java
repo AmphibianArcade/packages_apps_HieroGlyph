@@ -95,7 +95,7 @@ public class AnimationSettingsFragment
             Executors.newSingleThreadExecutor();
 
     private String fragmentType = null;
-    private String targetPkg = null;
+    private String fragmentPkg = null;
 
     PackageManager mPackageManager;
 
@@ -151,10 +151,10 @@ public class AnimationSettingsFragment
         Bundle args = getArguments();
         fragmentType = args.getString("type", "").toUpperCase();
         contactId = args.getString("contact_id", "");
-        targetPkg = args.getString("package", "");
+        fragmentPkg = args.getString("package", "");
 
         isContactSpecific = !contactId.isEmpty();
-        isAppSpecific = !targetPkg.isEmpty();
+        isAppSpecific = !fragmentPkg.isEmpty();
 
         if (isContactSpecific) {
             contactName = ResourceUtils.getContactName(requireContext(), contactId);
@@ -259,14 +259,14 @@ public class AnimationSettingsFragment
             case FRAGMENT_TYPE_NOTIF -> {
                 if (isAppSpecific) {
                     getPreferenceManager().setSharedPreferencesName(Constants.GLYPH_NOTIF_APP_PREF_PREFIX
-                            + targetPkg);
+                            + fragmentPkg);
                     addPreferencesFromResource(R.xml.glyph_notifs_settings_app);
                     mScreen = getPreferenceScreen();
-                    String pkgLabel = getPackageLabel(targetPkg);
+                    String pkgLabel = getPackageLabel(fragmentPkg);
                     fragmentTitle
                             = requireContext().getString(R.string.glyph_settings_notifs_toggle_title)
                             + " (" + pkgLabel + ")";
-                    addDeletePref(Constants.GLYPH_NOTIF_APP_PREF_PREFIX + targetPkg, pkgLabel);
+                    addDeletePref(Constants.GLYPH_NOTIF_APP_PREF_PREFIX + fragmentPkg, pkgLabel);
                 } else {
                     addPreferencesFromResource(R.xml.glyph_notifs_settings);
                     fragmentTitle = requireContext().getString(R.string.glyph_settings_notifs_toggle_title);
@@ -294,10 +294,10 @@ public class AnimationSettingsFragment
             case FRAGMENT_TYPE_CALL -> {
                 if (isAppSpecific) {
                     getPreferenceManager().setSharedPreferencesName(Constants.GLYPH_CALL_APP_PREF_PREFIX
-                            + targetPkg);
+                            + fragmentPkg);
                     addPreferencesFromResource(R.xml.glyph_call_settings_app);
                     mScreen = getPreferenceScreen();
-                    String pkgLabel = getPackageLabel(targetPkg);
+                    String pkgLabel = getPackageLabel(fragmentPkg);
                     fragmentTitle
                             = requireContext().getString(R.string.glyph_settings_call_toggle_title)
                             + " (" + pkgLabel + ")";
@@ -313,7 +313,7 @@ public class AnimationSettingsFragment
                                 android.R.string.ok,
                                 () -> {
                                     requireContext().deleteSharedPreferences(
-                                            Constants.GLYPH_CALL_APP_PREF_PREFIX + targetPkg);
+                                            Constants.GLYPH_CALL_APP_PREF_PREFIX + fragmentPkg);
                                     getActivity().finish();
                                 },
                                 android.R.string.cancel, null);
@@ -792,7 +792,7 @@ public class AnimationSettingsFragment
         switch (fragmentType) {
             case FRAGMENT_TYPE_NOTIF -> {
                 if (isAppSpecific) {
-                    return SettingsManager.getGlyphNotifsAnimation(targetPkg);
+                    return SettingsManager.getGlyphNotifsAnimation(fragmentPkg);
                 } else {
                     return SettingsManager.getGlyphNotifsAnimation();
                 }
@@ -802,7 +802,7 @@ public class AnimationSettingsFragment
                 if (isContactSpecific) {
                     return SettingsManager.getGlyphCallAnimation(Integer.parseInt(contactId));
                 } else if (isAppSpecific) {
-                    return SettingsManager.getGlyphCallAnimation(targetPkg);
+                    return SettingsManager.getGlyphCallAnimation(fragmentPkg);
                 } else {
                     return SettingsManager.getGlyphCallAnimation();
                 }
@@ -843,12 +843,17 @@ public class AnimationSettingsFragment
         return "";
     }
 
-
     private boolean isAnimationEnabled() {
+        return isAnimationEnabled(null);
+    }
+    
+    private boolean isAnimationEnabled(String checkPkg) {
         switch (fragmentType) {
             case FRAGMENT_TYPE_NOTIF -> {
                 if (isAppSpecific) {
-                    return SettingsManager.isGlyphNotifsEnabled(targetPkg);
+                    return SettingsManager.isGlyphNotifsEnabled(fragmentPkg);
+                } else if (checkPkg != null) {
+                    return SettingsManager.isGlyphNotifsEnabled(checkPkg);
                 } else {
                     return SettingsManager.isGlyphNotifsEnabled();
                 }
@@ -856,7 +861,9 @@ public class AnimationSettingsFragment
 
             case FRAGMENT_TYPE_CALL -> {
                 if (isAppSpecific) {
-                    return SettingsManager.isGlyphCallEnabled(targetPkg);
+                    return SettingsManager.isGlyphCallEnabled(fragmentPkg);
+                } else if (checkPkg != null) {
+                    SettingsManager.isGlyphCallEnabled(checkPkg);
                 } else {
                     return SettingsManager.isGlyphCallEnabled();
                 }
@@ -870,31 +877,18 @@ public class AnimationSettingsFragment
         return false;
     }
 
-    private boolean isAnimationEnabled(String pkg) {
-        switch (fragmentType) {
-            case FRAGMENT_TYPE_NOTIF -> {
-                    return SettingsManager.isGlyphNotifsEnabled(pkg);
-            }
-
-            case FRAGMENT_TYPE_CALL -> {
-                    return SettingsManager.isGlyphCallEnabled(pkg);
-            }
-        }
-        return false;
-    }
-
     private void setAnimationEnabled(boolean state) {
         switch (fragmentType) {
             case FRAGMENT_TYPE_NOTIF -> {
                 if (isAppSpecific) {
-                    SettingsManager.setGlyphNotifsEnabled(targetPkg, state);
+                    SettingsManager.setGlyphNotifsEnabled(fragmentPkg, state);
                 } else {
                     SettingsManager.setGlyphNotifsEnabled(state);
                 }
             }
             case FRAGMENT_TYPE_CALL -> {
                 if (isAppSpecific) {
-                    SettingsManager.setGlyphCallEnabled(targetPkg, state);
+                    SettingsManager.setGlyphCallEnabled(fragmentPkg, state);
                 } else {
                     SettingsManager.setGlyphCallEnabled(state);
                 }
