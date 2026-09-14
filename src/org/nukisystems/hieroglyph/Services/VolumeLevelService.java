@@ -47,7 +47,7 @@ public class VolumeLevelService extends Service {
     private Runnable dismissVolume = new Runnable() {
         @Override
         public void run() {
-            AnimationManager.dismissVolume(mContext);
+            // AnimationManager.dismissVolume(mContext);
         }
     };
 
@@ -80,7 +80,7 @@ public class VolumeLevelService extends Service {
         unregisterReceiver(mVolumeChangeReceiver);
         thread.quit();
         if (StatusManager.isVolumeAnimationActive()) {
-            AnimationManager.dismissVolume(mContext);
+            // AnimationManager.dismissVolume(mContext);
             StatusManager.setVolumeAnimationActive(false);
         }
         super.onDestroy();
@@ -116,7 +116,7 @@ public class VolumeLevelService extends Service {
                                     + currentVolumePercent);
                         }
                         mThreadHandler.post(() -> {
-                            AnimationManager.playVolume(context, currentVolumePercent, false);
+                            // AnimationManager.playVolume(context, currentVolumePercent, false);
                         });
                         mThreadHandler.postDelayed(dismissVolume, 3000);
                     }

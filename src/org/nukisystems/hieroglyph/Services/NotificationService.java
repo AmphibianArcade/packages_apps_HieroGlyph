@@ -102,7 +102,7 @@ public class NotificationService extends NotificationListenerService
     @Override
     public void onDestroy() {
         if (DEBUG) Log.d(TAG, "Destroying service");
-        AnimationManager.stopEssential();
+        // AnimationManager.stopEssential();
         mSharedPreferences.unregisterOnSharedPreferenceChangeListener(this);
         mSettingObserver.unregister(mContentResolver);
         thread.quit();
@@ -213,7 +213,7 @@ public class NotificationService extends NotificationListenerService
                         && (packageImportance >= NotificationManager.IMPORTANCE_DEFAULT || packageImportance == -1)
                         && (interruptionFilter <= NotificationManager.INTERRUPTION_FILTER_ALL || packageCanBypassDnd)
                         && mNotificationManager.isNotificationPolicyAccessGranted()) {
-            AnimationManager.playEssential();
+            //AnimationManager.playEssential();
         }
     }
 
@@ -351,11 +351,11 @@ public class NotificationService extends NotificationListenerService
                 }
             }
         }
-        if (playEssential) {
+/*         if (playEssential) {
             AnimationManager.playEssential();
         } else {
             AnimationManager.stopEssential();
-        }
+        } */
     }
 
     private class SettingObserver extends ContentObserver {

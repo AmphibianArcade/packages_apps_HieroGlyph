@@ -228,8 +228,7 @@ public final class ServiceUtils {
         if (SettingsManager.getGlyphBrightness() != Constants.getBrightness()) {
             Constants.setBrightness(SettingsManager.getGlyphBrightness());
             startThirdPartyService();
-            if (StatusManager.isEssentialLedActive())
-                AnimationManager.playEssential();
+            // if (StatusManager.isEssentialLedActive()) AnimationManager.playEssential();
         }
         
         if (glyphBaseEnabled) {

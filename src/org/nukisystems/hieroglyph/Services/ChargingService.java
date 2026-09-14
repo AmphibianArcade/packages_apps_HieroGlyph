@@ -124,7 +124,7 @@ public class ChargingService extends Service {
         if (mThreadHandler.hasCallbacks(dismissCharging))
             mThreadHandler.removeCallbacks(dismissCharging);
         mThreadHandler.post(() -> {
-            AnimationManager.playCharging(getBatteryLevel(), wait);
+           // AnimationManager.playCharging(getBatteryLevel(), wait);
         });
         mThreadHandler.postDelayed(dismissCharging, 1190);
     }
