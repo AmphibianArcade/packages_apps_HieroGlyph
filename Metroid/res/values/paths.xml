@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+
+    <!-- Paths -->
+    <string name="glyph_settings_paths_powershare_active_absolute">/sys/class/qcom-battery/wls_reverse_status</string>
+    <string name="glyph_settings_paths_powershare_enabled_absolute">/sys/class/qcom-battery/wireless_boost_en</string>
+
+</resources>

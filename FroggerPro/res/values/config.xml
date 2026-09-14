@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+
+    <string name="glyph_settings_device" translatable="false">phone4apro</string>
+
+    <integer-array name="glyph_matrix_row_leds">
+        <item>5</item>
+        <item>9</item>
+        <item>11</item>
+        <item>11</item>
+        <item>13</item>
+        <item>13</item>
+        <item>13</item>
+        <item>13</item>
+        <item>13</item>
+        <item>11</item>
+        <item>11</item>
+        <item>9</item>
+        <item>5</item>
+    </integer-array>
+
+    <integer-array name="glyph_matrix_brightness_levels" translatable="false">
+        <item>60</item>
+        <item>131</item>
+        <item>187</item>
+        <item>@integer/glyph_settings_brightness_max</item>
+    </integer-array>
+
+</resources>

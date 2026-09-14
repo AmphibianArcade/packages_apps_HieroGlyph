@@ -24,6 +24,9 @@
 
     <integer-array name="glyph_auto_brightness_levels" translatable="false"></integer-array>
 
+    <!-- LED count per matrix row, top to bottom  -->
+    <integer-array name="glyph_matrix_row_leds" translatable="false"></integer-array>
+
     <!-- Brighntess -->
     <integer name="glyph_settings_brightness_max" translatable="false">255</integer>
     
@@ -31,6 +34,6 @@
     <integer-array name="glyph_matrix_brightness_levels" translatable="false"></integer-array>
 
     <!-- Scan code sent from rear button if present -->
-    <integer name="glyph_button_scancode"></integer>
+    <integer name="glyph_button_scancode" translatable="false"></integer>
 
 </resources>

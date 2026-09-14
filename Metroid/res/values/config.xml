@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Device Config -->
+    <bool name="glyph_light_sensor">qti.sensor.light_back</bool>
+
+    <integer name="glyph_button_scancode">231</integer>
+
+    <string name="glyph_settings_device" translatable="false">phone3</string>
+
+    <integer-array name="glyph_matrix_row_leds">
+        <item>7</item>
+        <item>11</item>
+        <item>15</item>
+        <item>17</item>
+        <item>19</item>
+        <item>21</item>
+        <item>21</item>
+        <item>23</item>
+        <item>23</item>
+        <item>25</item>
+        <item>25</item>
+        <item>25</item>
+        <item>25</item>
+        <item>25</item>
+        <item>25</item>
+        <item>25</item>
+        <item>23</item>
+        <item>23</item>
+        <item>21</item>
+        <item>21</item>
+        <item>19</item>
+        <item>17</item>
+        <item>15</item>
+        <item>11</item>
+        <item>7</item>
+    </integer-array>
+
+    <integer-array name="glyph_auto_brightness_levels" translatable="false">
+        <item>0</item>
+        <item>101</item>
+        <item>1001</item>
+        <item>2501</item>
+    </integer-array>
+
+    <integer-array name="glyph_settings_brightness_levels" translatable="false">
+        <item>60</item>
+        <item>131</item>
+        <item>187</item>
+        <item>@integer/glyph_settings_brightness_max</item>
+    </integer-array>
+
+</resources>
