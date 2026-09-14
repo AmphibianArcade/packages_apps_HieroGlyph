@@ -30,7 +30,7 @@ import org.nukisystems.hieroglyph.Utils.ServiceUtils;
 public class BootCompletedReceiver extends BroadcastReceiver {
 
     private static final boolean DEBUG = true;
-    private static final String TAG = "ParanoidGlyph";
+    private static final String TAG = "HieroGlyph";
 
     @Override
     public void onReceive(final Context context, Intent intent) {
