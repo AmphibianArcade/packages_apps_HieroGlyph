@@ -11,6 +11,7 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import vendor.nukisystems.nanoglyph.DeviceInfo
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.time.Duration.Companion.milliseconds
 
 object NanoGlyphManager {
@@ -75,18 +76,34 @@ object NanoGlyphManager {
         }
     }
 
-    suspend fun playMatrixPatternAndAwaitCompletion(frames: List<IntArray>, fps: Int): Boolean {
+    suspend fun playMatrixPatternAndAwaitCompletion(
+        frames: List<IntArray>,
+        fps: Int
+    ): Boolean {
+
         if (!ensureMatrixConnected()) return false
+
         return withContext(Dispatchers.IO) {
             val info = matrix.getInfo() ?: return@withContext false
             val pixelsPerFrame = info.pixelCount
             val frameData = ByteArray(frames.size * pixelsPerFrame)
             var offset = 0
             for (frame in frames) {
-                for (value in frame) frameData[offset++] = value.coerceIn(0, 255).toByte()
+                for (value in frame) {
+                    frameData[offset++] =
+                        value.coerceIn(0, 255).toByte()
+                }
             }
+
             try {
-                matrix.playPatternAndAwaitCompletion(pixelsPerFrame, frames.size, frameData, fps)
+                matrix.playPatternAndAwaitCompletion(
+                    pixelsPerFrame,
+                    frames.size,
+                    frameData,
+                    fps
+                )
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 false
             }
@@ -170,10 +187,20 @@ object NanoGlyphManager {
             }
 
             @JvmStatic
-            fun playPatternAndAwaitCompletion(frames: List<IntArray>, fps: Int, onComplete: BoolCallback) {
-                scope.launch {
-                    val result = playMatrixPatternAndAwaitCompletion(frames, fps)
-                    onComplete.onResult(result)
+            fun playPatternAndAwaitCompletion(
+                frames: List<IntArray>,
+                fps: Int,
+                onComplete: BoolCallback
+            ) {
+                try {
+                    runBlocking {
+                        val result = playMatrixPatternAndAwaitCompletion(frames, fps)
+                        onComplete.onResult(result)
+                    }
+                } catch (e: InterruptedException) {
+                  // Playback interrupted
+                } catch (e: CancellationException) {
+                // Playback cancelled
                 }
             }
 

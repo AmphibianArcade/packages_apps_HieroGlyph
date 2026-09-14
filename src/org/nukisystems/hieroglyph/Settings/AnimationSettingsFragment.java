@@ -114,8 +114,6 @@ public class AnimationSettingsFragment
 
     private String fragmentTitle = null;
 
-    private Thread livePreviewThread;
-
     private String animationPreviewKey;
 
     private String enableKey;
@@ -448,9 +446,7 @@ public class AnimationSettingsFragment
                     shouldAlternate
             );
             mMatrixPreference.setVisible(isPlayable);
-            if (livePreviewThread != null && livePreviewThread.isAlive()) {
-                livePreviewThread.interrupt();
-            }
+            endLivePreview();
             if (!isPlayable) {
                 showToast(R.string.glyph_settings_user_animation_is_complex);
             }
@@ -846,36 +842,42 @@ public class AnimationSettingsFragment
     @Override
     public boolean onPreferenceTreeClick(Preference preference) {
         if (livePreviewKey.equals(preference.getKey())) {
-            mLivePreviewPreference.setEnabled(false);
-            mLivePreviewPreference.setSummary(
-                    R.string.glyph_settings_animations_live_preview_summary_playing
-            );
-            livePreviewThread = new Thread(() -> {
-                Activity activity = getActivity();
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    resetLivePreview();
-                    return;
-                }
-                shouldAlternate = fragmentType.equals(FRAGMENT_TYPE_FLIP)
-                        && mListPreference.getValue().equals(Constants.GLYPH_NOTIF_ANIMATION_ALTERNATE);
-                boolean shouldReverse = mReverseAnimationSwitch.isChecked() && !shouldAlternate;
-                AnimationManager.stream(
-                        requireContext(),
-                        getGlyphAnimation(),
-                        shouldReverse,
-                        shouldAlternate,
-                        () -> {
-                            if (activity != null) {
-                                activity.runOnUiThread(this::resetLivePreview);
-                            }
-                        }
-                );
-            });
-            livePreviewThread.start();
+            beginLivePreview();
         }
         return true;
+    }
+
+    private void beginLivePreview() {
+        mLivePreviewPreference.setEnabled(false);
+        mLivePreviewPreference.setSummary(
+            R.string.glyph_settings_animations_live_preview_summary_playing
+        );
+        shouldAlternate = fragmentType.equals(FRAGMENT_TYPE_FLIP)
+                    && mListPreference.getValue().equals(Constants.GLYPH_NOTIF_ANIMATION_ALTERNATE);
+        boolean shouldReverse = mReverseAnimationSwitch.isChecked() && !shouldAlternate;
+        mHandler.postDelayed(() -> {
+            AnimationManager.Coordinator.get().stream(
+                requireContext(),
+                getGlyphAnimation(),
+                shouldReverse,
+                shouldAlternate,
+                () -> { if (isAdded()) getActivity().runOnUiThread(this::resetLivePreviewPref); }
+            );
+        }, 1000);
+    }
+
+    private void endLivePreview() {
+        AnimationManager.Coordinator.get().cancelCurrent();
+        resetLivePreviewPref();
+    }
+
+    private void resetLivePreviewPref() {
+        if (isAdded() && getActivity() != null) {
+            mLivePreviewPreference.setEnabled(true);
+            mLivePreviewPreference.setSummary(
+                R.string.glyph_settings_animations_live_preview_summary
+            );
+        }
     }
 
     @Override
@@ -885,21 +887,17 @@ public class AnimationSettingsFragment
         mMatrixPreference.updateAnimation(isChecked, getGlyphAnimation(), 1500);
     }
 
-
     @Override
     public void onResume() {
         super.onResume();
         updatePrimarySwitches();
-        resetLivePreview();
+        endLivePreview();
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        if (livePreviewThread != null && livePreviewThread.isAlive()) {
-            livePreviewThread.interrupt();
-            livePreviewThread = null;
-        }
+        endLivePreview();
     }
 
     private void updatePrimarySwitches() {
@@ -938,21 +936,10 @@ public class AnimationSettingsFragment
         }
     }
 
-    private void resetLivePreview() {
-        mLivePreviewPreference.setEnabled(true);
-        mLivePreviewPreference.setSummary(
-                R.string.glyph_settings_animations_live_preview_summary
-        );
-    }
-
-
     @Override
     public void onDestroy() {
         super.onDestroy();
-        if (livePreviewThread != null && livePreviewThread.isAlive()) {
-            livePreviewThread.interrupt();
-            livePreviewThread = null;
-        }
+        endLivePreview();
     }
 
 }

@@ -30,10 +30,10 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.nukisystems.hieroglyph.Constants.Constants;
 import org.nukisystems.hieroglyph.Utils.CSVUtils;
@@ -42,6 +42,8 @@ import org.nukisystems.hieroglyph.Utils.ResourceUtils;
 import org.nukisystems.hieroglyph.aidl.NanoGlyphManager;
 
 public final class AnimationManager {
+
+    private static final AtomicBoolean stopped = new AtomicBoolean(false);
 
     private static final String TAG = "GlyphAnimationManager";
     private static final boolean DEBUG = true;
@@ -59,7 +61,7 @@ public final class AnimationManager {
     }
 
     private static void releaseWakeLock() {
-        if (sWakeLock != null) {
+        if (sWakeLock != null && sWakeLock.isHeld()) {
             sWakeLock.release();
             sWakeLock = null;
             if (DEBUG) Log.d(TAG, "Released wakelock");
@@ -107,115 +109,13 @@ public final class AnimationManager {
                 || (Objects.equals(name, "progress") && StatusManager.isVolumeAnimationActive());
     }
 
-    public static void stream(Context ctx, String name) {
-        streamToHardware(ctx, null, name, false, false, null);
-    }
-
-    public static void stream(Context ctx, String name, Runnable onComplete) {
-        streamToHardware(ctx, null, name, false, false, onComplete);
-    }
-
-    public static void stream(Context ctx, String name, boolean reverse) {
-        streamToHardware(ctx, null, name, reverse, false, null);
-    }
-
-    public static void stream(Context ctx, String name, boolean reverse, Runnable onComplete) {
-        streamToHardware(ctx, null, name, reverse, false, onComplete);
-    }
-
-    public static void stream(Context ctx, String name, boolean reverse, boolean alternateOnce) {
-        streamToHardware(ctx, null, name, reverse, alternateOnce, null);
-    }
-
-    public static void stream(Context ctx, String name, boolean reverse, boolean alternateOnce, Runnable onComplete) {
-        streamToHardware(ctx, null, name, reverse, alternateOnce, onComplete);
-    }
-
-    public static void streamCsv(Context ctx, String csv, String name, boolean reverse, boolean alternateOnce) {
-        streamToHardware(ctx, csv, name, reverse, alternateOnce, null);
-    }
-
-    public static void streamCsv(Context ctx, String csv, String name) {
-        streamToHardware(ctx, csv, name, false, false, null);
-    }
-
-    public static void streamCsv(Context ctx, String csv, String name, Runnable onComplete) {
-        streamToHardware(ctx, csv, name, false, false, onComplete);
-    }
-
-    public static void streamCsv(Context ctx, String csv, String name, boolean reverse) {
-        streamToHardware(ctx, csv, name, reverse, false, null);
-    }
-
-    public static void streamCsv(Context ctx, String csv, String name, boolean reverse, Runnable onComplete) {
-        streamToHardware(ctx, csv, name, reverse, false, onComplete);
-    }
-
-    private static void streamToHardware(Context ctx, String csv, String name,
-                                        boolean reverse, boolean alternateOnce,
-                                        final Runnable onComplete) {
-        StatusManager.setAnimationActive(true);
-        acquireWakeLock(ctx);
-        animationExecutor.execute(() -> {
-            int pixelCount = MatrixUtils.getMinFrameLength();
-
-            List<int[]> frames = new ArrayList<>();
-            try (BufferedReader reader = new BufferedReader(csv != null ? new StringReader(csv)
-                    : new InputStreamReader(ResourceUtils.getAnimation(name)))) {
-                Iterator<String> it = CSVUtils.iterateCsvLines(reader, reverse, alternateOnce);
-                while (it.hasNext()) {
-                    String[] split = it.next().split(",");
-                    if (split.length != pixelCount) {
-                        Log.w(TAG, "streamToHardware: line length " + split.length
-                                + " != pixelCount " + pixelCount + ", skipping frame");
-                        continue;
-                    }
-                    int[] frame = new int[pixelCount];
-                    for (int i = 0; i < pixelCount; i++) {
-                        frame[i] = Integer.parseInt(split[i]);
-                    }
-                    frames.add(frame);
-                }
-            } catch (Exception e) {
-                Log.e(TAG, "streamToHardware: failed to read animation " + name, e);
-                StatusManager.setAnimationActive(false);
-                return;
-            }
-
-            if (frames.isEmpty()) {
-                Log.w(TAG, "streamToHardware: no valid frames for " + name);
-                StatusManager.setAnimationActive(false);
-                return;
-            }
-
-            final int fps = 60;
-            CountDownLatch latch = new CountDownLatch(1);
-            boolean[] success = {false};
-
-            NanoGlyphManager.Java.Matrix.playPatternAndAwaitCompletion(frames, fps, result -> {
-                success[0] = result;
-                latch.countDown();
-            });
-
-            try {
-                latch.await();
-            } catch (InterruptedException e) {
-                NanoGlyphManager.Java.Matrix.stop(null);
-            }
-
-            if (!success[0]) {
-                Log.w(TAG, "streamToHardware: animation ended abnormally");
-            }
-
-            if (onComplete != null) onComplete.run();
-            stopHardwareAnimation();
-        });
-    }
-
     public static void stopHardwareAnimation() {
-        StatusManager.setAnimationActive(false);
-        releaseWakeLock();
-        NanoGlyphManager.Java.Matrix.stop(null);
+        if (stopped.compareAndSet(false, true)) {
+            StatusManager.setAnimationActive(false);
+            NanoGlyphManager.Java.Matrix.stop();
+            stopped.set(false);
+            releaseWakeLock();
+        }
     }
 
     public static void playCall(String name, boolean reversed) {
@@ -306,5 +206,153 @@ public final class AnimationManager {
 
     public static void clearLEDs() {
         NanoGlyphManager.Java.Matrix.setBrightness(0, null);
+    }
+
+    public static final class Coordinator {
+        private static final String TAG = "AnimationCoordinator";
+        private static final Coordinator INSTANCE = new Coordinator();
+
+        public static Coordinator get() { return INSTANCE; }
+
+        private final Object lock = new Object();
+        private Thread currentWorker;
+        private long currentGeneration = 0; 
+
+        private Coordinator() {}
+
+        public void stream(Context ctx, String name) {
+            streamToHardware(ctx, null, name, false, false, null);
+        }
+
+        public void stream(Context ctx, String name, Runnable onComplete) {
+            streamToHardware(ctx, null, name, false, false, onComplete);
+        }
+
+        public void stream(Context ctx, String name, boolean reverse) {
+            streamToHardware(ctx, null, name, reverse, false, null);
+        }
+
+        public void stream(Context ctx, String name, boolean reverse, Runnable onComplete) {
+            streamToHardware(ctx, null, name, reverse, false, onComplete);
+        }
+
+        public void stream(Context ctx, String name, boolean reverse, boolean alternateOnce) {
+            streamToHardware(ctx, null, name, reverse, alternateOnce, null);
+        }
+
+        public void stream(Context ctx, String name, boolean reverse, boolean alternateOnce, Runnable onComplete) {
+            streamToHardware(ctx, null, name, reverse, alternateOnce, onComplete);
+        }
+
+        public void streamCsv(Context ctx, String csv, String name, boolean reverse, boolean alternateOnce) {
+            streamToHardware(ctx, csv, name, reverse, alternateOnce, null);
+        }
+
+        public void streamCsv(Context ctx, String csv, String name) {
+            streamToHardware(ctx, csv, name, false, false, null);
+        }
+
+        public void streamCsv(Context ctx, String csv, String name, Runnable onComplete) {
+            streamToHardware(ctx, csv, name, false, false, onComplete);
+        }
+
+        public void streamCsv(Context ctx, String csv, String name, boolean reverse) {
+            streamToHardware(ctx, csv, name, reverse, false, null);
+        }
+
+        public void streamCsv(Context ctx, String csv, String name, boolean reverse, Runnable onComplete) {
+            streamToHardware(ctx, csv, name, reverse, false, onComplete);
+        }
+
+        public void streamToHardware(Context ctx, String csv, String name,
+                                boolean reverse, boolean alternateOnce,
+                                Runnable onComplete) {
+            final long myGeneration;
+            synchronized (lock) {
+                if (currentWorker != null) {
+                    Log.d(TAG, "cancelling previous animation run");
+                    currentWorker.interrupt();
+                }
+                myGeneration = ++currentGeneration;
+
+                StatusManager.setAnimationActive(true);
+                acquireWakeLock(ctx);
+
+                Thread worker = new Thread(() ->
+                        runWorker(csv, name, reverse, alternateOnce, onComplete, myGeneration),
+                        "anim-stream");
+                currentWorker = worker;
+                worker.start();
+            }
+        }
+
+        private void runWorker(String csv, String name,
+                            boolean reverse, boolean alternateOnce,
+                            Runnable onComplete, long myGeneration) {
+            try {
+                List<int[]> frames = readFrames(csv, name, reverse, alternateOnce);
+                if (frames == null || frames.isEmpty()) {
+                    Log.w(TAG, "no valid frames for " + name);
+                    return;
+                }
+                if (Thread.currentThread().isInterrupted()) return;
+
+                NanoGlyphManager.Java.Matrix.playPatternAndAwaitCompletion(
+                    frames, 60, result -> {
+                        if (!result) {
+                            Log.w(TAG, "animation ended abnormally");
+                        }
+                        if (onComplete != null) {
+                            onComplete.run();
+                        }
+                    }
+                );
+
+            } catch (Throwable t) {
+                Log.e(TAG, "worker failed", t);
+            } finally {
+                stopHardwareAnimation();
+                synchronized (lock) {
+                    if (currentGeneration == myGeneration) {
+                        currentWorker = null;
+                    }
+                }
+            }
+        }
+
+        private List<int[]> readFrames(String csv, String name,
+                                       boolean reverse, boolean alternateOnce) {
+            int pixelCount = MatrixUtils.getMinFrameLength();
+            List<int[]> frames = new ArrayList<>();
+            try (BufferedReader reader = new BufferedReader(csv != null
+                    ? new StringReader(csv)
+                    : new InputStreamReader(ResourceUtils.getAnimation(name)))) {
+                Iterator<String> it = CSVUtils.iterateCsvLines(reader, reverse, alternateOnce);
+                while (it.hasNext()) {
+                    if (Thread.currentThread().isInterrupted()) return null;
+                    String[] split = it.next().split(",");
+                    if (split.length != pixelCount) {
+                        Log.w(TAG, "line length " + split.length + " != " + pixelCount + ", skipping");
+                        continue;
+                    }
+                    int[] frame = new int[pixelCount];
+                    for (int i = 0; i < pixelCount; i++) frame[i] = Integer.parseInt(split[i]);
+                    frames.add(frame);
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "failed to read animation " + name, e);
+                return null;
+            }
+            return frames;
+        }
+
+        public void cancelCurrent() {
+            synchronized (lock) {
+                if (currentWorker != null) {
+                    Log.d(TAG, "cancelling current animation run");
+                    currentWorker.interrupt();
+                }
+            }
+        }
     }
 }

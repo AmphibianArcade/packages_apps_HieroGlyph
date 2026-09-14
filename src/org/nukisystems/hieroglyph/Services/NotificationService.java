@@ -164,13 +164,13 @@ public class NotificationService extends NotificationListenerService
             Runnable runnable = () -> {
                 if (SettingsManager.appHasGlyphNotifsConfig(packageName)) {
                     if (SettingsManager.isGlyphNotifsAnimationReversed(packageName)) {
-                        AnimationManager.stream(
+                        AnimationManager.Coordinator.get().stream(
                                 mContext,
                                 SettingsManager.getGlyphNotifsAnimation(packageName),
                                 true
                         );
                     } else {
-                        AnimationManager.stream(
+                        AnimationManager.Coordinator.get().stream(
                                 mContext,
                                 SettingsManager.getGlyphNotifsAnimation(packageName)
                         );
@@ -178,20 +178,20 @@ public class NotificationService extends NotificationListenerService
                 } else {
                     if (SettingsManager.isGlyphNotifsSyncEnabled()
                             && CSVUtils.Holder.Notification.isAvailable()) {
-                        AnimationManager.streamCsv(
+                        AnimationManager.Coordinator.get().streamCsv(
                                 mContext,
                                 CSVUtils.Holder.Notification.getCsv(),
                                 "notification"
                         );
                     } else {
                         if (SettingsManager.isGlyphNotifsAnimationReversed()) {
-                            AnimationManager.stream(
+                            AnimationManager.Coordinator.get().stream(
                                     mContext,
                                     SettingsManager.getGlyphNotifsAnimation(),
                                     true
                             );
                         } else {
-                            AnimationManager.stream(
+                            AnimationManager.Coordinator.get().stream(
                                     mContext,
                                     SettingsManager.getGlyphNotifsAnimation()
                             );

@@ -17,6 +17,8 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 import java.io.File;
@@ -36,8 +38,6 @@ public class OggSettingsFragment extends SettingsBasePreferenceFragment {
     private Preference mLivePreviewPreference;
     private PreferenceScreen mScreen;
 
-    private Thread livePreviewThread;
-
     public static final String mapKeyDevice = "Device";
     public static final String mapKeyAnimLength = "Length";
     public static final String mapKeyFilename = "Filename";
@@ -48,6 +48,8 @@ public class OggSettingsFragment extends SettingsBasePreferenceFragment {
     private Map<String, String> metadata;
 
     private String TAG = this.getClass().getSimpleName();
+
+    private final Handler mHandler = new Handler(Looper.getMainLooper());
 
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
@@ -214,46 +216,50 @@ public class OggSettingsFragment extends SettingsBasePreferenceFragment {
     @Override
     public boolean onPreferenceTreeClick(Preference preference) {
         if (Constants.GLYPH_OGG_LIVE_PREVIEW.equals(preference.getKey())) {
-            mLivePreviewPreference.setEnabled(false);
-            mLivePreviewPreference.setSummary(
-                    R.string.glyph_settings_animations_live_preview_summary_playing
-            );
-            livePreviewThread = new Thread(() -> {
-                Activity activity = getActivity();
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    resetLivePreview();
-                    return;
-                }
-                AnimationManager.streamCsv(requireContext(), csv, metadata.get(mapKeyFilename));
-
-                if (activity != null) {
-                    activity.runOnUiThread(this::resetLivePreview);
-                }
-            });
-            livePreviewThread.start();
+           beginLivePreview();
         }
+
         if (Constants.GLYPH_UTILITIES_OGG_EXPORT_CSV.equals(preference.getKey())) {
             exportCsvFromOgg(0);
         }
         return true;
     }
 
-    private void resetLivePreview() {
-        mLivePreviewPreference.setEnabled(true);
+    private void beginLivePreview() {
+        mLivePreviewPreference.setEnabled(false);
         mLivePreviewPreference.setSummary(
-                R.string.glyph_settings_animations_live_preview_summary
+            R.string.glyph_settings_animations_live_preview_summary_playing
         );
+        mHandler.postDelayed(() -> {
+            AnimationManager.Coordinator.get().streamCsv(
+                    requireContext(),
+                    csv,
+                    metadata.get(mapKeyFilename),
+                    () -> {
+                        if (isAdded()) getActivity().runOnUiThread(this::resetLivePreviewPref);
+                    }
+            );
+        }, 1000);
+    }
+
+    private void endLivePreview() {
+        AnimationManager.Coordinator.get().cancelCurrent();
+        resetLivePreviewPref();
+    }
+
+    private void resetLivePreviewPref() {
+        if (isAdded() && getActivity() != null) {
+            mLivePreviewPreference.setEnabled(true);
+            mLivePreviewPreference.setSummary(
+                R.string.glyph_settings_animations_live_preview_summary
+            );
+        }
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        if (livePreviewThread != null && livePreviewThread.isAlive()) {
-            livePreviewThread.interrupt();
-            livePreviewThread = null;
-        }
+        endLivePreview();
         CSVUtils.Holder.oggMeta.clear();
     }
 
