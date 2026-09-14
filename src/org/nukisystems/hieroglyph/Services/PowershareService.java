@@ -28,6 +28,8 @@ import org.nukisystems.hieroglyph.Manager.AnimationManager;
 import org.nukisystems.hieroglyph.Utils.FileUtils;
 import org.nukisystems.hieroglyph.Utils.ResourceUtils;
 
+import java.io.File;
+
 public class PowershareService extends Service {
 
     private static final String TAG = "GlyphPowershareService";
@@ -79,7 +81,7 @@ public class PowershareService extends Service {
         mPowershareActiveObserver.pauseWatching();
     }
 
-    private final FileObserver mFileObserver = new FileObserver(POWERSHARE_ENABLED, FileObserver.MODIFY) {
+    private final FileObserver mFileObserver = new FileObserver(new File(POWERSHARE_ENABLED), FileObserver.MODIFY) {
         @Override
         public void onEvent(int event, String file) {
             this.checkIfPowerShareIsEnabled();
