@@ -104,7 +104,7 @@ public class MatrixUtils {
 
     private static int[] getMatrixRows() {
         if (matrixRows == null) {
-            matrixRows = ResourceUtils.getIntArray(Constants.Res.ARRAY_MATRIX_ROWS);
+            matrixRows = ResourceUtils.getIntArray(Constants.Res.INT_ARRAY_MATRIX_ROWS);
         }
         return matrixRows;
     }

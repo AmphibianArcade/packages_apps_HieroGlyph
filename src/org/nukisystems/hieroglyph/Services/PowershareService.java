@@ -23,6 +23,7 @@ import android.os.FileObserver;
 import android.os.IBinder;
 import android.util.Log;
 
+import org.nukisystems.hieroglyph.Constants.Constants;
 import org.nukisystems.hieroglyph.Manager.AnimationManager;
 import org.nukisystems.hieroglyph.Utils.FileUtils;
 import org.nukisystems.hieroglyph.Utils.ResourceUtils;
@@ -33,9 +34,9 @@ public class PowershareService extends Service {
     private static final boolean DEBUG = true;
 
     private static final String POWERSHARE_ACTIVE =
-            ResourceUtils.getString("glyph_settings_paths_powershare_active_absolute");
+            ResourceUtils.getString(Constants.Res.STRING_POWERSHARE_STATUS_PATH);
     private static final String POWERSHARE_ENABLED =
-            ResourceUtils.getString("glyph_settings_paths_powershare_enabled_absolute");
+            ResourceUtils.getString(Constants.Res.STRING_POWERSHARE_ENABLED_PATH);
 
     private PowershareActiveObserver mPowershareActiveObserver;
     private Context mContext;

@@ -67,8 +67,8 @@ public class MatrixPreference extends Preference {
         layout.addView(mRootView);
 
         matrixDisplay = mRootView.findViewById(R.id.matrixDisplay);
-        matrixDisplay.setCols(ResourceUtils.getIntArray(Constants.Res.ARRAY_MATRIX_ROWS).length);
-        matrixDisplay.setValidCountPerRow(ResourceUtils.getIntArray(Constants.Res.ARRAY_MATRIX_ROWS));
+        matrixDisplay.setCols(ResourceUtils.getIntArray(Constants.Res.INT_ARRAY_MATRIX_ROWS).length);
+        matrixDisplay.setValidCountPerRow(ResourceUtils.getIntArray(Constants.Res.INT_ARRAY_MATRIX_ROWS));
     }
 
     @Override

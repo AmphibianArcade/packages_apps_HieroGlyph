@@ -80,7 +80,6 @@ public final class Constants {
     public static final String GLYPH_PROGRESS_MEDIA_ENABLE = "glyph_settings_progress_media_toggle";
     public static final String GLYPH_PROGRESS_MEDIA_WHITELIST = "glyph_settings_progress_media_app_whitelist";
 
-
     public static final String GLYPH_RED_LED_CATEGORY = "glyph_settings_red_led";
     public static final String GLYPH_RED_LED_MODE = "glyph_settings_red_led_mode";
     public static final String GLYPH_MIC_ACTIVITY_ENABLE = "glyph_settings_mic_activity_toggle";
@@ -129,17 +128,24 @@ public final class Constants {
     }
 
     public static class Res  {
-        public static String ARRAY_MATRIX_ROWS = "matrix_row_leds";
-        public static String ARRAY_BRIGHTNESS_LEVELS = "matrix_brightness_levels";
+        public static String INT_ARRAY_MATRIX_ROWS = "glyph_matrix_row_leds";
+        public static String INT_ARRAY_BRIGHTNESS_LEVELS = "glyph_matrix_brightness_levels";
+
+        public static String INT_BRIGHTNESS_MAX = "glyph_settings_brightness_max";
+        public static String INT_GLYPH_BUTTON_SCANCODE = "glyph_button_scancode";
+
+        public static String STRING_POWERSHARE_STATUS_PATH = "glyph_settings_paths_powershare_active_absolute";
+        public static String STRING_POWERSHARE_ENABLED_PATH = "glyph_settings_paths_powershare_enabled_absolute";
+        public static String STRING_LIGHT_SENSOR = "glyph_light_sensor";
     }
     
-
     public static final String[] APPS_TO_IGNORE = {
         "android",
         "com.android.traceur",
         "com.google.android.setupwizard",
         "dev.kdrag0n.dyntheme.privileged.sys"
     };
+    
     public static final String[] NOTIFS_TO_IGNORE = {
         "com.google.android.dialer:phone_incoming_call",
         "com.google.android.dialer:phone_ongoing_call",
@@ -147,11 +153,11 @@ public final class Constants {
     };
 
     public static boolean isPowershareSupported() {
-       return !ResourceUtils.getString("glyph_settings_paths_powershare_active_absolute").isEmpty();
+       return !ResourceUtils.getString(Res.STRING_POWERSHARE_STATUS_PATH).isEmpty();
     }
 
     public static boolean setBrightness(int b) {
-        if (b > ResourceUtils.getInteger("glyph_settings_brightness_max"))
+        if (b > getMaxBrightness())
             return false;
 
         brightness = b;
@@ -160,21 +166,21 @@ public final class Constants {
 
     public static int getBrightness() {
         if (brightness == -1)
-            brightness = ResourceUtils.getInteger("glyph_settings_brightness_max");
+            brightness = getMaxBrightness();
 
         return brightness;
     }
 
     public static int getMaxBrightness() {
         if (brightnessMax == -1)
-            brightnessMax = ResourceUtils.getInteger("glyph_settings_brightness_max");
+            brightnessMax = ResourceUtils.getInteger(Res.INT_BRIGHTNESS_MAX);
 
         return brightnessMax;
     }
 
     public static int[] getBrightnessLevels() {
         if (brightnessLevels == null)
-            brightnessLevels = ResourceUtils.getIntArray(Res.ARRAY_BRIGHTNESS_LEVELS);
+            brightnessLevels = ResourceUtils.getIntArray(Res.INT_ARRAY_BRIGHTNESS_LEVELS);
 
         return brightnessLevels;
     }
