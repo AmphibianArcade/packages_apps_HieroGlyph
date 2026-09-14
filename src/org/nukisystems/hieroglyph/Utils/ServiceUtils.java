@@ -181,37 +181,37 @@ public final class ServiceUtils {
 
     public static void startProgressService() {
         if (DEBUG) Log.d(TAG, "Starting Progress service");
-        context.startServiceAsUser(new Intent(context, ProgressService.class),
+        getContext().startServiceAsUser(new Intent(getContext(), ProgressService.class),
                 UserHandle.CURRENT);
     }
 
     public static void stopProgressService() {
         if (DEBUG) Log.d(TAG, "Stopping Progress service");
-        context.stopServiceAsUser(new Intent(context, ProgressService.class),
+        getContext().stopServiceAsUser(new Intent(getContext(), ProgressService.class),
                 UserHandle.CURRENT);
     }
 
     public static void startMicActivityService() {
         if (DEBUG) Log.d(TAG, "Starting Mic activity service");
-        context.startServiceAsUser(new Intent(context, MicActivityService.class),
+        getContext().startServiceAsUser(new Intent(getContext(), MicActivityService.class),
                 UserHandle.CURRENT);
     }
 
     public static void stopMicActivityService() {
         if (DEBUG) Log.d(TAG, "Starting Mic activity service");
-        context.stopServiceAsUser(new Intent(context, MicActivityService.class),
+        getContext().stopServiceAsUser(new Intent(getContext(), MicActivityService.class),
                 UserHandle.CURRENT);
     }
 
     public static void startTorchService() {
         if (DEBUG) Log.d(TAG, "Starting Torch service");
-        context.startServiceAsUser(new Intent(context, TorchService.class),
+        getContext().startServiceAsUser(new Intent(getContext(), TorchService.class),
                 UserHandle.CURRENT);
     }
 
     public static void stopTorchService() {
         if (DEBUG) Log.d(TAG, "Stopping Torch service");
-        context.stopServiceAsUser(new Intent(context, TorchService.class),
+        getContext().stopServiceAsUser(new Intent(getContext(), TorchService.class),
                 UserHandle.CURRENT);
     }
 
