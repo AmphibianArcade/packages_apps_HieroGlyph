@@ -130,6 +130,7 @@ public final class Constants {
     public static class Res  {
         public static String INT_ARRAY_MATRIX_ROWS = "glyph_matrix_row_leds";
         public static String INT_ARRAY_BRIGHTNESS_LEVELS = "glyph_matrix_brightness_levels";
+        public static String INT_ARRAY_AUTO_BRIGHTNESS_LEVELS = "glyph_auto_brightness_levels";
 
         public static String INT_BRIGHTNESS_MAX = "glyph_settings_brightness_max";
         public static String INT_GLYPH_BUTTON_SCANCODE = "glyph_button_scancode";

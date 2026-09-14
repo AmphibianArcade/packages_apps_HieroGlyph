@@ -41,7 +41,7 @@ public class AutoBrightnessService extends Service {
     private SensorManager mSensorManager;
     private Sensor mLightSensor;
     private static int sensorType;
-    private static final int[] AutoBrightnessLux = ResourceUtils.getIntArray("glyph_auto_brightness_levels");
+    private static final int[] AutoBrightnessLux = ResourceUtils.getIntArray(Constants.Res.INT_ARRAY_AUTO_BRIGHTNESS_LEVELS);
     private static final int[] BrightnessValues = Constants.getBrightnessLevels();
 
     @Override
@@ -51,7 +51,7 @@ public class AutoBrightnessService extends Service {
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
 
         // Get light sensor type
-        String sensorName = ResourceUtils.getString("glyph_light_sensor");
+        String sensorName = ResourceUtils.getString(Constants.Res.STRING_LIGHT_SENSOR);
         List<Sensor> sensors = mSensorManager.getSensorList(Sensor.TYPE_ALL);
         for (Sensor sensor : sensors) {
             if (sensorName.equals(sensor.getStringType())) {

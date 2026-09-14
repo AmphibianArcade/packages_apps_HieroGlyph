@@ -43,7 +43,7 @@
         <item>2501</item>
     </integer-array>
 
-    <integer-array name="glyph_settings_brightness_levels" translatable="false">
+    <integer-array name="glyph_matrix_brightness_levels" translatable="false">
         <item>60</item>
         <item>131</item>
         <item>187</item>
