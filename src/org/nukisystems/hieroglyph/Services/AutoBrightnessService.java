@@ -107,8 +107,7 @@ public class AutoBrightnessService extends Service {
                     " | BrightnessLux: " + led_lux + " | BrightnessValue: " + brightnessValue);
                 }
                 Constants.setBrightness(brightnessValue);
-                if (StatusManager.isEssentialLedActive())
-                    AnimationManager.playEssential();
+               // if (StatusManager.isEssentialLedActive()) AnimationManager.playEssential();
             }
         }
 

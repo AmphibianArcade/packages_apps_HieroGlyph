@@ -57,7 +57,7 @@ public class ChargingService extends Service {
     private Runnable dismissCharging = new Runnable() {
         @Override
         public void run() {
-            AnimationManager.dismissCharging();
+           // AnimationManager.dismissCharging();
         }
     };
 

@@ -67,7 +67,7 @@ public class ProgressService extends Service {
     private Runnable dismissProgress = new Runnable() {
         @Override
         public void run() {
-            AnimationManager.dismissProgress(mContext);
+            // AnimationManager.dismissProgress(mContext);
             StatusManager.setProgressAnimationActive(false);
         }
     };
@@ -319,7 +319,7 @@ public class ProgressService extends Service {
         }
 
         mThreadHandler.post(() -> {
-            AnimationManager.playProgress(mContext, progress, progressType, false);
+            // AnimationManager.playProgress(mContext, progress, progressType, false);
             StatusManager.setProgressAnimationActive(true);
         });
     }
