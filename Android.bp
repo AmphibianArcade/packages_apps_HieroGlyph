@@ -35,6 +35,7 @@ java_defaults {
 
     required: [
         "privapp_whitelist_org.nukisystems.hieroglyph.xml",
+        "vendor.nukisystems.nanoglyph.matrix-service",
         "whitelist_org.nukisystems.hieroglyph.xml",
     ],
 
