@@ -220,6 +220,8 @@
     <string name="metadata_device_phone2_proper">Phone (2)</string>
     <string name="metadata_device_phone2a_proper">Phone (2a)</string>
     <string name="metadata_device_phone3a_proper">Phone (3a)</string>
+    <string name="metadata_device_phone3_proper">Phone (3)</string>
+    <string name="metadata_device_phone4a_pro_proper">Phone (4a) Pro</string>
 
     <string name="metadata_device_unsupported">Unsupported</string>
     <string name="metadata_pattern_duration">Animation duration</string>
