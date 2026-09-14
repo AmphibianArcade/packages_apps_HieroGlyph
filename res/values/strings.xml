@@ -31,6 +31,9 @@
     <string name="glyph_settings_title">Glyph interface</string>
     <string name="glyph_settings_summary">Options for Glyph lights</string>
 
+    <string name="glyph_settings_nanoglyph_failure_title">Fatal Error</string>
+    <string name="glyph_settings_nanoglyph_failure_message">Could not reach NanoGlyph service! Try again later.</string>
+
     <string name="glyph_settings_summary_battery_saving">Disabled by Battery Saver</string>
     <string name="glyph_settings_summary_schedule">Disabled by schedule</string>
 
