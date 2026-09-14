@@ -30,7 +30,7 @@ java_defaults {
         "com.google.android.material_material",
         "SettingsLib",
         "IGlyphService-java",
-        "vendor.nukisystems.nanoglyph-java",
+        "vendor.nukisystems.nanoglyph-V1-java",
     ],
 
     required: [
