@@ -208,7 +208,7 @@ object NanoGlyphManager {
             @JvmOverloads
             fun setFrame(frame: IntArray, onComplete: Runnable? = null) {
                 scope.launch {
-                    setFrame(frame)
+                    setMatrixFrame(frame)
                     onComplete?.run()
                 }
             }
