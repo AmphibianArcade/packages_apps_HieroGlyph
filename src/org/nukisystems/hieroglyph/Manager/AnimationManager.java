@@ -161,16 +161,6 @@ public final class AnimationManager {
     }
 
     public static void updateLedFrame(int[] pattern) {
-        NanoGlyphManager.Java.Matrix.setFrame(pattern);
-    }
-
-    private static void updateLedFrame(String[] pattern) {
-        updateLedFrame(Arrays.stream(pattern)
-                .mapToInt(Integer::parseInt)
-                .toArray());
-    }
-
-    private static void updateLedFrame(float[] pattern) {
         float maxPatternBrightness = (float) Constants.MAX_PATTERN_BRIGHTNESS;
         float currentBrightness = (float) Constants.getBrightness();
         int[] newPattern = new int[pattern.length];
@@ -178,8 +168,17 @@ public final class AnimationManager {
         for (int i = 0; i < pattern.length; i++) {
             newPattern[i] = Math.round(pattern[i] / maxPatternBrightness * currentBrightness);
         }
+        try {
+            NanoGlyphManager.Java.Matrix.setFrame(MatrixUtils.trimToValidFrame(newPattern));
+        } catch (Exception e) {
+            Log.w (TAG, "Unable to trim pattern:" + e.getMessage());
+        }
+    }
 
-        updateLedFrame(newPattern);
+    private static void updateLedFrame(String[] pattern) {
+        updateLedFrame(Arrays.stream(pattern)
+                .mapToInt(Integer::parseInt)
+                .toArray());
     }
 
     private static void updateLedSingle(int led, String brightness) {
