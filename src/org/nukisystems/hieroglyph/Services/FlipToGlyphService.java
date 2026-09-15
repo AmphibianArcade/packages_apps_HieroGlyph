@@ -91,7 +91,7 @@ public class FlipToGlyphService extends Service {
                 && StatusManager.isGlyphIdle()) {
             String animationName = SettingsManager.getGlyphFlipAnimation();
             boolean shouldReverse = SettingsManager.isGlyphFlipAnimationReversed();
-            if (animationName.equals(Constants.GLYPH_NOTIF_ANIMATION_ALTERNATE)) {
+            if (animationName.equals(Constants.Settings.Notification.ANIMATION_ALTERNATE)) {
                 AnimationManager.Coordinator.get().stream(mContext, SettingsManager.getGlyphNotifsAnimation(), false, true);
             } else if (shouldReverse) {
                 AnimationManager.Coordinator.get().stream(mContext, animationName, true);

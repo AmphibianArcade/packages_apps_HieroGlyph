@@ -34,7 +34,7 @@ import org.nukisystems.hieroglyph.Utils.ServiceUtils;
 /** Quick settings tile: Flip to Glyph **/
 public class FlipToGlyphTileService extends TileService {
 
-    Uri uri = Settings.Secure.getUriFor(Constants.GLYPH_ENABLE);
+    Uri uri = Settings.Secure.getUriFor(Constants.Settings.GLYPH_ENABLE);
 
     ContentObserver observer = new ContentObserver(new Handler(Looper.getMainLooper())) {
         @Override

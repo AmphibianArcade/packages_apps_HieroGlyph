@@ -35,55 +35,102 @@ public final class Constants {
     private static int brightnessMax = -1;
     private static int[] brightnessLevels = null;
     private static int[] supportedAnimationPatternLengths = null;
+    
+    public static final class Settings {
 
-    public static final String GLYPH_ENABLE = "glyph_enable";
-    public static final String GLYPH_FLIP_ENABLE = "glyph_settings_flip_toggle";
-    public static final String GLYPH_FLIP_SUB_ENABLE = "glyph_settings_flip_sub_toggle";
-    public static final String GLYPH_FLIP_SUB_PREVIEW = "glyph_settings_flip_sub_preview";
-    public static final String GLYPH_FLIP_SUB_ANIMATIONS = "glyph_settings_flip_sub_animations";
-    public static final String GLYPH_FLIP_SUB_ANIMATION_ENABLE = "glyph_settings_flip_sub_animation_toggle";
-    public static final String GLYPH_FLIP_SUB_LIVE_PREVIEW = "glyph_settings_flip_sub_live_preview";
+        public static final String PREFIX = "glyph_settings_";
 
-    public static final String GLYPH_FLIP_SUB_RINGER_MODE = "glyph_settings_flip_sub_ringer_mode";
-    public static final String GLYPH_FLIP_REVERSE_ANIMATION_ENABLE = "glyph_settings_flip_sub_animations_reverse_toggle";
+        public static final String GLYPH_ENABLE = "glyph_enable";
 
-    public static final String GLYPH_BRIGHTNESS = "glyph_settings_brightness";
-    public static final String GLYPH_BATTERY_SAVER_ENABLE = "glyph_settings_battery_saver_toggle";
-    public static final String GLYPH_CHARGING_CATEGORY = "glyph_settings_charging";
-    public static final String GLYPH_CHARGING_LEVEL_ENABLE = "glyph_settings_charging_level";
-    public static final String GLYPH_CHARGING_POWERSHARE_ENABLE = "glyph_settings_charging_powershare";
-    public static final String GLYPH_CALL_CATEGORY = "glyph_settings_call";
-    // public static final String GLYPH_CALL_TONE_SYNC = "glyph_settings_call_ogg_sync_toggle";
-    public static final String GLYPH_CALL_ENABLE = "glyph_settings_call_toggle";
-    public static final String GLYPH_CALL_REVERSE_ANIMATION_ENABLE = "glyph_settings_call_sub_animations_reverse_toggle";
-    public static final String GLYPH_CALL_SUB_PREVIEW = "glyph_settings_call_sub_preview";
-    public static final String GLYPH_CALL_SUB_ANIMATIONS = "glyph_settings_call_sub_animations";
-    public static final String GLYPH_CALL_SUB_CONTACT_SELECT = "glyph_settings_call_sub_contact_select";
-    public static final String GLYPH_CALL_SUB_LIVE_PREVIEW = "glyph_settings_call_sub_animations_live_preview";
-    public static final String GLYPH_CALL_SUB_ENABLE = "glyph_settings_call_sub_toggle";
-    public static final String GLYPH_CALL_SUB_CATEGORY = "glyph_settings_call_sub";
-    public static final String GLYPH_NOTIFS_ENABLE = "glyph_settings_notifs_toggle";
-    public static final String GLYPH_NOTIFS_TONE_SYNC = "glyph_settings_notifs_ogg_sync_toggle";
-    public static final String GLYPH_NOTIFS_SUB_PREVIEW = "glyph_settings_notifs_sub_preview";
-    public static final String GLYPH_NOTIFS_SUB_ANIMATIONS = "glyph_settings_notifs_sub_animations";
-    public static final String GLYPH_NOTIFS_SUB_LIVE_PREVIEW = "glyph_settings_notifs_sub_animations_live_preview";
-    public static final String GLYPH_NOTIFS_SUB_ESSENTIAL = "glyph_settings_notifs_sub_essential";
-    public static final String GLYPH_NOTIFS_SUB_CATEGORY = "glyph_settings_notifs_sub";
-    public static final String GLYPH_NOTIFS_SUB_ENABLE = "glyph_settings_notifs_sub_toggle";
-    public static final String GLYPH_NOTIFS_REVERSE_ANIMATION_ENABLE = "glyph_settings_notifs_sub_animations_reverse_toggle";
-    public static final String GLYPH_VOLUME_CATEGORY = "glyph_settings_volume";
-    public static final String GLYPH_VOLUME_LEVEL_ENABLE = "glyph_settings_volume_level_toggle";
-    public static final String GLYPH_AUTO_BRIGHTNESS_ENABLE = "glyph_settings_auto_brightness_toggle";
-    public static final String GLYPH_SCHEDULE = "glyph_settings_schedule";
-    public static final String GLYPH_PROGRESS_CATEGORY = "glyph_settings_progress";
-    public static final String GLYPH_PROGRESS_ENABLE = "glyph_settings_progress_toggle";
-    public static final String GLYPH_PROGRESS_MEDIA_ENABLE = "glyph_settings_progress_media_toggle";
-    public static final String GLYPH_PROGRESS_MEDIA_WHITELIST = "glyph_settings_progress_media_app_whitelist";
+        public static final class BatterySaver {
+            public static final String ENABLE = PREFIX + "battery_saver_toggle";
+        }
 
-    public static final String GLYPH_RED_LED_CATEGORY = "glyph_settings_red_led";
-    public static final String GLYPH_RED_LED_MODE = "glyph_settings_red_led_mode";
-    public static final String GLYPH_MIC_ACTIVITY_ENABLE = "glyph_settings_mic_activity_toggle";
-    public static final String GLYPH_MIC_ACTIVITY_WHITELIST = "glyph_settings_mic_activity_whitelist";
+        public static final class Brightness {
+            public static final String AUTO_BRIGHTNESS_ENABLE = PREFIX + "auto_brightness_toggle";
+            public static final String BRIGHTNESS = PREFIX + "brightness";
+        }
+
+        public static final class Call {
+            public static final String CATEGORY = PREFIX + "call";
+            // public static final String TONE_SYNC = PREFIX + "call_ogg_sync_toggle";
+            public static final String ENABLE = PREFIX + "call_toggle";
+            public static final String REVERSE_ANIMATION_ENABLE = PREFIX + "call_sub_animations_reverse_toggle";
+            public static final String SUB_PREVIEW = PREFIX + "call_sub_preview";
+            public static final String SUB_ANIMATIONS = PREFIX + "call_sub_animations";
+            public static final String SUB_CONTACT_SELECT = PREFIX + "call_sub_contact_select";
+            public static final String SUB_LIVE_PREVIEW = PREFIX + "call_sub_animations_live_preview";
+            public static final String SUB_ENABLE = PREFIX + "call_sub_toggle";
+            public static final String SUB_CATEGORY = PREFIX + "call_sub";
+
+            public static final String CONTACT_PREF_PREFIX = "call_contact_";
+            public static final String APP_PREF_PREFIX = "call_";
+        }
+        
+        public static final class Charging {
+            public static final String CATEGORY = PREFIX + "charging";
+            public static final String LEVEL_ENABLE = PREFIX + "charging_level";
+            public static final String POWERSHARE_ENABLE = PREFIX + "charging_powershare";
+        }
+
+        public static final class Flip {
+            public static final String ENABLE = PREFIX + "flip_toggle";
+            public static final String SUB_ENABLE = PREFIX + "flip_sub_toggle";
+            public static final String SUB_PREVIEW = PREFIX + "flip_sub_preview";
+            public static final String SUB_ANIMATIONS = PREFIX + "flip_sub_animations";
+            public static final String SUB_ANIMATION_ENABLE = PREFIX + "flip_sub_animation_toggle";
+            public static final String SUB_LIVE_PREVIEW = PREFIX + "flip_sub_live_preview";
+            public static final String SUB_RINGER_MODE = PREFIX + "flip_sub_ringer_mode";
+            public static final String REVERSE_ANIMATION_ENABLE = PREFIX + "flip_sub_animations_reverse_toggle";
+        }
+
+        public static final class Notification {
+            public static final String ENABLE = PREFIX + "notifs_toggle";
+            public static final String TONE_SYNC = PREFIX + "notifs_ogg_sync_toggle";
+            public static final String SUB_PREVIEW = PREFIX + "notifs_sub_preview";
+            public static final String SUB_ANIMATIONS = PREFIX + "notifs_sub_animations";
+            public static final String SUB_LIVE_PREVIEW = PREFIX + "notifs_sub_animations_live_preview";
+            public static final String SUB_ESSENTIAL = PREFIX + "notifs_sub_essential";
+            public static final String SUB_CATEGORY = PREFIX + "notifs_sub";
+            public static final String SUB_ENABLE = PREFIX + "notifs_sub_toggle";
+            public static final String REVERSE_ANIMATION_ENABLE = PREFIX + "notifs_sub_animations_reverse_toggle";
+
+            public static final String ANIMATION_ALTERNATE = "notif_alternate";
+            public static final String APP_PREF_PREFIX = "notif_";
+        }
+
+        public static final class Progress {
+            public static final String ENABLE = PREFIX + "progress_toggle";
+            public static final String MEDIA_ENABLE = PREFIX + "progress_media_toggle";
+            public static final String MEDIA_WHITELIST = PREFIX + "progress_media_app_whitelist";
+            public static final String CATEGORY = PREFIX + "progress";
+        }
+
+        public static final class RedLED {
+            public static final String CATEGORY = PREFIX + "red_led";
+            public static final String MODE = PREFIX + "red_led_mode";
+            public static final String MIC_ACTIVITY_ENABLE = PREFIX + "mic_activity_toggle";
+            public static final String MIC_ACTIVITY_WHITELIST = PREFIX + "mic_activity_whitelist";
+        }
+
+        public static final class Schedule {
+            public static final String GLYPH_SCHEDULE = PREFIX + "schedule";
+        }
+
+        public static final class Utilities {
+            public static final String UTILITIES = PREFIX + "utilities";
+            public static final String VALIDATE_CSV = "glyph_utilities_validate_csv";
+            public static final String READ_OGG = "glyph_utilities_read_ogg";
+            public static final String OGG_EXPORT_CSV = "glyph_utilities_export_csv_from_ogg";
+            public static final String OGG_LIVE_PREVIEW = "glyph_utilities_ogg_live_preview";
+        }
+
+        public static final class Volume {
+            public static final String CATEGORY = PREFIX + "volume";
+            public static final String LEVEL_ENABLE = PREFIX + "volume_level_toggle";
+
+        }
+    }
 
     public static final String ACTION_TORCH_ENABLE = "torch_enable";
     public static final String ACTION_TORCH_DISABLE = "torch_disable";
@@ -94,27 +141,13 @@ public final class Constants {
     public static final String GLYPH_USER_CALL_CSV_PREFIX = "user_call_";
     public static final String GLYPH_USER_NOTIF_CSV_PREFIX = "user_notif_";
 
-    public static final String GLYPH_NOTIF_ANIMATION_ALTERNATE = "notif_alternate";
-
-    public static final String GLYPH_CALL_CONTACT_PREF_PREFIX = "call_contact_";
-    public static final String GLYPH_CALL_APP_PREF_PREFIX = "call_";
-    public static final String GLYPH_NOTIF_APP_PREF_PREFIX = "notif_";
-
-    public static final String GLYPH_OGG_LIVE_PREVIEW = "glyph_utilities_ogg_live_preview";
-
-    public static final String GLYPH_UTILITIES = "glyph_settings_utilities";
-
-    public static final String GLYPH_UTILITIES_VALIDATE_CSV = "glyph_utilities_validate_csv";
-    public static final String GLYPH_UTILITIES_READ_OGG = "glyph_utilities_read_ogg";
-    public static final String GLYPH_UTILITIES_OGG_EXPORT_CSV = "glyph_utilities_export_csv_from_ogg";
-
     public static class Device {
 
         public static final String PHONE4A_PRO = "phone4apro";
         public static final String PHONE3 = "phone3";
 
         public static String getDevice() {
-            if (device == null) device = ResourceUtils.getString("glyph_settings_device");
+            if (device == null) device = ResourceUtils.getString(Settings.PREFIX + "device");
             return device;
         }
 
@@ -131,12 +164,12 @@ public final class Constants {
         public static String INT_ARRAY_MATRIX_ROWS = "glyph_matrix_row_leds";
         public static String INT_ARRAY_BRIGHTNESS_LEVELS = "glyph_matrix_brightness_levels";
         public static String INT_ARRAY_AUTO_BRIGHTNESS_LEVELS = "glyph_auto_brightness_levels";
-
-        public static String INT_BRIGHTNESS_MAX = "glyph_settings_brightness_max";
+        
+        public static String INT_BRIGHTNESS_MAX = Settings.PREFIX + "brightness_max";
         public static String INT_GLYPH_BUTTON_SCANCODE = "glyph_button_scancode";
 
-        public static String STRING_POWERSHARE_STATUS_PATH = "glyph_settings_paths_powershare_active_absolute";
-        public static String STRING_POWERSHARE_ENABLED_PATH = "glyph_settings_paths_powershare_enabled_absolute";
+        public static String STRING_POWERSHARE_STATUS_PATH = Settings.PREFIX + "paths_powershare_active_absolute";
+        public static String STRING_POWERSHARE_ENABLED_PATH = Settings.PREFIX + "paths_powershare_enabled_absolute";
         public static String STRING_LIGHT_SENSOR = "glyph_light_sensor";
     }
     

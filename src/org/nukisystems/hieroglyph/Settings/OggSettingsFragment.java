@@ -102,7 +102,7 @@ public class OggSettingsFragment extends SettingsBasePreferenceFragment {
 
         addPreferencesFromResource(R.xml.glyph_ogg_options);
 
-        mLivePreviewPreference = findPreference(Constants.GLYPH_OGG_LIVE_PREVIEW);
+        mLivePreviewPreference = findPreference(Constants.Settings.Utilities.OGG_LIVE_PREVIEW);
 
         boolean incompatible = !CSVUtils.isCompatible(csv);
         if (incompatible) {
@@ -215,11 +215,11 @@ public class OggSettingsFragment extends SettingsBasePreferenceFragment {
 
     @Override
     public boolean onPreferenceTreeClick(Preference preference) {
-        if (Constants.GLYPH_OGG_LIVE_PREVIEW.equals(preference.getKey())) {
+        if (Constants.Settings.Utilities.OGG_LIVE_PREVIEW.equals(preference.getKey())) {
            beginLivePreview();
         }
 
-        if (Constants.GLYPH_UTILITIES_OGG_EXPORT_CSV.equals(preference.getKey())) {
+        if (Constants.Settings.Utilities.OGG_EXPORT_CSV.equals(preference.getKey())) {
             exportCsvFromOgg(0);
         }
         return true;

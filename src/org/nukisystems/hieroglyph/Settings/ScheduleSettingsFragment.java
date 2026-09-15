@@ -53,10 +53,10 @@ public class ScheduleSettingsFragment extends SettingsBasePreferenceFragment
 
         getActivity().setTitle("Glyph Schedule");
 
-        mScheduleSwitch = findPreference("glyph_schedule_enable");
-        mDaysPreference = findPreference("glyph_schedule_days");
-        mStartTimePreference = findPreference("glyph_schedule_start_time");
-        mEndTimePreference = findPreference("glyph_schedule_end_time");
+        mScheduleSwitch = findPreference(GlyphScheduleManager.PREF_SCHEDULE_ENABLED);
+        mDaysPreference = findPreference(GlyphScheduleManager.PREF_SCHEDULE_DAYS);
+        mStartTimePreference = findPreference(GlyphScheduleManager.PREF_SCHEDULE_START_TIME);
+        mEndTimePreference = findPreference(GlyphScheduleManager.PREF_SCHEDULE_END_TIME);
         mStatusPreference = findPreference("glyph_schedule_status");
 
         if (mScheduleSwitch != null) {

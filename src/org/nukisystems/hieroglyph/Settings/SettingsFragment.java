@@ -155,20 +155,20 @@ public class SettingsFragment extends SettingsBasePreferenceFragment implements 
 
         boolean glyphEnabled = SettingsManager.isGlyphEnabledIgnoreSchedule();
 
-        mSwitchBar = (MainSwitchPreference) findPreference(Constants.GLYPH_ENABLE);
+        mSwitchBar = (MainSwitchPreference) findPreference(Constants.Settings.GLYPH_ENABLE);
         mSwitchBar.addOnSwitchChangeListener(this);
         mSwitchBar.setChecked(glyphEnabled);
 
-        mBatterySaverPreference = (SwitchPreferenceCompat) findPreference(Constants.GLYPH_BATTERY_SAVER_ENABLE);
+        mBatterySaverPreference = (SwitchPreferenceCompat) findPreference(Constants.Settings.BatterySaver.ENABLE);
         mBatterySaverPreference.setOnPreferenceChangeListener(this);
 
-        mFlipPreference = findPreference(Constants.GLYPH_FLIP_ENABLE);
+        mFlipPreference = findPreference(Constants.Settings.Flip.ENABLE);
         mFlipPreference.setSwitchEnabled(glyphEnabled);
         mFlipPreference.setEnabled(glyphEnabled);
         mFlipPreference.setChecked(SettingsManager.isGlyphFlipEnabled());
         mFlipPreference.setOnPreferenceChangeListener(this);
 
-        mAutoBrightnessPreference = (SwitchPreferenceCompat) findPreference(Constants.GLYPH_AUTO_BRIGHTNESS_ENABLE);
+        mAutoBrightnessPreference = (SwitchPreferenceCompat) findPreference(Constants.Settings.Brightness.AUTO_BRIGHTNESS_ENABLE);
         mAutoBrightnessPreference.setEnabled(glyphEnabled);
         mAutoBrightnessPreference.setOnPreferenceChangeListener(this);
         mAutoBrightnessPreference.setChecked(SettingsManager.isGlyphAutoBrightnessEnabled());
@@ -176,7 +176,7 @@ public class SettingsFragment extends SettingsBasePreferenceFragment implements 
             getPreferenceScreen().removePreference(mAutoBrightnessPreference);
         }
 
-        mBrightnessPreference = (SliderPreference) findPreference(Constants.GLYPH_BRIGHTNESS);
+        mBrightnessPreference = (SliderPreference) findPreference(Constants.Settings.Brightness.BRIGHTNESS);
         if (mAutoBrightnessPreference.isChecked()) {
             mBrightnessPreference.setEnabled(false);
         } else {
@@ -191,7 +191,7 @@ public class SettingsFragment extends SettingsBasePreferenceFragment implements 
         mBrightnessPreference.setTickVisible(true);
         mBrightnessPreference.setOnPreferenceChangeListener(this);
 
-        mNotifsPreference = (PrimarySwitchPreference) findPreference(Constants.GLYPH_NOTIFS_ENABLE);
+        mNotifsPreference = (PrimarySwitchPreference) findPreference(Constants.Settings.Notification.ENABLE);
         mNotifsPreference.setChecked(SettingsManager.isGlyphNotifsEnabled()
                 && checkNotificationService(false, null));
         mNotifsPreference.setEnabled(glyphEnabled);
@@ -199,20 +199,20 @@ public class SettingsFragment extends SettingsBasePreferenceFragment implements 
                 && checkNotificationService(false, null));
         mNotifsPreference.setOnPreferenceChangeListener(this);
 
-        mCallPreference = (PrimarySwitchPreference) findPreference(Constants.GLYPH_CALL_ENABLE);
+        mCallPreference = (PrimarySwitchPreference) findPreference(Constants.Settings.Call.ENABLE);
         mCallPreference.setChecked(SettingsManager.isGlyphCallEnabled());
         mCallPreference.setEnabled(glyphEnabled);
         mCallPreference.setSwitchEnabled(glyphEnabled);
         mCallPreference.setOnPreferenceChangeListener(this);
 
-        mChargingCategory = (PreferenceCategory) findPreference(Constants.GLYPH_CHARGING_CATEGORY);
+        mChargingCategory = (PreferenceCategory) findPreference(Constants.Settings.Charging.CATEGORY);
         mChargingLevelPreference = (SwitchPreferenceCompat)
-                findPreference(Constants.GLYPH_CHARGING_LEVEL_ENABLE);
+                findPreference(Constants.Settings.Charging.LEVEL_ENABLE);
 
         mChargingLevelPreference.setEnabled(glyphEnabled);
         mChargingLevelPreference.setOnPreferenceChangeListener(this);
 
-        mChargingPowersharePreference = (SwitchPreferenceCompat) findPreference(Constants.GLYPH_CHARGING_POWERSHARE_ENABLE);
+        mChargingPowersharePreference = (SwitchPreferenceCompat) findPreference(Constants.Settings.Charging.POWERSHARE_ENABLE);
 
         if (Constants.isPowershareSupported()) {
            mChargingPowersharePreference.setEnabled(glyphEnabled);
@@ -221,38 +221,38 @@ public class SettingsFragment extends SettingsBasePreferenceFragment implements 
            mChargingPowersharePreference.setVisible(false);
         }
 
-        mVolumeCategory = findPreference(Constants.GLYPH_VOLUME_CATEGORY);
+        mVolumeCategory = findPreference(Constants.Settings.Volume.CATEGORY);
 
-        mVolumeLevelPreference = (SwitchPreferenceCompat) findPreference(Constants.GLYPH_VOLUME_LEVEL_ENABLE);
+        mVolumeLevelPreference = (SwitchPreferenceCompat) findPreference(Constants.Settings.Volume.LEVEL_ENABLE);
         mVolumeLevelPreference.setEnabled(glyphEnabled);
         mVolumeLevelPreference.setOnPreferenceChangeListener(this);
 
-        mSchedulePreference = (Preference) findPreference(Constants.GLYPH_SCHEDULE);
+        mSchedulePreference = (Preference) findPreference(Constants.Settings.Schedule.GLYPH_SCHEDULE);
         updateScheduleSummary();
 
-        mProgressCategory = findPreference(Constants.GLYPH_PROGRESS_CATEGORY);
+        mProgressCategory = findPreference(Constants.Settings.Progress.CATEGORY);
 
-        mProgressPreference = (SwitchPreferenceCompat) findPreference(Constants.GLYPH_PROGRESS_ENABLE);
+        mProgressPreference = (SwitchPreferenceCompat) findPreference(Constants.Settings.Progress.ENABLE);
         mProgressPreference.setEnabled(glyphEnabled);
         mProgressPreference.setOnPreferenceChangeListener(this);
 
-        mProgressMediaPreference = (SwitchPreferenceCompat) findPreference(Constants.GLYPH_PROGRESS_MEDIA_ENABLE);
+        mProgressMediaPreference = (SwitchPreferenceCompat) findPreference(Constants.Settings.Progress.MEDIA_ENABLE);
         mProgressMediaPreference.setEnabled(glyphEnabled && mProgressPreference.isChecked());
         mProgressMediaPreference.setOnPreferenceChangeListener(this);
 
-        mProgressMediaWhitelistPreference = findPreference(Constants.GLYPH_PROGRESS_MEDIA_WHITELIST);
+        mProgressMediaWhitelistPreference = findPreference(Constants.Settings.Progress.MEDIA_WHITELIST);
         mProgressMediaWhitelistPreference.setEntries(
                 ResourceUtils.getApplicationsWithPermission(true, mediaPermissions));
         mProgressMediaWhitelistPreference.setEntryValues(
                 ResourceUtils.getApplicationsWithPermission(false, mediaPermissions));
 
-        mRedLedCategory = findPreference(Constants.GLYPH_RED_LED_CATEGORY);
+        mRedLedCategory = findPreference(Constants.Settings.RedLED.CATEGORY);
 
-        mMicActivityPreference = findPreference(Constants.GLYPH_MIC_ACTIVITY_ENABLE);
+        mMicActivityPreference = findPreference(Constants.Settings.RedLED.MIC_ACTIVITY_ENABLE);
         mMicActivityPreference.setOnPreferenceChangeListener(this);
         mMicActivityPreference.setEnabled(glyphEnabled);
 
-        mMicActivityWhitelistPreference = findPreference(Constants.GLYPH_MIC_ACTIVITY_WHITELIST);
+        mMicActivityWhitelistPreference = findPreference(Constants.Settings.RedLED.MIC_ACTIVITY_WHITELIST);
         mMicActivityWhitelistPreference.setEntries(
                 ResourceUtils.getApplicationsWithPermission(true, micPermissions));
         mMicActivityWhitelistPreference.setEntryValues(
@@ -260,11 +260,11 @@ public class SettingsFragment extends SettingsBasePreferenceFragment implements 
         mMicActivityWhitelistPreference.setOnPreferenceChangeListener(this);
         mMicActivityWhitelistPreference.setEnabled(glyphEnabled);
 
-        mRedLedModePreference = findPreference(Constants.GLYPH_RED_LED_MODE);
+        mRedLedModePreference = findPreference(Constants.Settings.RedLED.MODE);
         mRedLedModePreference.setOnPreferenceChangeListener(this);
         mRedLedModePreference.setEnabled(glyphEnabled);
 
-        mUtilitiesPreference = findPreference(Constants.GLYPH_UTILITIES);
+        mUtilitiesPreference = findPreference(Constants.Settings.Utilities.UTILITIES);
 
         IntentFilter filter = new IntentFilter("org.nukisystems.hieroglyph.UPDATE_MAIN_SWITCH");
         requireContext().registerReceiver(mScheduleUpdateReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
@@ -277,13 +277,13 @@ public class SettingsFragment extends SettingsBasePreferenceFragment implements 
         final String preferenceKey = preference.getKey();
 
         switch (preferenceKey) {
-            case Constants.GLYPH_FLIP_ENABLE -> {
+            case Constants.Settings.Flip.ENABLE -> {
                 SettingsManager.setGlyphFlipEnabled((Boolean) newValue);
             }
-            case Constants.GLYPH_CALL_ENABLE -> {
+            case Constants.Settings.Call.ENABLE -> {
                 SettingsManager.setGlyphCallEnabled((Boolean) newValue);
             }
-            case Constants.GLYPH_NOTIFS_ENABLE -> {
+            case Constants.Settings.Notification.ENABLE -> {
                 if (!checkNotificationService(true, preference)
                         && (Boolean) newValue) {
                     mHandler.post(() -> mNotifsPreference.setChecked(false));
@@ -291,10 +291,10 @@ public class SettingsFragment extends SettingsBasePreferenceFragment implements 
                 }
                 SettingsManager.setGlyphNotifsEnabled((Boolean) newValue);
             }
-            case Constants.GLYPH_AUTO_BRIGHTNESS_ENABLE -> {
+            case Constants.Settings.Brightness.AUTO_BRIGHTNESS_ENABLE -> {
                 mBrightnessPreference.setEnabled(!(Boolean) newValue);
             }
-            case Constants.GLYPH_BRIGHTNESS -> {
+            case Constants.Settings.Brightness.BRIGHTNESS -> {
                 if (SettingsManager.isGlyphEnabled()) {
                     int settingValue = (Integer) newValue;
                     int[] levels = Constants.getBrightnessLevels();
@@ -309,7 +309,7 @@ public class SettingsFragment extends SettingsBasePreferenceFragment implements 
                     });
                 }
             }
-            case Constants.GLYPH_PROGRESS_ENABLE -> {
+            case Constants.Settings.Progress.ENABLE -> {
                 boolean enabled = (Boolean) newValue;
 
                 if (enabled && !checkNotificationService(true, preference)) return false;
@@ -324,12 +324,12 @@ public class SettingsFragment extends SettingsBasePreferenceFragment implements 
                 }
                 return true;
             }
-            case Constants.GLYPH_PROGRESS_MEDIA_ENABLE -> {
+            case Constants.Settings.Progress.MEDIA_ENABLE -> {
                 mHandler.postDelayed(ServiceUtils::checkGlyphService, 100);
                 return true;
 
             }
-            case Constants.GLYPH_BATTERY_SAVER_ENABLE -> {
+            case Constants.Settings.BatterySaver.ENABLE -> {
                 updateBatterySaver((Boolean) newValue);
             }
         }
@@ -423,7 +423,7 @@ public class SettingsFragment extends SettingsBasePreferenceFragment implements 
 
     @Override
     public boolean onPreferenceTreeClick(Preference preference) {
-        if (Constants.GLYPH_NOTIFS_ENABLE.equals(preference.getKey())) {
+        if (Constants.Settings.Notification.ENABLE.equals(preference.getKey())) {
             if (!checkNotificationService(true, preference, true)) return true;
         }
         return super.onPreferenceTreeClick(preference);
@@ -535,13 +535,13 @@ public class SettingsFragment extends SettingsBasePreferenceFragment implements 
 
         public void register(ContentResolver cr) {
             cr.registerContentObserver(Settings.Secure.getUriFor(
-                Constants.GLYPH_ENABLE), false, this);
+                Constants.Settings.GLYPH_ENABLE), false, this);
             cr.registerContentObserver(Settings.Secure.getUriFor(
-                Constants.GLYPH_CALL_ENABLE), false, this);
+                Constants.Settings.Call.ENABLE), false, this);
             cr.registerContentObserver(Settings.Secure.getUriFor(
-                Constants.GLYPH_NOTIFS_ENABLE), false, this);
+                Constants.Settings.Notification.ENABLE), false, this);
             cr.registerContentObserver(Settings.Secure.getUriFor(
-                Constants.GLYPH_FLIP_ENABLE), false, this);
+                Constants.Settings.Flip.ENABLE), false, this);
         }
 
         public void unregister(ContentResolver cr) {
@@ -551,19 +551,19 @@ public class SettingsFragment extends SettingsBasePreferenceFragment implements 
         @Override
         public void onChange(boolean selfChange, Uri uri) {
             super.onChange(selfChange, uri);
-            if (uri.equals(Settings.Secure.getUriFor(Constants.GLYPH_ENABLE))
+            if (uri.equals(Settings.Secure.getUriFor(Constants.Settings.GLYPH_ENABLE))
                     && mSwitchBar != null) {
                 mSwitchBar.setChecked(SettingsManager.isGlyphEnabledIgnoreSchedule());
             }
-            if (uri.equals(Settings.Secure.getUriFor(Constants.GLYPH_FLIP_ENABLE))
+            if (uri.equals(Settings.Secure.getUriFor(Constants.Settings.Flip.ENABLE))
                     && mFlipPreference != null) {
                 mFlipPreference.setChecked(SettingsManager.isGlyphFlipEnabled());
             }
-            if (uri.equals(Settings.Secure.getUriFor(Constants.GLYPH_CALL_ENABLE))
+            if (uri.equals(Settings.Secure.getUriFor(Constants.Settings.Call.ENABLE))
                     && mCallPreference != null) {
                 mCallPreference.setChecked(SettingsManager.isGlyphCallEnabled());
             }
-            if (uri.equals(Settings.Secure.getUriFor(Constants.GLYPH_NOTIFS_ENABLE))
+            if (uri.equals(Settings.Secure.getUriFor(Constants.Settings.Notification.ENABLE))
                     && mNotifsPreference != null) {
                 mNotifsPreference.setChecked(SettingsManager.isGlyphNotifsEnabled());
             }

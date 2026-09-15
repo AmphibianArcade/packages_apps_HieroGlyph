@@ -159,7 +159,7 @@ public class AnimationSettingsFragment
         if (isContactSpecific) {
             contactName = ResourceUtils.getContactName(requireContext(), contactId);
             if (contactName == null) {
-                requireContext().getSharedPreferences(Constants.GLYPH_CALL_CONTACT_PREF_PREFIX
+                requireContext().getSharedPreferences(Constants.Settings.Call.CONTACT_PREF_PREFIX
                                 + contactId, Context.MODE_PRIVATE)
                         .edit().clear().apply();
                 showToast("Contact does not exist!");
@@ -233,7 +233,7 @@ public class AnimationSettingsFragment
             if (hasFlipCsv) {
                 animationEntryList.addFirst(getString(R.string.glyph_settings_default_option));
             }
-            animationEntryValues.addFirst(Constants.GLYPH_NOTIF_ANIMATION_ALTERNATE);
+            animationEntryValues.addFirst(Constants.Settings.Notification.ANIMATION_ALTERNATE);
             if (hasFlipCsv) animationEntryValues.addFirst("flip");
         }
         mListPreference.setEntries(animationEntryList.toArray(new String[0]));
@@ -258,7 +258,7 @@ public class AnimationSettingsFragment
         switch (fragmentType) {
             case FRAGMENT_TYPE_NOTIF -> {
                 if (isAppSpecific) {
-                    getPreferenceManager().setSharedPreferencesName(Constants.GLYPH_NOTIF_APP_PREF_PREFIX
+                    getPreferenceManager().setSharedPreferencesName(Constants.Settings.Notification.APP_PREF_PREFIX
                             + fragmentPkg);
                     addPreferencesFromResource(R.xml.glyph_notifs_settings_app);
                     mScreen = getPreferenceScreen();
@@ -266,34 +266,34 @@ public class AnimationSettingsFragment
                     fragmentTitle
                             = requireContext().getString(R.string.glyph_settings_notifs_toggle_title)
                             + " (" + pkgLabel + ")";
-                    addDeletePref(Constants.GLYPH_NOTIF_APP_PREF_PREFIX + fragmentPkg, pkgLabel);
+                    addDeletePref(Constants.Settings.Notification.APP_PREF_PREFIX + fragmentPkg, pkgLabel);
                 } else {
                     addPreferencesFromResource(R.xml.glyph_notifs_settings);
                     fragmentTitle = requireContext().getString(R.string.glyph_settings_notifs_toggle_title);
 
-                    appListCategory = findPreference(Constants.GLYPH_NOTIFS_SUB_CATEGORY);
+                    appListCategory = findPreference(Constants.Settings.Notification.SUB_CATEGORY);
                     inflateAppLists();
 
-                    mToneSyncSwitch = findPreference(Constants.GLYPH_NOTIFS_TONE_SYNC);
+                    mToneSyncSwitch = findPreference(Constants.Settings.Notification.TONE_SYNC);
                     mToneSyncSwitch.setOnPreferenceChangeListener(this);
                 }
 
-                animationPreviewKey = Constants.GLYPH_NOTIFS_SUB_PREVIEW;
+                animationPreviewKey = Constants.Settings.Notification.SUB_PREVIEW;
 
-                enableKey = Constants.GLYPH_NOTIFS_SUB_ENABLE;
+                enableKey = Constants.Settings.Notification.SUB_ENABLE;
 
-                livePreviewKey = Constants.GLYPH_NOTIFS_SUB_LIVE_PREVIEW;
+                livePreviewKey = Constants.Settings.Notification.SUB_LIVE_PREVIEW;
 
                 userAnimationPrefix = Constants.GLYPH_USER_NOTIF_CSV_PREFIX;
-                animationListKey = Constants.GLYPH_NOTIFS_SUB_ANIMATIONS;
+                animationListKey = Constants.Settings.Notification.SUB_ANIMATIONS;
 
                 defaultAnimation = "glyph_settings_notifs_animations_default";
-                reverseAnimationKey = Constants.GLYPH_NOTIFS_REVERSE_ANIMATION_ENABLE;
+                reverseAnimationKey = Constants.Settings.Notification.REVERSE_ANIMATION_ENABLE;
             }
 
             case FRAGMENT_TYPE_CALL -> {
                 if (isAppSpecific) {
-                    getPreferenceManager().setSharedPreferencesName(Constants.GLYPH_CALL_APP_PREF_PREFIX
+                    getPreferenceManager().setSharedPreferencesName(Constants.Settings.Call.APP_PREF_PREFIX
                             + fragmentPkg);
                     addPreferencesFromResource(R.xml.glyph_call_settings_app);
                     mScreen = getPreferenceScreen();
@@ -313,7 +313,7 @@ public class AnimationSettingsFragment
                                 android.R.string.ok,
                                 () -> {
                                     requireContext().deleteSharedPreferences(
-                                            Constants.GLYPH_CALL_APP_PREF_PREFIX + fragmentPkg);
+                                            Constants.Settings.Call.APP_PREF_PREFIX + fragmentPkg);
                                     getActivity().finish();
                                 },
                                 android.R.string.cancel, null);
@@ -325,7 +325,7 @@ public class AnimationSettingsFragment
 
                 } else if (isContactSpecific) {
                     getPreferenceManager().setSharedPreferencesName(
-                            Constants.GLYPH_CALL_CONTACT_PREF_PREFIX + contactId);
+                            Constants.Settings.Call.CONTACT_PREF_PREFIX + contactId);
                     addPreferencesFromResource(R.xml.glyph_call_settings_generic);
                     mScreen = getPreferenceScreen();
 
@@ -333,14 +333,14 @@ public class AnimationSettingsFragment
                             = requireContext().getString(R.string.glyph_settings_call_toggle_title)
                                     + " (" + contactName + ")";
 
-                    addDeletePref(Constants.GLYPH_CALL_CONTACT_PREF_PREFIX + contactId, contactName);
+                    addDeletePref(Constants.Settings.Call.CONTACT_PREF_PREFIX + contactId, contactName);
                 } else {
                     addPreferencesFromResource(R.xml.glyph_call_settings);
                     fragmentTitle =
                             requireContext().getString(R.string.glyph_settings_call_toggle_title);
 
                     Preference mContactSelectPreference =
-                            findPreference(Constants.GLYPH_CALL_SUB_CONTACT_SELECT);
+                            findPreference(Constants.Settings.Call.SUB_CONTACT_SELECT);
 
                     mContactSelectPreference.setOnPreferenceClickListener(pref -> {
                            mContactPickerAction = uri -> {
@@ -366,35 +366,35 @@ public class AnimationSettingsFragment
                            mContactPicker.launch(null);
                            return true;
                     });
-                    appListCategory = findPreference(Constants.GLYPH_CALL_SUB_CATEGORY);
+                    appListCategory = findPreference(Constants.Settings.Call.SUB_CATEGORY);
                     inflateAppLists();
 
-                    // mToneSyncSwitch = findPreference(Constants.GLYPH_CALL_TONE_SYNC);
+                    // mToneSyncSwitch = findPreference(Constants.Settings.Call.TONE_SYNC);
                     // mToneSyncSwitch.setOnPreferenceChangeListener(this);
 
                 }
 
-                animationPreviewKey = Constants.GLYPH_CALL_SUB_PREVIEW;
+                animationPreviewKey = Constants.Settings.Call.SUB_PREVIEW;
                 userAnimationPrefix = Constants.GLYPH_USER_CALL_CSV_PREFIX;
-                enableKey = Constants.GLYPH_CALL_SUB_ENABLE;
-                animationListKey = Constants.GLYPH_CALL_SUB_ANIMATIONS;
+                enableKey = Constants.Settings.Call.SUB_ENABLE;
+                animationListKey = Constants.Settings.Call.SUB_ANIMATIONS;
                 defaultAnimation = "glyph_settings_call_animations_default";
-                livePreviewKey = Constants.GLYPH_CALL_SUB_LIVE_PREVIEW;
-                reverseAnimationKey = Constants.GLYPH_CALL_REVERSE_ANIMATION_ENABLE;
+                livePreviewKey = Constants.Settings.Call.SUB_LIVE_PREVIEW;
+                reverseAnimationKey = Constants.Settings.Call.REVERSE_ANIMATION_ENABLE;
 
             }
             case FRAGMENT_TYPE_FLIP -> {
                 addPreferencesFromResource(R.xml.glyph_flip_settings);
                 fragmentTitle =
                         requireContext().getString(R.string.glyph_settings_flip_toggle_title);
-                animationPreviewKey = Constants.GLYPH_FLIP_SUB_PREVIEW;
+                animationPreviewKey = Constants.Settings.Flip.SUB_PREVIEW;
                 userAnimationPrefix = Constants.GLYPH_USER_NOTIF_CSV_PREFIX;
-                animationListKey = Constants.GLYPH_FLIP_SUB_ANIMATIONS;
-                enableKey = Constants.GLYPH_FLIP_SUB_ENABLE;
-                livePreviewKey = Constants.GLYPH_FLIP_SUB_LIVE_PREVIEW;
-                reverseAnimationKey = Constants.GLYPH_FLIP_REVERSE_ANIMATION_ENABLE;
+                animationListKey = Constants.Settings.Flip.SUB_ANIMATIONS;
+                enableKey = Constants.Settings.Flip.SUB_ENABLE;
+                livePreviewKey = Constants.Settings.Flip.SUB_LIVE_PREVIEW;
+                reverseAnimationKey = Constants.Settings.Flip.REVERSE_ANIMATION_ENABLE;
 
-                mGlyphFlipAnimationSwitch = findPreference(Constants.GLYPH_FLIP_SUB_ANIMATION_ENABLE);
+                mGlyphFlipAnimationSwitch = findPreference(Constants.Settings.Flip.SUB_ANIMATION_ENABLE);
                 mGlyphFlipAnimationSwitch.setOnPreferenceChangeListener(this);
 
             }
@@ -410,7 +410,7 @@ public class AnimationSettingsFragment
         boolean isPlayable = true;
 
         shouldAlternate = fragmentType.equals(FRAGMENT_TYPE_FLIP)
-                && mListPreference.getValue().equals(Constants.GLYPH_NOTIF_ANIMATION_ALTERNATE);
+                && mListPreference.getValue().equals(Constants.Settings.Notification.ANIMATION_ALTERNATE);
         boolean shouldReverse = mReverseAnimationSwitch.isChecked() && !shouldAlternate;
 
         mReverseAnimationSwitch.setVisible(!shouldAlternate);
@@ -440,7 +440,7 @@ public class AnimationSettingsFragment
             boolean isPlayable = true;
 
             shouldAlternate = fragmentType.equals(FRAGMENT_TYPE_FLIP)
-                    && animationName.equals(Constants.GLYPH_NOTIF_ANIMATION_ALTERNATE);
+                    && animationName.equals(Constants.Settings.Notification.ANIMATION_ALTERNATE);
             boolean shouldReverse = mReverseAnimationSwitch.isChecked() && !shouldAlternate;
 
             mReverseAnimationSwitch.setVisible(!shouldAlternate);
@@ -467,9 +467,9 @@ public class AnimationSettingsFragment
             return true;
         }
 
-        if (preferenceKey.equals(Constants.GLYPH_FLIP_SUB_ANIMATION_ENABLE)) {
+        if (preferenceKey.equals(Constants.Settings.Flip.SUB_ANIMATION_ENABLE)) {
             shouldAlternate = fragmentType.equals(FRAGMENT_TYPE_FLIP)
-                    && getGlyphAnimation().equals(Constants.GLYPH_NOTIF_ANIMATION_ALTERNATE);
+                    && getGlyphAnimation().equals(Constants.Settings.Notification.ANIMATION_ALTERNATE);
             boolean shouldReverse = mReverseAnimationSwitch.isChecked() && !shouldAlternate;
 
             mMatrixPreference.updateAnimation((Boolean) newValue, 1500, shouldReverse);
@@ -479,7 +479,7 @@ public class AnimationSettingsFragment
             mMatrixPreference.updateAnimation(isAnimationEnabled(), 1500, (Boolean) newValue);
         }
 
-        if (preferenceKey.equals(Constants.GLYPH_NOTIFS_TONE_SYNC)) {
+        if (preferenceKey.equals(Constants.Settings.Notification.TONE_SYNC)) {
             if ((Boolean) newValue) {
                 mListPreference.setTitle(R.string.glyph_settings_sub_animations_title_sync_enabled);
             } else {
@@ -690,7 +690,7 @@ public class AnimationSettingsFragment
         }
 
         mMultiSelectListPreference =
-                findPreference(Constants.GLYPH_NOTIFS_SUB_ESSENTIAL);
+                findPreference(Constants.Settings.Notification.SUB_ESSENTIAL);
 
         if (mMultiSelectListPreference != null) {
             mMultiSelectListPreference.setOnPreferenceChangeListener(this);
@@ -742,7 +742,7 @@ public class AnimationSettingsFragment
                 return true;
             }
         );
-        
+
         resolveAppSummary(preference, pkg);
 
         appListCategory.addPreference(preference);
@@ -810,7 +810,7 @@ public class AnimationSettingsFragment
 
             case FRAGMENT_TYPE_FLIP -> {
                 String value = SettingsManager.getGlyphFlipAnimation();
-                if (value.equals(Constants.GLYPH_NOTIF_ANIMATION_ALTERNATE)) {
+                if (value.equals(Constants.Settings.Notification.ANIMATION_ALTERNATE)) {
                     return SettingsManager.getGlyphNotifsAnimation();
                 } else {
                     return value;
@@ -961,7 +961,7 @@ public class AnimationSettingsFragment
             R.string.glyph_settings_animations_live_preview_summary_playing
         );
         shouldAlternate = fragmentType.equals(FRAGMENT_TYPE_FLIP)
-                    && mListPreference.getValue().equals(Constants.GLYPH_NOTIF_ANIMATION_ALTERNATE);
+                    && mListPreference.getValue().equals(Constants.Settings.Notification.ANIMATION_ALTERNATE);
         boolean shouldReverse = mReverseAnimationSwitch.isChecked() && !shouldAlternate;
         mHandler.postDelayed(() -> {
             AnimationManager.Coordinator.get().stream(

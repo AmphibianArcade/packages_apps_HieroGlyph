@@ -44,13 +44,15 @@ public final class GlyphScheduleManager {
     private static final String TAG = "GlyphScheduleManager";
     private static final boolean DEBUG = true;
 
-    private static final String PREF_SCHEDULE_ENABLED = "glyph_schedule_enabled";
-    private static final String PREF_SCHEDULE_START_HOUR = "glyph_schedule_start_hour";
-    private static final String PREF_SCHEDULE_START_MINUTE = "glyph_schedule_start_minute";
-    private static final String PREF_SCHEDULE_END_HOUR = "glyph_schedule_end_hour";
-    private static final String PREF_SCHEDULE_END_MINUTE = "glyph_schedule_end_minute";
-    private static final String PREF_SCHEDULE_ACTIVE = "glyph_schedule_currently_active";
-    private static final String PREF_SCHEDULE_DAYS = "glyph_schedule_days";
+    public static final String PREF_SCHEDULE_ENABLED = "glyph_schedule_enabled";
+    public static final String PREF_SCHEDULE_START_HOUR = "glyph_schedule_start_hour";
+    public static final String PREF_SCHEDULE_START_MINUTE = "glyph_schedule_start_minute";
+    public static final String PREF_SCHEDULE_START_TIME = "glyph_schedule_start_time";
+    public static final String PREF_SCHEDULE_END_MINUTE = "glyph_schedule_end_minute";
+    public static final String PREF_SCHEDULE_END_HOUR = "glyph_schedule_end_hour";
+    public static final String PREF_SCHEDULE_END_TIME = "glyph_schedule_end_time";
+    public static final String PREF_SCHEDULE_ACTIVE = "glyph_schedule_currently_active";
+    public static final String PREF_SCHEDULE_DAYS = "glyph_schedule_days";
 
     private static final String ACTION_SCHEDULE_START = "org.nukisystems.hieroglyph.ACTION_SCHEDULE_START";
     private static final String ACTION_SCHEDULE_END = "org.nukisystems.hieroglyph.ACTION_SCHEDULE_END";

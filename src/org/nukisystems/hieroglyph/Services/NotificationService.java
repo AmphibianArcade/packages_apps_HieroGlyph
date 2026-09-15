@@ -365,9 +365,9 @@ public class NotificationService extends NotificationListenerService
 
         public void register(ContentResolver cr) {
             cr.registerContentObserver(Settings.Secure.getUriFor(
-                Constants.GLYPH_ENABLE), false, this);
+                Constants.Settings.GLYPH_ENABLE), false, this);
             cr.registerContentObserver(Settings.Secure.getUriFor(
-                Constants.GLYPH_NOTIFS_ENABLE), false, this);
+                Constants.Settings.Notification.ENABLE), false, this);
         }
 
         public void unregister(ContentResolver cr) {

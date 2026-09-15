@@ -65,9 +65,9 @@ public class  UtilitiesFragment extends SettingsBasePreferenceFragment {
             addPreferencesFromResource(R.xml.glyph_utilities);
             getActivity().setTitle(R.string.glyph_settings_utilities_title);
             Preference csvValidatorPreference =
-                    findPreference(Constants.GLYPH_UTILITIES_VALIDATE_CSV);
+                    findPreference(Constants.Settings.Utilities.VALIDATE_CSV);
             Preference OGGmetaPreference =
-                    findPreference(Constants.GLYPH_UTILITIES_READ_OGG);
+                    findPreference(Constants.Settings.Utilities.READ_OGG);
 
         }
 
@@ -75,7 +75,7 @@ public class  UtilitiesFragment extends SettingsBasePreferenceFragment {
         public boolean onPreferenceTreeClick(Preference preference) {
             String preferenceKey = preference.getKey();
             switch (preferenceKey) {
-                case Constants.GLYPH_UTILITIES_VALIDATE_CSV -> {
+                case Constants.Settings.Utilities.VALIDATE_CSV -> {
                     mFilePickerAction = uri -> {
                         try {
                             InputStream is
@@ -92,7 +92,7 @@ public class  UtilitiesFragment extends SettingsBasePreferenceFragment {
                     };
                     mFilePicker.launch(csvMime);
                 }
-                case Constants.GLYPH_UTILITIES_READ_OGG -> {
+                case Constants.Settings.Utilities.READ_OGG -> {
                     mFilePickerAction = uri -> {
                         try {
                             InputStream is
