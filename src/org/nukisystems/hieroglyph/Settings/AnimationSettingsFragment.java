@@ -407,8 +407,6 @@ public class AnimationSettingsFragment
     public void onViewCreated (View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        boolean isPlayable = true;
-
         shouldAlternate = fragmentType.equals(FRAGMENT_TYPE_FLIP)
                 && mListPreference.getValue().equals(Constants.Settings.Notification.ANIMATION_ALTERNATE);
         boolean shouldReverse = mReverseAnimationSwitch.isChecked() && !shouldAlternate;
@@ -419,16 +417,13 @@ public class AnimationSettingsFragment
             String animationName = mListPreference.getValue();
             CSVUtils.checkUserAnimation(animationName);
         }
-        if (isPlayable) {
-            mMatrixPreference.updateAnimation(
+        mMatrixPreference.updateAnimation(
                     isAnimationEnabled(),
                     getGlyphAnimation(),
                     1500,
                     shouldReverse,
                     shouldAlternate
-            );
-        }
-        mMatrixPreference.setVisible(isPlayable);
+        );
     }
 
     @Override
@@ -437,7 +432,6 @@ public class AnimationSettingsFragment
 
         if (preferenceKey.equals(animationListKey)) {
             String animationName = newValue.toString();
-            boolean isPlayable = true;
 
             shouldAlternate = fragmentType.equals(FRAGMENT_TYPE_FLIP)
                     && animationName.equals(Constants.Settings.Notification.ANIMATION_ALTERNATE);
@@ -456,14 +450,8 @@ public class AnimationSettingsFragment
                     shouldReverse,
                     shouldAlternate
             );
-            mMatrixPreference.setVisible(isPlayable);
             endLivePreview();
-            if (!isPlayable) {
-                showToast(R.string.glyph_settings_user_animation_is_complex);
-            }
-
             resolveAppSummaries(animationName);
-
             return true;
         }
 
