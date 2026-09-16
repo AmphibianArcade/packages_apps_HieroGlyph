@@ -13,10 +13,12 @@ import androidx.preference.PreferenceViewHolder;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.io.StringReader;
 import java.util.Iterator;
 
 import org.nukisystems.hieroglyph.R;
 import org.nukisystems.hieroglyph.Constants.Constants;
+import org.nukisystems.hieroglyph.Data.CsvContent;
 import org.nukisystems.hieroglyph.Utils.CSVUtils;
 import org.nukisystems.hieroglyph.Utils.MatrixUtils;
 import org.nukisystems.hieroglyph.Utils.ResourceUtils;
@@ -33,6 +35,8 @@ public class MatrixPreference extends Preference {
     private boolean animationReversed = false;
     private int animationTimeBetween = 0;
     private boolean alternateOnce = false;
+
+    private CsvContent csvAnimation;
 
     private View mRootView;
     private volatile MatrixDisplayView matrixDisplay;
@@ -94,6 +98,25 @@ public class MatrixPreference extends Preference {
         animationThread.interrupt();
     }
 
+    public void updateAnimation(boolean play, CsvContent csv, int time, boolean reverse, boolean shouldAlternate) {
+        alternateOnce = shouldAlternate;
+        animationTimeBetween = time;;
+        animationPaused = !play;
+        animationReversed = reverse;
+        animationName = null;
+        csvAnimation = csv;
+        animationThread.interrupt();
+    }
+
+    public void updateAnimation(boolean play, CsvContent csv, int time, boolean reverse) {
+        updateAnimation(play, csv, time, reverse, false);
+    }
+
+    public void updateAnimation(boolean play, CsvContent csv, int time) {
+        updateAnimation(play, csv, time, false, false);
+    }
+
+
     public void updateAnimation(boolean play, String name, int time, boolean reverse, boolean shouldAlternate) {
         alternateOnce = shouldAlternate;
         animationTimeBetween = time;
@@ -129,8 +152,9 @@ public class MatrixPreference extends Preference {
                 }
                 String playMode = (animationReversed) ? "reverse" : "forwards";
                 if (DEBUG) Log.d(TAG, "Displaying animation | name: " + animationName + " mode: " + playMode);
-                try (BufferedReader reader = new BufferedReader(new InputStreamReader(
-                        ResourceUtils.getAnimation(animationName)))) {
+                try (BufferedReader reader = new BufferedReader(
+                        csvAnimation != null ? new StringReader(csvAnimation.toString())
+                                : new InputStreamReader(ResourceUtils.getAnimation(animationName)))) {
                     if (alternateOnce) animationReversed = false;
                     Iterator<String> it = CSVUtils.iterateCsvLines(reader, animationReversed, alternateOnce);
                     while (it.hasNext()) {
