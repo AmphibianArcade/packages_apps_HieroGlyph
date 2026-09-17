@@ -134,7 +134,7 @@ public class MatrixUtils {
 
     public static class Row {
 
-        public static int[] fillRows(int[] origFrame, int startIdx, int count, int brightness) {
+        public static int[] fill(int[] origFrame, int startIdx, int count, int brightness) {
             int rowLength = getGridSize();
             if (origFrame.length > getMaxFrameLength() || origFrame.length < getMaxFrameLength()) {
                 Log.w(TAG, "Incorrect frame length, expected max: " + getMaxFrameLength());
@@ -174,16 +174,87 @@ public class MatrixUtils {
 
         }
 
-        public static int[] fillRow(int[] origFrame, int idx, int brightness) {
-            return fillRows(origFrame, idx, 1, brightness);
+        public static int[] fill(int[] origFrame, int startIdx, int count, int[] values) {
+            int rowLength = getGridSize();
+            if (origFrame.length > getMaxFrameLength() || origFrame.length < getMaxFrameLength()) {
+                Log.w(TAG, "Incorrect frame length, expected max: " + getMaxFrameLength());
+                return origFrame;
+            } else if (startIdx > rowLength || startIdx < 1) {
+                Log.w(TAG,
+                        "Invalid start index, must be within range: index >= 1 <= gridSize, found "
+                                + startIdx
+                );
+                return origFrame;
+            } else if (count < 0 || ((startIdx - 1) + count) > getGridSize()) {
+                Log.w(TAG,
+                        "Invalid count from start, must be within range: start + rowLength < count >= 0, found "
+                                + count
+                );
+                return origFrame;
+            } else if (values == null || values.length != rowLength) {
+                Log.w(TAG,
+                        "Invalid values array, must have length equal to grid size: expected "
+                                + rowLength + ", found " + (values == null ? "null" : values.length)
+                );
+                return origFrame;
+            }
+
+            for (int v : values) {
+                if (v < 0 || v > 255) {
+                    Log.w(TAG,
+                            "Invalid brightness value in values array, must be within range: 0 <= brightness >= 255, found "
+                                    + v
+                    );
+                    return origFrame;
+                }
+            }
+
+            int[] newFrame = origFrame.clone();
+            if (count == 0) return origFrame;
+
+            for (int row = startIdx; row < startIdx + count; row++) {
+                int rowStart = (row - 1) * rowLength;
+                for (int i = 0; i < rowLength; i++) {
+                    if (newFrame[rowStart + i] != values[i]) newFrame[rowStart + i] = values[i];
+                }
+            }
+
+            return newFrame;
         }
 
-        public static int[] clearRow(int[] origFrame, int idx) {
-            return clearRows(origFrame, idx, 1);
+        public static int[] fill(int[] origFrame, int count, int[] values) {
+            return fill(origFrame, 1,  count, values);
         }
 
-        public static int[] clearRows(int[] origFrame, int startIdx, int count) {
-            return fillRows(origFrame, startIdx, count, 0);
+        public static int[] fillSingle(int length, int brightness, boolean even) {
+            int[] rowArr = new int[length];
+
+            for (int i = even ? 0 : 1; i < rowArr.length; i += 2) {
+                rowArr[i] = brightness;
+            }
+
+            return rowArr;
+        }
+
+        public static int[] fillSingleOdd() {
+            return fillSingle(getGridSize(), Constants.getMaxBrightness(), false);
+        }
+
+        public static int[] fillSingleEven() {
+            return fillSingle(getGridSize(), Constants.getMaxBrightness(), true);
+        }
+
+
+        public static int[] fill(int[] origFrame, int idx, int brightness) {
+            return fill(origFrame, idx, 1, brightness);
+        }
+
+        public static int[] clear(int[] origFrame, int idx) {
+            return clear(origFrame, idx, 1);
+        }
+
+        public static int[] clear(int[] origFrame, int startIdx, int count) {
+            return fill(origFrame, startIdx, count, 0);
         }
     }
 
