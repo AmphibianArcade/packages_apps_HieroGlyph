@@ -25,7 +25,7 @@ public final class StatusManager {
     private static final boolean DEBUG = true;
 
     private static boolean allLedActive = false;
-    private static boolean animationActive = false;
+    private static volatile boolean animationActive = false;
     private static boolean chargingAnimationActive = false;
     private static boolean volumeAnimationActive = false;
     private static boolean callLedActive = false;
