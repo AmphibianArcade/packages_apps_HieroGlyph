@@ -3,13 +3,9 @@ package org.nukisystems.hieroglyph.Utils;
 import android.util.Log;
 
 import org.nukisystems.hieroglyph.Constants.Constants;
+import org.nukisystems.hieroglyph.Data.CsvContent;
 
-import java.io.BufferedReader;
-import java.io.StringReader;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
 
 public class MatrixUtils {
 
@@ -27,56 +23,52 @@ public class MatrixUtils {
         getMinFrameLength();
     }
 
-    public static String trimToValidAnim(String csv) throws Exception {
-        BufferedReader reader = new BufferedReader(new StringReader(csv));
-        List<String> newLines = new ArrayList<>();
-
-        Iterator<String> it = CSVUtils.iterateCsvLines(reader, false, false);
-        while (it.hasNext()) {
-            newLines.add(trimToValidFrame(it.next()));
-        }
-
-        return String.join("\n", newLines);
+    public static CsvContent trimToValidAnim(CsvContent csv) {
+        return new CsvContent(trimToValidAnim(csv.toString()));
     }
 
-    public static String trimToValidFrame(String line) throws Exception {
-        String[] fields = line.split(",");
-        int len = fields.length;
-
-        if (len != getMaxFrameLength() && len != getMinFrameLength()) {
-            throw new IllegalArgumentException(
-                    "Expected length " + getMaxFrameLength() + " or " + getMinFrameLength() + ", found " + len);
+    public static String trimToValidFrame(String csvLine) {
+        String[] parts = csvLine.split(",");
+        int[] pattern = new int[parts.length];
+        for (int i = 0; i < parts.length; i++) {
+            pattern[i] = Integer.parseInt(parts[i].trim());
         }
 
-        if (len == getMinFrameLength()) {
-            return line;
+        int[] trimmed = null;
+        try {
+            trimmed = trimToValidFrame(pattern);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
 
-        int[] rows = getMatrixRows();
-        int gridSize = getGridSize();
-
-        List<String> newFields = new ArrayList<>(getMinFrameLength());
-        for (int i = 0; i < gridSize; i++) {
-            int rowCount = rows[i];
-            String[] section = Arrays.copyOfRange(fields, gridSize * i, gridSize * (i + 1));
-            int from = (gridSize - rowCount) / 2;
-            newFields.addAll(Arrays.asList(section).subList(from, from + rowCount));
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < trimmed.length; i++) {
+            if (i > 0) sb.append(",");
+            sb.append(trimmed[i]);
         }
-
-        if (newFields.size() != getMinFrameLength()) {
-            throw new IllegalStateException(
-                    "Trimmed length " + newFields.size() + " != expected " + getMinFrameLength());
-        }
-
-        return String.join(",", newFields);
+        return sb.toString();
     }
 
-    public static int[] trimToValidFrame(int[] pattern) throws Exception {
+    public static String trimToValidAnim(String csvLines) {
+        String[] lines = csvLines.split("\\r?\\n");
+        StringBuilder result = new StringBuilder();
+
+        for (String line : lines) {
+            if (line.trim().isEmpty()) continue;
+
+            if (!result.isEmpty()) result.append("\n");
+            result.append(trimToValidFrame(line));
+        }
+
+        return result.toString();
+    }
+
+    public static int[] trimToValidFrame(int[] pattern) {
         int len = pattern.length;
 
         if (len != getMaxFrameLength() && len != getMinFrameLength()) {
-            throw new IllegalArgumentException(
-                    "Expected length " + getMaxFrameLength() + " or " + getMinFrameLength() + ", found " + len);
+            Log.e(TAG, "Expected length " + getMaxFrameLength() + " or " + getMinFrameLength() + ", found " + len);
+            return new int[getMinFrameLength()];
         }
 
         if (len == getMinFrameLength()) {
@@ -99,8 +91,8 @@ public class MatrixUtils {
         }
 
         if (pos != getMinFrameLength()) {
-            throw new IllegalStateException(
-                    "Trimmed length " + pos + " != expected " + getMinFrameLength());
+            Log.e(TAG, "Trimmed length " + pos + " != expected " + getMinFrameLength());
+            return new int[getMinFrameLength()];
         }
 
         return newPattern;
