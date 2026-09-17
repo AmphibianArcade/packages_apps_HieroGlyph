@@ -414,6 +414,11 @@ public final class AnimationManager {
                     for (int i = 0; i < pixelCount; i++) frame[i] = Integer.parseInt(split[i]);
                     frames.add(frame);
                 }
+                for (int[] arr : frames) {
+                    for (int i = 0; i < arr.length; i++) {
+                        arr[i] = (arr[i] * Constants.getBrightness()) / 4095;
+                    }
+                }
             } catch (Exception e) {
                 Log.e(TAG, "failed to read animation " + name, e);
                 return null;
