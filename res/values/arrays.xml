@@ -48,6 +48,36 @@
         <item>2</item>
     </string-array>
 
+    <string-array name="glyph_volume_style_entries">
+        <item>Linear</item>
+        <item>Checkerboard (Brightness)</item>
+        <item>Checkerboard (Linear)</item>
+        <item>Diamond</item>
+        <item>Radial Checkerboard</item>
+    </string-array>
+
+    <string-array name="glyph_volume_style_values">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+    </string-array>
+
+    <string-array name="glyph_volume_rotation_entries">
+        <item>None</item>
+        <item>90</item>
+        <item>180</item>
+        <item>270</item>
+    </string-array>
+
+    <string-array name="glyph_volume_rotation_values">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+    </string-array>
+
     <string-array name="day_of_week_names">
         <item>Sunday</item>
         <item>Monday</item>

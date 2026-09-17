@@ -180,12 +180,19 @@
         android:key="glyph_settings_volume"
         android:title="@string/glyph_settings_volume_title">
 
-        <SwitchPreferenceCompat
+        <com.android.settingslib.PrimarySwitchPreference
             android:key="glyph_settings_volume_level_toggle"
             android:defaultValue="false"
             android:icon="@drawable/ic_volume"
             android:title="@string/glyph_settings_volume_level_toggle_title"
-            android:summary="@string/glyph_settings_volume_level_toggle_summary" />
+            android:summary="@string/glyph_settings_volume_level_toggle_summary" >
+        <intent android:action="android.intent.action.MAIN"
+            android:targetPackage="org.nukisystems.hieroglyph"
+            android:targetClass="org.nukisystems.hieroglyph.Settings.GeneratedAnimationSettingsActivity">
+            <extra android:name="type" android:value="volume" />
+        </intent>
+    </com.android.settingslib.PrimarySwitchPreference>
+
     </PreferenceCategory>
 
     <PreferenceCategory

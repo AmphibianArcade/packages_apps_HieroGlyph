@@ -268,7 +268,7 @@ public final class ServiceUtils {
             } else {
                 stopToneHelperService();
             }
-            if (SettingsManager.isGlyphVolumeLevelEnabled()) {
+            if (SettingsManager.Volume.isEnabled()) {
                 startVolumeLevelService();
             } else {
                 stopVolumeLevelService();

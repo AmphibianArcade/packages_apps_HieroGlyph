@@ -128,7 +128,12 @@ public final class Constants {
         public static final class Volume {
             public static final String CATEGORY = PREFIX + "volume";
             public static final String LEVEL_ENABLE = PREFIX + "volume_level_toggle";
+            public static final String SUB_STYLE = PREFIX + "volume_level_sub_style";
+            public static final String SUB_ROTATION = PREFIX + "volume_level_sub_rotation";
 
+            public static final String SUB_PREVIEW = PREFIX + "volume_level_sub_preview";
+            public static final String SUB_ENABLE = PREFIX + "volume_level_sub_toggle";
+            public static final String SUB_SHOW_CROSS = PREFIX + "volume_level_sub_show_cross";
         }
     }
 

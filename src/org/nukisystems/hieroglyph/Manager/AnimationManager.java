@@ -38,6 +38,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.nukisystems.hieroglyph.Constants.Constants;
 import org.nukisystems.hieroglyph.Utils.CSVUtils;
 import org.nukisystems.hieroglyph.Utils.MatrixUtils;
+import org.nukisystems.hieroglyph.Utils.MatrixUtils.Volume.Style;
 import org.nukisystems.hieroglyph.Utils.ResourceUtils;
 import org.nukisystems.hieroglyph.aidl.NanoGlyphManager;
 
@@ -201,6 +202,81 @@ public final class AnimationManager {
 
         NanoGlyphManager.Java.Matrix.setSingle(led, brightness);
 
+    }
+
+    public static void playVolume(Context context, int volumeLevel, boolean wait) {
+        if (!check("volume", wait))
+            return;
+
+        acquireWakeLock(context);
+
+        StatusManager.setAnimationActive(true);
+        StatusManager.setVolumeAnimationActive(true);
+
+        Style animStyle = Style.fromInt(SettingsManager.Volume.getStyle());
+        int rotation = SettingsManager.Volume.getRotation();
+
+        boolean showCross = SettingsManager.Volume.showCrossWhenEmpty();
+        int[] volumeMatrixFrame = new int[MatrixUtils.getMaxFrameLength()];
+        try {
+            if (volumeLevel > 0) {
+                volumeMatrixFrame = MatrixUtils.Volume.generateFrame(animStyle, volumeLevel, rotation);
+            } else {
+                if (showCross) {
+                    volumeMatrixFrame = MatrixUtils.Shape.Cross(
+                            Constants.getMaxBrightness(), (MatrixUtils.getGridSize() / 2 ) - 4);
+                } else {
+                    Arrays.fill(volumeMatrixFrame, 0);
+                }
+            }
+            StatusManager.setVolumeArray(volumeMatrixFrame);
+            updateLedFrame(volumeMatrixFrame);
+            Thread.sleep(16, 666000);
+        } catch (InterruptedException e) {
+            if (DEBUG) Log.d(TAG, "Exception while playing animation, interrupted | name: volume");
+            if (!StatusManager.isAllLedActive()) clearLEDs();
+        } catch (Exception e) {
+            if (DEBUG) Log.d(TAG, "Exception while playing animation, invalid frame | name: volume");
+        } finally {
+            StatusManager.setAnimationActive(false);
+            if (DEBUG) Log.d(TAG, "Done playing animation | name: volume");
+            releaseWakeLock();
+        }
+    }
+
+    public static int applyDimmer(int rawValue, int globalBrightness) {
+        rawValue = Math.clamp(rawValue, 0, 4095);
+        globalBrightness = Math.clamp(globalBrightness, 0, 255);
+        return (rawValue * globalBrightness + 127) / 255;
+    }
+
+    public static void dismissVolume(Context context) {
+        int[] emptyArray = new int[MatrixUtils.getMinFrameLength()];
+        int[] volumeArray = StatusManager.getVolumeArray();
+
+        if (Arrays.equals(emptyArray, volumeArray)) {
+            StatusManager.setVolumeAnimationActive(false);
+            return;
+        }
+
+        if (!check("Dismiss volume", false))
+            return;
+
+        acquireWakeLock(context);
+
+        StatusManager.setAnimationActive(true);
+
+        try {
+            if (checkInterruption("Dismiss volume")) throw new InterruptedException();
+            clearLEDs();
+        } catch (InterruptedException e) {
+            if (DEBUG) Log.d(TAG, "Exception while playing animation, interrupted | name: Dismiss volume");
+        } finally {
+            StatusManager.setVolumeAnimationActive(false);
+            StatusManager.setAnimationActive(false);
+            if (DEBUG) Log.d(TAG, "Done playing animation | name: Dismiss volume");
+            releaseWakeLock();
+        }
     }
 
     public static void clearLEDs() {

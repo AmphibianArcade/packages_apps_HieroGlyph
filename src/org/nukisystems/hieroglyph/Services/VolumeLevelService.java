@@ -44,10 +44,10 @@ public class VolumeLevelService extends Service {
     private Context mContext;
 
     private AudioManager audioManager;
-    private Runnable dismissVolume = new Runnable() {
+    private final Runnable dismissVolume = new Runnable() {
         @Override
         public void run() {
-            // AnimationManager.dismissVolume(mContext);
+            AnimationManager.dismissVolume(mContext);
         }
     };
 
@@ -80,7 +80,7 @@ public class VolumeLevelService extends Service {
         unregisterReceiver(mVolumeChangeReceiver);
         thread.quit();
         if (StatusManager.isVolumeAnimationActive()) {
-            // AnimationManager.dismissVolume(mContext);
+            AnimationManager.dismissVolume(mContext);
             StatusManager.setVolumeAnimationActive(false);
         }
         super.onDestroy();
@@ -101,25 +101,20 @@ public class VolumeLevelService extends Service {
 
                 // Only check streams which are shown in the volume panel
                 if ((streamType >= 0 && streamType <= AudioSystem.NUM_STREAMS)
-                        && currentVolume >= 0 && oldVolume >= 0) {
+                        && currentVolume >= 0) {
                     int maxVolume = audioManager.getStreamMaxVolume(streamType);
-                    int oldVolumePercent = (int) (Math.round(100D / maxVolume * oldVolume));
                     int currentVolumePercent = (int) (Math.round(100D / maxVolume * currentVolume));
-
-                    if (oldVolumePercent != currentVolumePercent) {
-                        if (mThreadHandler.hasCallbacks(dismissVolume)) {
-                            mThreadHandler.removeCallbacks(dismissVolume);
-                        }
-                        if (DEBUG) {
-                            Log.d(TAG, "Volume level changed for stream type " + streamType + 
-                                  ": oldVolumePercent: " + oldVolumePercent + ", currentVolumePercent: "
-                                    + currentVolumePercent);
-                        }
-                        mThreadHandler.post(() -> {
-                            // AnimationManager.playVolume(context, currentVolumePercent, false);
-                        });
-                        mThreadHandler.postDelayed(dismissVolume, 3000);
+                    if (mThreadHandler.hasCallbacks(dismissVolume)) {
+                        mThreadHandler.removeCallbacks(dismissVolume);
                     }
+                    if (DEBUG) {
+                        Log.d(TAG, "Volume level changed for stream type " + streamType +
+                               ", currentVolumePercent: " + currentVolumePercent);
+                    }
+                    mThreadHandler.post(() -> {
+                        AnimationManager.playVolume(context, currentVolumePercent, false);
+                    });
+                    mThreadHandler.postDelayed(dismissVolume, 3000);
                 }
             }
         }

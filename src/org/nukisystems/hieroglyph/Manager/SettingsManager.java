@@ -18,10 +18,8 @@ package org.nukisystems.hieroglyph.Manager;
 
 import android.app.ActivityManager;
 import android.content.Context;
-import android.content.ContentResolver;
 import android.media.AudioManager;
 import android.provider.Settings;
-import android.util.Log;
 
 import androidx.preference.PreferenceManager;
 
@@ -262,10 +260,39 @@ public final class SettingsManager {
                         false);
     }
 
-    public static boolean isGlyphVolumeLevelEnabled() {
-        Context ctx = getContext();
-        return PreferenceManager.getDefaultSharedPreferences(ctx)
-                .getBoolean(Constants.Settings.Volume.LEVEL_ENABLE, false) && isGlyphEnabled();
+    public static class Volume {
+
+        public static boolean isEnabled() {
+            Context ctx = getContext();
+            return PreferenceManager.getDefaultSharedPreferences(ctx)
+                    .getBoolean(Constants.Settings.Volume.LEVEL_ENABLE, false) && isGlyphEnabled();
+        }
+
+        public static int getStyle() {
+            Context ctx = getContext();
+            return Integer.parseInt(PreferenceManager.getDefaultSharedPreferences(ctx)
+                    .getString(Constants.Settings.Volume.SUB_STYLE, "0"));
+        }
+
+        public static int getRotation() {
+            Context ctx = getContext();
+            return Integer.parseInt(PreferenceManager.getDefaultSharedPreferences(ctx)
+                    .getString(Constants.Settings.Volume.SUB_ROTATION, "0"));
+        }
+
+        public static boolean showCrossWhenEmpty() {
+            Context ctx = getContext();
+            return PreferenceManager.getDefaultSharedPreferences(ctx)
+                    .getBoolean(Constants.Settings.Volume.SUB_SHOW_CROSS, true);
+        }
+
+        public static void setEnabled(boolean enable) {
+            Context ctx = getContext();
+            PreferenceManager.getDefaultSharedPreferences(ctx)
+                    .edit()
+                    .putBoolean(Constants.Settings.Volume.LEVEL_ENABLE, enable)
+                    .apply();
+        }
     }
 
     public static boolean isGlyphNotifsEnabled() {

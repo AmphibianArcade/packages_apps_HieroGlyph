@@ -121,7 +121,11 @@
     <string name="glyph_settings_notifs_permission_dialog_message">To use the Glyph Interface for notifications, you must grant notification access permissions.</string>
 
     <string name="glyph_settings_volume_title">Volume</string>
-    <string name="glyph_settings_volume_level_toggle_title">Volume indicator</string>
+    <string name="glyph_settings_volume_level_toggle_title">Volume animation</string>
+    <string name="glyph_settings_volume_level_style_title">Style</string>
+    <string name="glyph_settings_volume_level_rotation_title">Rotation</string>
+    <string name="glyph_settings_volume_level_show_cross_title">Show cross</string>
+    <string name="glyph_settings_volume_level_show_cross_summary">Display a cross (x) when volume level reaches zero</string>
     <string name="glyph_settings_volume_level_toggle_summary">Show volume level when adjusting</string>
 
     <string name="glyph_settings_misc_title">Miscellaneous</string>

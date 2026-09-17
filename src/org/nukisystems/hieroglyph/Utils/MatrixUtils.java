@@ -124,6 +124,95 @@ public class MatrixUtils {
         return minFrameLength;
     }
 
+    public static class Volume {
+
+        public enum Style {
+            LINEAR(0),
+            CHECKERBOARD(1),
+            CHECKERBOARD_LINEAR(2),
+            DIAMOND_FILL(3),
+            RADIAL_CHECKERBOARD(4);
+
+            private final int value;
+
+            Style(int value) {
+                this.value = value;
+            }
+
+            public int getValue() {
+                return value;
+            }
+
+            public static Style fromInt(int value) throws IllegalArgumentException {
+                for (Style style : values()) {
+                    if (style.value == value) {
+                        return style;
+                    }
+                }
+                throw new IllegalArgumentException("Unknown value: " + value);
+            }
+        }
+
+        public static int[] generateFrame(Style style, int level) {
+            return generateFrame(style, level, 0);
+        }
+
+        public static int[] generateFrame(Style style, int level, int rotation) {
+            int[] volumeMatrixFrame = new int[MatrixUtils.getMaxFrameLength()];
+            switch (style) {
+                case LINEAR -> { // Row/Column step (Linear)
+                    int fillCount = Math.toIntExact(
+                            Math.round((level * (double) getGridSize()) / 100D));
+                    volumeMatrixFrame = Row.fill(
+                            volumeMatrixFrame, 1, fillCount, Constants.getMaxBrightness());
+                    volumeMatrixFrame =
+                            switch (rotation) {
+                                case 1 -> Rotate.cw90(volumeMatrixFrame);
+                                case 2 -> Rotate.flip(volumeMatrixFrame);
+                                case 3 -> Rotate.ccw90(volumeMatrixFrame);
+                                default -> volumeMatrixFrame;
+                            };
+                }
+
+                case CHECKERBOARD -> { // Checkerboard brightness
+                    int brightness = Math.toIntExact(
+                            Math.round((level * (double) Constants.getMaxBrightness()) / 10D));
+                    volumeMatrixFrame = Shape.checkerboardOdd(brightness);
+                }
+                case CHECKERBOARD_LINEAR -> { // Checkerboard row step
+                    int fillCount =  Math.toIntExact(
+                            Math.round((level * (double) getGridSize()) / 100D));
+                    int[] newFrame = new int[volumeMatrixFrame.length];
+                    for (int i = 1; i <= fillCount; i++) {
+                        if (i % 2 == 0) {
+                            newFrame = Row.fill(newFrame, i, 1,  Row.fillSingleEven());
+                        } else {
+                          newFrame = Row.fill(newFrame, i, 1, Row.fillSingleOdd());
+                        }
+                    }
+                    volumeMatrixFrame = newFrame;
+                    volumeMatrixFrame =
+                            switch (rotation) {
+                                case 1 -> Rotate.cw90(volumeMatrixFrame);
+                                case 2 -> Rotate.flip(volumeMatrixFrame);
+                                case 3 -> Rotate.ccw90(volumeMatrixFrame);
+                                default -> volumeMatrixFrame;
+                            };
+                }
+                case DIAMOND_FILL -> { // Diamond pattern fill
+                    int scale = Math.toIntExact(
+                            Math.round((level * (double) getGridSize() / 150D)));
+                    volumeMatrixFrame = Shape.Diamond(scale, Constants.getMaxBrightness());
+                }
+                case RADIAL_CHECKERBOARD -> { // Checkerboard brightness from center
+                    volumeMatrixFrame = Mask.radialBrightness(Shape.checkerboardOdd(), level);
+                }
+            }
+
+            return volumeMatrixFrame;
+        }
+    }
+
     public static class Mask {
         public static int[] radialBrightness(int[] frame, int level) {
             if (level >= 100) return frame.clone();

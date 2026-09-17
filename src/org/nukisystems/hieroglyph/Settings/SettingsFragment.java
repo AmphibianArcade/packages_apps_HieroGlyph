@@ -88,7 +88,7 @@ public class SettingsFragment extends SettingsBasePreferenceFragment implements 
     private SwitchPreferenceCompat mChargingLevelPreference;
     private SwitchPreferenceCompat mChargingPowersharePreference;
     private PreferenceCategory mVolumeCategory;
-    private SwitchPreferenceCompat mVolumeLevelPreference;
+    private PrimarySwitchPreference mVolumeLevelPreference;
     private PreferenceCategory mProgressCategory;
     private SwitchPreferenceCompat mProgressPreference;
     private SwitchPreferenceCompat mProgressMediaPreference;
@@ -223,7 +223,7 @@ public class SettingsFragment extends SettingsBasePreferenceFragment implements 
 
         mVolumeCategory = findPreference(Constants.Settings.Volume.CATEGORY);
 
-        mVolumeLevelPreference = (SwitchPreferenceCompat) findPreference(Constants.Settings.Volume.LEVEL_ENABLE);
+        mVolumeLevelPreference = (PrimarySwitchPreference) findPreference(Constants.Settings.Volume.LEVEL_ENABLE);
         mVolumeLevelPreference.setEnabled(glyphEnabled);
         mVolumeLevelPreference.setOnPreferenceChangeListener(this);
 
@@ -270,6 +270,7 @@ public class SettingsFragment extends SettingsBasePreferenceFragment implements 
         requireContext().registerReceiver(mScheduleUpdateReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
 
         tryNanoGlyph();
+        updatePrimarySwitches();
     }
 
     @Override
@@ -331,6 +332,9 @@ public class SettingsFragment extends SettingsBasePreferenceFragment implements 
             }
             case Constants.Settings.BatterySaver.ENABLE -> {
                 updateBatterySaver((Boolean) newValue);
+            }
+            case Constants.Settings.Volume.LEVEL_ENABLE -> {
+                SettingsManager.Volume.setEnabled((Boolean) newValue);
             }
         }
 
@@ -501,6 +505,11 @@ public class SettingsFragment extends SettingsBasePreferenceFragment implements 
         }
         updateScheduleSummary();
         updateMainSwitchState();
+        updatePrimarySwitches();
+    }
+
+    public void updatePrimarySwitches() {
+        mVolumeLevelPreference.setChecked(SettingsManager.Volume.isEnabled());
     }
 
     private void updateScheduleSummary() {
