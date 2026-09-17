@@ -124,6 +124,36 @@ public class MatrixUtils {
         return minFrameLength;
     }
 
+    public static class Mask {
+        public static int[] radialBrightness(int[] frame, int level) {
+            if (level >= 100) return frame.clone();
+
+            int gridSize = getGridSize();
+            int[] newFrame = new int[frame.length];
+
+            double centerRow = (gridSize - 1) / 2.0;
+            double centerCol = (gridSize - 1) / 2.0;
+            double maxDist = Math.sqrt(centerRow * centerRow + centerCol * centerCol);
+
+            double radius = (level / 100.0) * maxDist;
+
+            for (int row = 0; row < gridSize; row++) {
+                for (int col = 0; col < gridSize; col++) {
+                    int idx = row * gridSize + col;
+                    double dist = Math.sqrt(
+                            Math.pow(row - centerRow, 2) + Math.pow(col - centerCol, 2));
+
+                    double falloff = radius <= 0 ? 0.0 : Math.max(0.0, 1.0 - (dist / radius));
+
+                    int masked = (int) Math.round(frame[idx] * falloff);
+                    newFrame[idx] = Math.clamp(masked, 0, 255);
+                }
+            }
+
+            return newFrame;
+        }
+    }
+
     public static class Row {
 
         public static int[] fill(int[] origFrame, int startIdx, int count, int brightness) {
