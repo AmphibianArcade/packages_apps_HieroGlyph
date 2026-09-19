@@ -191,6 +191,26 @@ public final class Constants {
         "com.android.systemui:BAT"
     };
 
+    public static class External {
+
+        public static final String KETCHUM_PERMISSION = "com.nothing.ketchum.permission.ENABLE";
+
+        public static final String GLYPH_PREFIX = "com.nothing.glyph";
+
+        public static final String TOY = ".toy";
+
+        public static final String TOY_INTENT = GLYPH_PREFIX + TOY.toUpperCase();
+        public static final String TOY_PREFIX = GLYPH_PREFIX + TOY;
+
+        public static final String STRING_TOY_NAME = TOY_PREFIX + ".name";
+        public static final String DRAWABLE_TOY_IMAGE = TOY_PREFIX + ".image";
+        public static final String STRING_TOY_SUMMARY = TOY_PREFIX + ".summary";
+        public static final String META_TOY_INTRO_ACTIVITY = TOY_PREFIX + ".introduction";
+
+        public static final String META_SUPPORTS_AOD = TOY_PREFIX + ".aod_support";
+        public static final String META_SUPPORTS_LONGPRESS = TOY_PREFIX + ".longpress";
+    }
+
     public static boolean isPowershareSupported() {
        return !ResourceUtils.getString(Res.STRING_POWERSHARE_STATUS_PATH).isEmpty();
     }

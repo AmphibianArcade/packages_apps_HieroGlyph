@@ -1,6 +1,12 @@
 package org.nukisystems.hieroglyph;
 
+import android.content.ComponentName;
+import android.graphics.drawable.Drawable;
+
 import androidx.annotation.NonNull;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class Data {
 
@@ -54,4 +60,27 @@ public class Data {
             return value.hashCode();
         }
     }
+
+    public record GlyphToy (String title, Drawable icon, String summary, ComponentName intro,
+                            boolean supportsAOD, boolean supportsLongPress) {
+
+        public String getTitle() {
+            return this.title;
+        }
+
+        public Drawable getDrawable() {
+            return this.icon;
+        }
+
+        public String getSummary() {
+            return this.summary;
+        }
+
+        public boolean hasIntroduction() {
+            return this.intro != null;
+        }
+    }
+
+    public static Map<String, GlyphToy> toyCache = new HashMap<>();
+
 }

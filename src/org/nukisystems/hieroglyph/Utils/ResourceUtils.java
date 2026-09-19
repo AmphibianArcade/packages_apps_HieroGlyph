@@ -16,14 +16,22 @@
 
 package org.nukisystems.hieroglyph.Utils;
 
+import static org.nukisystems.hieroglyph.Data.toyCache;
+
+import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
+import android.content.pm.ServiceInfo;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.database.Cursor;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.Bundle;
 import android.os.Environment;
 import android.provider.ContactsContract;
 import android.provider.OpenableColumns;
@@ -41,6 +49,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import org.nukisystems.hieroglyph.Data;
 import org.nukisystems.hieroglyph.R;
 import org.nukisystems.hieroglyph.Constants.Constants;
 
@@ -355,4 +364,137 @@ public final class ResourceUtils {
         return result.toArray(new String[0]);
     }
 
+        public static class External {
+
+            public static Resources getResourcesForPackage(Context context, String packageName) {
+                try {
+                    PackageManager pm = context.getPackageManager();
+                    return pm.getResourcesForApplication(packageName);
+                } catch (PackageManager.NameNotFoundException e) {
+                    Log.e("ExternalResourceLoader", "Package not found: " + packageName, e);
+                    return null;
+                }
+            }
+
+            public static Drawable getDrawable(Context context, String packageName, String resName) {
+                Resources res = getResourcesForPackage(context, packageName);
+                if (res == null) return null;
+
+                int resId = res.getIdentifier(resName, "drawable", packageName);
+                if (resId == 0) {
+                    Log.e("ExternalResourceLoader", "Drawable not found: " + resName);
+                    return null;
+                }
+                return res.getDrawable(resId, null);
+            }
+
+            public static Drawable getDrawable(Context context, String packageName, int resId) {
+                Resources res = getResourcesForPackage(context, packageName);
+                if (res == null) return null;
+                try {
+                    return res.getDrawable(resId, null);
+                } catch (Resources.NotFoundException e) {
+                    Log.e("ExternalResourceLoader", "Drawable ID not found: " + resId, e);
+                    return null;
+                }
+            }
+
+            public static String getString(Context context, String packageName, String resName) {
+                Resources res = getResourcesForPackage(context, packageName);
+                if (res == null) return null;
+
+                int resId = res.getIdentifier(resName, "string", packageName);
+                if (resId == 0) {
+                    Log.e("ExternalResourceLoader", "String not found: " + resName);
+                    return null;
+                }
+                return res.getString(resId);
+            }
+
+
+            public static String getString(Context context, String packageName, int resId) {
+                Resources res = getResourcesForPackage(context, packageName);
+                if (res == null) return null;
+                try {
+                    return res.getString(resId);
+                } catch (Resources.NotFoundException e) {
+                    Log.e("ExternalResourceLoader", "String ID not found: " + resId, e);
+                    return null;
+                }
+            }
+        }
+
+        public static class Toys {
+
+            public static void reload(Context ctx) {
+                toyCache.clear();
+                PackageManager pm = ctx.getPackageManager();
+                Intent intent = new Intent(Constants.External.TOY_INTENT);
+                List<ResolveInfo> resolveInfos =
+                        pm.queryIntentServices(intent, PackageManager.GET_META_DATA);
+
+                for (ResolveInfo info : resolveInfos) {
+                    ServiceInfo serviceInfo = info.serviceInfo;
+                    if (serviceInfo == null) continue;
+                    Bundle serviceMeta = serviceInfo.metaData;
+                    String pkg = serviceInfo.packageName;
+                    Log.w(TAG, "resolved pkg " + pkg);
+
+                    if (serviceMeta == null || serviceMeta.isEmpty()) {
+                        Log.w(TAG, "Unable to get Toy service metadata for package: "
+                                + pkg);
+                        continue;
+                    }
+
+                    int nameResId = serviceMeta.getInt(Constants.External.STRING_TOY_NAME, 0);
+                    int iconResId = serviceMeta.getInt(Constants.External.DRAWABLE_TOY_IMAGE, 0);
+                    if (nameResId == 0 || iconResId == 0) {
+                        Log.w(TAG, "Missing required data for glyph toy: "
+                                + pkg + "/" + serviceInfo.name + ", skipping!");
+                        continue;
+                    }
+
+                    int summaryResId = serviceMeta.getInt(Constants.External.STRING_TOY_SUMMARY, 0);
+
+                    boolean supportsAOD = Integer.parseInt(
+                            serviceMeta.getString(Constants.External.META_SUPPORTS_AOD, "0")) == 1;
+                    boolean supportsLongPress = Integer.parseInt(
+                            serviceMeta.getString(Constants.External.META_SUPPORTS_LONGPRESS, "0")) == 1;
+
+                    String introActivity =
+                            serviceMeta.getString(Constants.External.META_TOY_INTRO_ACTIVITY, null);
+                    ComponentName introComponent =
+                            introActivity == null ? null : new ComponentName(serviceInfo.packageName, introActivity);
+
+                    String toyName = External.getString(ctx, pkg, nameResId);
+                    Drawable toyDrawable = External.getDrawable(ctx, pkg, iconResId);
+                    String toySummary = External.getString(ctx, pkg, summaryResId);
+
+
+                    Data.GlyphToy toyData =
+                            new Data.GlyphToy(toyName, toyDrawable, toySummary, introComponent,
+                                    supportsAOD, supportsLongPress);
+
+                    toyCache.put(serviceInfo.packageName, toyData);
+                }
+
+                if (toyCache == null || toyCache.isEmpty()) {
+                    Log.w(TAG, "No valid toys found");
+                }
+
+            }
+
+            public static void delete(String packageName) {
+                if (toyCache == null || toyCache.isEmpty()) {
+                    Log.w(TAG, "No glyph toys in cache to delete?");
+                    return;
+                }
+
+                if (!toyCache.containsKey(packageName)) {
+                    Log.w(TAG, "Toy package: " + packageName + " not found in cache");
+                    return;
+                }
+                toyCache.remove(packageName);
+        }
+    }
 }
