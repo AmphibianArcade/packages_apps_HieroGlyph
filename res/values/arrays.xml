@@ -53,7 +53,11 @@
         <item>Checkerboard (Brightness)</item>
         <item>Checkerboard (Linear)</item>
         <item>Diamond</item>
-        <item>Radial Checkerboard</item>
+        <item>Checkerboard (Fade Outward)</item>
+        <item>Radial (Outward)</item>
+        <item>Radial (Fade Outward)</item>
+        <item>Radial (Inward)</item>
+        <item>Checkerboard (Outward)</item>
     </string-array>
 
     <string-array name="glyph_volume_style_values">
@@ -62,6 +66,10 @@
         <item>2</item>
         <item>3</item>
         <item>4</item>
+        <item>5</item>
+        <item>6</item>
+        <item>7</item>
+        <item>8</item>
     </string-array>
 
     <string-array name="glyph_volume_rotation_entries">

@@ -131,7 +131,11 @@ public class MatrixUtils {
             CHECKERBOARD(1),
             CHECKERBOARD_LINEAR(2),
             DIAMOND_FILL(3),
-            RADIAL_CHECKERBOARD(4);
+            RADIAL_CHECKERBOARD_FADE_OUT(4),
+            RADIAL_OUTWARD(5),
+            RADIAL_FADE_OUTWARD(6),
+            RADIAL_INWARD(7),
+            RADIAL_CHECKERBOARD_OUTWARD(8);
 
             private final int value;
 
@@ -204,8 +208,26 @@ public class MatrixUtils {
                             Math.round((level * (double) getGridSize() / 150D)));
                     volumeMatrixFrame = Shape.Diamond(scale, Constants.getMaxBrightness());
                 }
-                case RADIAL_CHECKERBOARD -> { // Checkerboard brightness from center
-                    volumeMatrixFrame = Mask.radialBrightness(Shape.checkerboardOdd(), level);
+                case RADIAL_CHECKERBOARD_FADE_OUT -> { // Checkerboard brightness fade from center
+                    volumeMatrixFrame = Mask.radialFadeOut(Shape.checkerboardOdd(), level);
+                }
+                case RADIAL_OUTWARD -> {
+                    volumeMatrixFrame = new int[getMaxFrameLength()];
+                    Arrays.fill(volumeMatrixFrame, 255);
+                    volumeMatrixFrame = Mask.radialClampOut(volumeMatrixFrame, level);
+                }
+                case RADIAL_FADE_OUTWARD -> {
+                    volumeMatrixFrame = new int[getMaxFrameLength()];
+                    Arrays.fill(volumeMatrixFrame, 255);
+                    volumeMatrixFrame = Mask.radialFadeOut(volumeMatrixFrame, level);
+                }
+                case RADIAL_INWARD -> {
+                    volumeMatrixFrame = new int[getMaxFrameLength()];
+                    Arrays.fill(volumeMatrixFrame, 255);
+                    volumeMatrixFrame = Mask.radialClampIn(volumeMatrixFrame, level);
+                }
+                case RADIAL_CHECKERBOARD_OUTWARD -> {
+                    volumeMatrixFrame = Mask.radialClampOut(Shape.checkerboardOdd(), level);
                 }
             }
 
@@ -214,7 +236,7 @@ public class MatrixUtils {
     }
 
     public static class Mask {
-        public static int[] radialBrightness(int[] frame, int level) {
+        public static int[] radialFadeOut(int[] frame, int level) {
             if (level >= 100) return frame.clone();
 
             int gridSize = getGridSize();
@@ -235,6 +257,73 @@ public class MatrixUtils {
                     double falloff = radius <= 0 ? 0.0 : Math.max(0.0, 1.0 - (dist / radius));
 
                     int masked = (int) Math.round(frame[idx] * falloff);
+                    newFrame[idx] = Math.clamp(masked, 0, 255);
+                }
+            }
+
+            return newFrame;
+        }
+
+        public static int[] radialClampOut(int[] frame, int level) {
+            if (level >= 100) return frame.clone();
+
+            int gridSize = getGridSize();
+            int[] newFrame = new int[frame.length];
+
+            double centerRow = (gridSize - 1) / 2.0;
+            double centerCol = (gridSize - 1) / 2.0;
+
+            // Clamp to the edge instead of the corners.
+            double maxDist = Math.min(centerRow, centerCol);
+
+            double radius = (level / 100.0) * maxDist;
+
+            for (int row = 0; row < gridSize; row++) {
+                for (int col = 0; col < gridSize; col++) {
+                    int idx = row * gridSize + col;
+
+                    double dist = Math.sqrt(
+                            Math.pow(row - centerRow, 2) +
+                                    Math.pow(col - centerCol, 2));
+
+                    // Solid mask: everything inside the radius is visible.
+                    newFrame[idx] = dist <= radius
+                            ? frame[idx]
+                            : 0;
+                }
+            }
+
+            return newFrame;
+        }
+
+        public static int[] radialClampIn(int[] frame, int level) {
+            if (level >= 100) return frame.clone();
+
+            int gridSize = getGridSize();
+            int[] newFrame = new int[frame.length];
+
+            double centerRow = (gridSize - 1) / 2.0;
+            double centerCol = (gridSize - 1) / 2.0;
+
+            // Clamp to the edge rather than the corners.
+            double maxDist = Math.min(centerRow, centerCol);
+
+            // At level 0, radius is maxDist.
+            // At level 100, radius is 0.
+            double radius = (1.0 - level / 100.0) * maxDist;
+
+            for (int row = 0; row < gridSize; row++) {
+                for (int col = 0; col < gridSize; col++) {
+                    int idx = row * gridSize + col;
+
+                    double dist = Math.sqrt(
+                            Math.pow(row - centerRow, 2) +
+                                    Math.pow(col - centerCol, 2));
+
+                    // Outside the radius = visible.
+                    double mask = dist >= radius ? 1.0 : 0.0;
+
+                    int masked = (int) Math.round(frame[idx] * mask);
                     newFrame[idx] = Math.clamp(masked, 0, 255);
                 }
             }
