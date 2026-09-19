@@ -107,7 +107,7 @@ class MatrixDisplayView @JvmOverloads constructor(
                 if (!validMask[r][c]) continue
 
                 val brightness = grid[r][c]
-                val alphaFactor = if (brightness <= 0) 0.3f
+                val alphaFactor = if (brightness <= 0) 0.15f
                 else (0.4f + 0.6f * (brightness / 255f))
 
                 paint.color = onColor
