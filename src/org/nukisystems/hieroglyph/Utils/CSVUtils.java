@@ -124,6 +124,16 @@ public class CSVUtils {
         validateFrameBrightness(frame, true);
     }
 
+    public static int[] scale12BitTo8BitByte(int[] values12Bit) {
+        int[] result = new int[values12Bit.length];
+        for (int i = 0; i < values12Bit.length; i++) {
+            int clamped = Math.clamp(values12Bit[i], 0, 4095);
+            result[i] = (clamped * 255 + 2047) / 4095;
+        }
+        return result;
+    }
+
+
     public static boolean checkUserAnimation(String animationName) {
         try {
             String csv = new String(ResourceUtils.getAnimation(animationName).readAllBytes(),
