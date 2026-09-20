@@ -97,6 +97,16 @@ class ThirdPartyService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
+        val intent = Intent().apply {
+            component = bridgeComponent
+        }
+        try {
+            this.stopService(intent)
+        } catch (e: IllegalStateException) {
+            Log.e(TAG, "Failed to stop GlyphBridge service. not running?", e)
+        } catch (e: SecurityException) {
+            Log.e(TAG, "No permission to start service", e)
+        }
         releaseWakeLock()
     }
 
