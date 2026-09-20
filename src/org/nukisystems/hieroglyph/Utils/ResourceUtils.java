@@ -446,6 +446,8 @@ public final class ResourceUtils {
                         continue;
                     }
 
+                    ComponentName serviceComponent = new ComponentName(serviceInfo.packageName, serviceInfo.name);
+
                     int nameResId = serviceMeta.getInt(Constants.External.STRING_TOY_NAME, 0);
                     int iconResId = serviceMeta.getInt(Constants.External.DRAWABLE_TOY_IMAGE, 0);
                     if (nameResId == 0 || iconResId == 0) {
@@ -475,7 +477,7 @@ public final class ResourceUtils {
                             new Data.GlyphToy(toyName, toyDrawable, toySummary, introComponent,
                                     supportsAOD, supportsLongPress);
 
-                    toyCache.put(serviceInfo.packageName, toyData);
+                    toyCache.put(serviceComponent, toyData);
                 }
 
                 if (toyCache == null || toyCache.isEmpty()) {
@@ -484,17 +486,17 @@ public final class ResourceUtils {
 
             }
 
-            public static void delete(String packageName) {
+            public static void delete(ComponentName component) {
                 if (toyCache == null || toyCache.isEmpty()) {
                     Log.w(TAG, "No glyph toys in cache to delete?");
                     return;
                 }
 
-                if (!toyCache.containsKey(packageName)) {
-                    Log.w(TAG, "Toy package: " + packageName + " not found in cache");
+                if (!toyCache.containsKey(component)) {
+                    Log.w(TAG, "Toy package: " + component.toShortString() + " not found in cache");
                     return;
                 }
-                toyCache.remove(packageName);
+                toyCache.remove(component);
         }
     }
 }

@@ -81,6 +81,6 @@ public class Data {
         }
     }
 
-    public static Map<String, GlyphToy> toyCache = new HashMap<>();
+    public static Map<ComponentName, GlyphToy> toyCache = new HashMap<>();
 
 }
