@@ -458,10 +458,10 @@ public final class ResourceUtils {
 
                     int summaryResId = serviceMeta.getInt(Constants.External.STRING_TOY_SUMMARY, 0);
 
-                    boolean supportsAOD = Integer.parseInt(
-                            serviceMeta.getString(Constants.External.META_SUPPORTS_AOD, "0")) == 1;
-                    boolean supportsLongPress = Integer.parseInt(
-                            serviceMeta.getString(Constants.External.META_SUPPORTS_LONGPRESS, "0")) == 1;
+                boolean supportsAOD =
+                        serviceMeta.getInt(Constants.External.META_SUPPORTS_AOD, 0) == 1;
+                boolean supportsLongPress =
+                        serviceMeta.getInt(Constants.External.META_SUPPORTS_LONGPRESS, 0) == 1;
 
                     String introActivity =
                             serviceMeta.getString(Constants.External.META_TOY_INTRO_ACTIVITY, null);
