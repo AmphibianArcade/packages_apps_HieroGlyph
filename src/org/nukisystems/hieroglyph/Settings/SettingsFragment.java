@@ -57,6 +57,8 @@ import org.nukisystems.hieroglyph.Constants.Constants;
 import org.nukisystems.hieroglyph.Manager.GlyphScheduleManager;
 import org.nukisystems.hieroglyph.Manager.SettingsManager;
 import org.nukisystems.hieroglyph.Services.BatterySaverService;
+
+import static org.nukisystems.hieroglyph.Utils.InterfaceUtils.Preferences.getAllPreferences;
 import static org.nukisystems.hieroglyph.Utils.InterfaceUtils.showDialog;
 
 import java.io.File;
@@ -341,18 +343,6 @@ public class SettingsFragment extends SettingsBasePreferenceFragment implements 
         mHandler.post(ServiceUtils::checkGlyphService);
 
         return true;
-    }
-
-    private List<Preference> getAllPreferences(PreferenceGroup group) {
-        List<Preference> preferences = new ArrayList<>();
-        for (int i = 0; i < group.getPreferenceCount(); i++) {
-            Preference pref = group.getPreference(i);
-            preferences.add(pref);
-            if (pref instanceof PreferenceGroup) {
-                preferences.addAll(getAllPreferences((PreferenceGroup) pref));
-            }
-        }
-        return preferences;
     }
 
     @Override
