@@ -498,5 +498,14 @@ public final class ResourceUtils {
                 }
                 toyCache.remove(component);
         }
+
+        public static Map<ComponentName, Data.GlyphToy> get(Context ctx) {
+            if (toyCache == null || toyCache.isEmpty()) {
+                reload(ctx);
+            }
+            return toyCache;
+
+        }
+
     }
 }
