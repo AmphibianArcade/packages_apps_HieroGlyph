@@ -364,99 +364,99 @@ public final class ResourceUtils {
         return result.toArray(new String[0]);
     }
 
-        public static class External {
+    public static class External {
 
-            public static Resources getResourcesForPackage(Context context, String packageName) {
-                try {
-                    PackageManager pm = context.getPackageManager();
-                    return pm.getResourcesForApplication(packageName);
-                } catch (PackageManager.NameNotFoundException e) {
-                    Log.e("ExternalResourceLoader", "Package not found: " + packageName, e);
-                    return null;
-                }
-            }
-
-            public static Drawable getDrawable(Context context, String packageName, String resName) {
-                Resources res = getResourcesForPackage(context, packageName);
-                if (res == null) return null;
-
-                int resId = res.getIdentifier(resName, "drawable", packageName);
-                if (resId == 0) {
-                    Log.e("ExternalResourceLoader", "Drawable not found: " + resName);
-                    return null;
-                }
-                return res.getDrawable(resId, null);
-            }
-
-            public static Drawable getDrawable(Context context, String packageName, int resId) {
-                Resources res = getResourcesForPackage(context, packageName);
-                if (res == null) return null;
-                try {
-                    return res.getDrawable(resId, null);
-                } catch (Resources.NotFoundException e) {
-                    Log.e("ExternalResourceLoader", "Drawable ID not found: " + resId, e);
-                    return null;
-                }
-            }
-
-            public static String getString(Context context, String packageName, String resName) {
-                Resources res = getResourcesForPackage(context, packageName);
-                if (res == null) return null;
-
-                int resId = res.getIdentifier(resName, "string", packageName);
-                if (resId == 0) {
-                    Log.e("ExternalResourceLoader", "String not found: " + resName);
-                    return null;
-                }
-                return res.getString(resId);
-            }
-
-
-            public static String getString(Context context, String packageName, int resId) {
-                Resources res = getResourcesForPackage(context, packageName);
-                if (res == null) return null;
-                try {
-                    return res.getString(resId);
-                } catch (Resources.NotFoundException e) {
-                    Log.e("ExternalResourceLoader", "String ID not found: " + resId, e);
-                    return null;
-                }
+        public static Resources getResourcesForPackage(Context context, String packageName) {
+            try {
+                PackageManager pm = context.getPackageManager();
+                return pm.getResourcesForApplication(packageName);
+            } catch (PackageManager.NameNotFoundException e) {
+                Log.e("ExternalResourceLoader", "Package not found: " + packageName, e);
+                return null;
             }
         }
 
-        public static class Toys {
+        public static Drawable getDrawable(Context context, String packageName, String resName) {
+            Resources res = getResourcesForPackage(context, packageName);
+            if (res == null) return null;
 
-            public static void reload(Context ctx) {
-                toyCache.clear();
-                PackageManager pm = ctx.getPackageManager();
-                Intent intent = new Intent(Constants.External.TOY_INTENT);
-                List<ResolveInfo> resolveInfos =
-                        pm.queryIntentServices(intent, PackageManager.GET_META_DATA);
+            int resId = res.getIdentifier(resName, "drawable", packageName);
+            if (resId == 0) {
+                Log.e("ExternalResourceLoader", "Drawable not found: " + resName);
+                return null;
+            }
+            return res.getDrawable(resId, null);
+        }
 
-                for (ResolveInfo info : resolveInfos) {
-                    ServiceInfo serviceInfo = info.serviceInfo;
-                    if (serviceInfo == null) continue;
-                    Bundle serviceMeta = serviceInfo.metaData;
-                    String pkg = serviceInfo.packageName;
-                    Log.w(TAG, "resolved pkg " + pkg);
+        public static Drawable getDrawable(Context context, String packageName, int resId) {
+            Resources res = getResourcesForPackage(context, packageName);
+            if (res == null) return null;
+            try {
+                return res.getDrawable(resId, null);
+            } catch (Resources.NotFoundException e) {
+                Log.e("ExternalResourceLoader", "Drawable ID not found: " + resId, e);
+                return null;
+            }
+        }
 
-                    if (serviceMeta == null || serviceMeta.isEmpty()) {
-                        Log.w(TAG, "Unable to get Toy service metadata for package: "
-                                + pkg);
-                        continue;
-                    }
+        public static String getString(Context context, String packageName, String resName) {
+            Resources res = getResourcesForPackage(context, packageName);
+            if (res == null) return null;
 
-                    ComponentName serviceComponent = new ComponentName(serviceInfo.packageName, serviceInfo.name);
+            int resId = res.getIdentifier(resName, "string", packageName);
+            if (resId == 0) {
+                Log.e("ExternalResourceLoader", "String not found: " + resName);
+                return null;
+            }
+            return res.getString(resId);
+        }
 
-                    int nameResId = serviceMeta.getInt(Constants.External.STRING_TOY_NAME, 0);
-                    int iconResId = serviceMeta.getInt(Constants.External.DRAWABLE_TOY_IMAGE, 0);
-                    if (nameResId == 0 || iconResId == 0) {
-                        Log.w(TAG, "Missing required data for glyph toy: "
-                                + pkg + "/" + serviceInfo.name + ", skipping!");
-                        continue;
-                    }
 
-                    int summaryResId = serviceMeta.getInt(Constants.External.STRING_TOY_SUMMARY, 0);
+        public static String getString(Context context, String packageName, int resId) {
+            Resources res = getResourcesForPackage(context, packageName);
+            if (res == null) return null;
+            try {
+                return res.getString(resId);
+            } catch (Resources.NotFoundException e) {
+                Log.e("ExternalResourceLoader", "String ID not found: " + resId, e);
+                return null;
+            }
+        }
+    }
+
+    public static class Toys {
+
+        public static void reload(Context ctx) {
+            toyCache.clear();
+            PackageManager pm = ctx.getPackageManager();
+            Intent intent = new Intent(Constants.External.TOY_INTENT);
+            List<ResolveInfo> resolveInfos =
+                    pm.queryIntentServices(intent, PackageManager.GET_META_DATA);
+
+            for (ResolveInfo info : resolveInfos) {
+                ServiceInfo serviceInfo = info.serviceInfo;
+                if (serviceInfo == null) continue;
+                Bundle serviceMeta = serviceInfo.metaData;
+                String pkg = serviceInfo.packageName;
+                Log.w(TAG, "resolved pkg " + pkg);
+
+                if (serviceMeta == null || serviceMeta.isEmpty()) {
+                    Log.w(TAG, "Unable to get Toy service metadata for package: "
+                            + pkg);
+                    continue;
+                }
+
+                ComponentName serviceComponent = new ComponentName(serviceInfo.packageName, serviceInfo.name);
+
+                int nameResId = serviceMeta.getInt(Constants.External.STRING_TOY_NAME, 0);
+                int iconResId = serviceMeta.getInt(Constants.External.DRAWABLE_TOY_IMAGE, 0);
+                if (nameResId == 0 || iconResId == 0) {
+                    Log.w(TAG, "Missing required data for glyph toy: "
+                            + pkg + "/" + serviceInfo.name + ", skipping!");
+                    continue;
+                }
+
+                int summaryResId = serviceMeta.getInt(Constants.External.STRING_TOY_SUMMARY, 0);
 
                 boolean supportsAOD =
                         serviceMeta.getInt(Constants.External.META_SUPPORTS_AOD, 0) == 1;
@@ -467,36 +467,40 @@ public final class ResourceUtils {
                 if (Constants.Device.isPhone4aPro() && !supportsAOD) continue;
 
                 String introActivity =
+                        serviceMeta.getString(Constants.External.META_TOY_INTRO_ACTIVITY, null);
+                ComponentName introComponent =
+                        introActivity == null ? null : new ComponentName(serviceInfo.packageName, introActivity);
 
-                    String toyName = External.getString(ctx, pkg, nameResId);
-                    Drawable toyDrawable = External.getDrawable(ctx, pkg, iconResId);
-                    String toySummary = External.getString(ctx, pkg, summaryResId);
+                String toyName = External.getString(ctx, pkg, nameResId);
+                Drawable toyDrawable = External.getDrawable(ctx, pkg, iconResId);
+                String toySummary = External.getString(ctx, pkg, summaryResId);
 
 
-                    Data.GlyphToy toyData =
-                            new Data.GlyphToy(toyName, toyDrawable, toySummary, introComponent,
-                                    supportsAOD, supportsLongPress);
+                Data.GlyphToy toyData =
+                        new Data.GlyphToy(toyName, toyDrawable, toySummary, introComponent,
+                                supportsAOD, supportsLongPress);
 
-                    toyCache.put(serviceComponent, toyData);
-                }
 
-                if (toyCache == null || toyCache.isEmpty()) {
-                    Log.w(TAG, "No valid toys found");
-                }
-
+                toyCache.put(serviceComponent, toyData);
             }
 
-            public static void delete(ComponentName component) {
-                if (toyCache == null || toyCache.isEmpty()) {
-                    Log.w(TAG, "No glyph toys in cache to delete?");
-                    return;
-                }
+            if (toyCache == null || toyCache.isEmpty()) {
+                Log.w(TAG, "No valid toys found");
+            }
 
-                if (!toyCache.containsKey(component)) {
-                    Log.w(TAG, "Toy package: " + component.toShortString() + " not found in cache");
-                    return;
-                }
-                toyCache.remove(component);
+        }
+
+        public static void delete(ComponentName component) {
+            if (toyCache == null || toyCache.isEmpty()) {
+                Log.w(TAG, "No glyph toys in cache to delete?");
+                return;
+            }
+
+            if (!toyCache.containsKey(component)) {
+                Log.w(TAG, "Toy package: " + component.toShortString() + " not found in cache");
+                return;
+            }
+            toyCache.remove(component);
         }
 
         public static Map<ComponentName, Data.GlyphToy> get(Context ctx) {
