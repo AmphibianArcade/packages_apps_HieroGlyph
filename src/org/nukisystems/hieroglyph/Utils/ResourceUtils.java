@@ -463,10 +463,10 @@ public final class ResourceUtils {
                 boolean supportsLongPress =
                         serviceMeta.getInt(Constants.External.META_SUPPORTS_LONGPRESS, 0) == 1;
 
-                    String introActivity =
-                            serviceMeta.getString(Constants.External.META_TOY_INTRO_ACTIVITY, null);
-                    ComponentName introComponent =
-                            introActivity == null ? null : new ComponentName(serviceInfo.packageName, introActivity);
+
+                if (Constants.Device.isPhone4aPro() && !supportsAOD) continue;
+
+                String introActivity =
 
                     String toyName = External.getString(ctx, pkg, nameResId);
                     Drawable toyDrawable = External.getDrawable(ctx, pkg, iconResId);
