@@ -87,16 +87,18 @@ public class FlipToGlyphService extends Service {
     private void onFlip(boolean flipped) {
         if (flipped == isFlipped) return;
         if (DEBUG) Log.d(TAG, "Flipped: " + flipped);
-        if (flipped && SettingsManager.isGlyphFlipAnimationEnabled()
-                && StatusManager.isGlyphIdle()) {
-            String animationName = SettingsManager.getGlyphFlipAnimation();
-            boolean shouldReverse = SettingsManager.isGlyphFlipAnimationReversed();
-            if (animationName.equals(Constants.Settings.Notification.ANIMATION_ALTERNATE)) {
-                AnimationManager.Coordinator.get().stream(mContext, SettingsManager.getGlyphNotifsAnimation(), false, true);
-            } else if (shouldReverse) {
-                AnimationManager.Coordinator.get().stream(mContext, animationName, true);
-            } else {
-                AnimationManager.Coordinator.get().stream(mContext, animationName);
+        if (flipped) {
+            if (SettingsManager.isGlyphFlipAnimationEnabled()
+                    && StatusManager.isGlyphIdle()) {
+                String animationName = SettingsManager.getGlyphFlipAnimation();
+                boolean shouldReverse = SettingsManager.isGlyphFlipAnimationReversed();
+                if (animationName.equals(Constants.Settings.Notification.ANIMATION_ALTERNATE)) {
+                    AnimationManager.Coordinator.get().stream(mContext, SettingsManager.getGlyphNotifsAnimation(), false, true);
+                } else if (shouldReverse) {
+                    AnimationManager.Coordinator.get().stream(mContext, animationName, true);
+                } else {
+                    AnimationManager.Coordinator.get().stream(mContext, animationName);
+                }
             }
 
             ringerMode = mAudioManager.getRingerModeInternal();
