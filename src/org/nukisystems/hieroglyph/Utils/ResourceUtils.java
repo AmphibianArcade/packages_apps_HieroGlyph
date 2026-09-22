@@ -487,6 +487,19 @@ public final class ResourceUtils {
 
             if (toyCache == null || toyCache.isEmpty()) {
                 Log.w(TAG, "No valid toys found");
+                return;
+            }
+
+            if (Constants.Device.isPhone4aPro()) {
+                toyCache.keySet()
+                        .removeIf(
+                                x -> x.getPackageName().equals("com.pauwma.glyphmuseum")
+                                && !x.getShortClassName().endsWith("4a"));
+            } else {
+                toyCache.keySet()
+                        .removeIf(
+                                x -> x.getPackageName().equals("com.pauwma.glyphmuseum")
+                                        && x.getShortClassName().endsWith("4a"));
             }
 
         }
