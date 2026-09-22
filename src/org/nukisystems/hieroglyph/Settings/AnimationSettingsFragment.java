@@ -16,6 +16,7 @@
 
 package org.nukisystems.hieroglyph.Settings;
 
+import static org.nukisystems.hieroglyph.Utils.InterfaceUtils.Preferences.getAllPreferences;
 import static org.nukisystems.hieroglyph.Utils.InterfaceUtils.showDialog;
 import static org.nukisystems.hieroglyph.Utils.InterfaceUtils.showToast;
 
@@ -1017,8 +1018,7 @@ public class AnimationSettingsFragment
                 || fragmentType.equals(FRAGMENT_TYPE_NOTIF))
                 && !isAppSpecific
                 && !isContactSpecific) {
-            for (int i = 0; i < appListCategory.getPreferenceCount(); i++) {
-                Preference pref = appListCategory.getPreference(i);
+            for (Preference pref : getAllPreferences(appListCategory)) {
                 if (pref instanceof PrimarySwitchPreference) {
                     PrimarySwitchPreference switchPref = (PrimarySwitchPreference) pref;
                     switch (fragmentType) {
@@ -1041,8 +1041,7 @@ public class AnimationSettingsFragment
                 || fragmentType.equals(FRAGMENT_TYPE_NOTIF))
                 && !isAppSpecific
                 && !isContactSpecific) {
-            for (int i = 0; i < appListCategory.getPreferenceCount(); i++) {
-                Preference pref = appListCategory.getPreference(i);
+            for (Preference pref : getAllPreferences(appListCategory)) {
                 if (pref instanceof PrimarySwitchPreference) {
                     PrimarySwitchPreference switchPref = (PrimarySwitchPreference) pref;
                     resolveAppSummary(switchPref, pref.getKey(), comp);

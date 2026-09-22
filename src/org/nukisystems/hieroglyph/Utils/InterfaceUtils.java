@@ -6,6 +6,7 @@ import androidx.appcompat.app.AlertDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
 import androidx.preference.Preference;
+import androidx.preference.PreferenceCategory;
 import androidx.preference.PreferenceGroup;
 import androidx.preference.PreferenceManager;
 import androidx.preference.PreferenceScreen;
@@ -161,6 +162,10 @@ public class InterfaceUtils {
 
         public static List<Preference> getAllPreferences(PreferenceScreen screen) {
             return getAllPreferences((PreferenceGroup) screen);
+        }
+
+        public static List<Preference> getAllPreferences(PreferenceCategory category) {
+            return getAllPreferences((PreferenceGroup) category);
         }
 
 
