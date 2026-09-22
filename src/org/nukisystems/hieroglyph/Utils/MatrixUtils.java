@@ -1,5 +1,9 @@
 package org.nukisystems.hieroglyph.Utils;
 
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Matrix;
 import android.util.Log;
 
 import org.nukisystems.hieroglyph.Constants.Constants;
@@ -582,6 +586,139 @@ public class MatrixUtils {
             return Cross(getGridSize(), 1, length, brightness, 0);
         }
 
+    }
+
+    public static class Bitmap {
+        public static int[] convertToGlyphMatrix(android.graphics.Bitmap bitmap) {
+            return convertToGlyphMatrix(bitmap, 1, 0, 255, 0, 0, false ,false);
+        }
+
+        public static int[] convertToGlyphMatrix(android.graphics.Bitmap bitmap, int scale, int orientation,
+                                                 int opacity, int locationX, int locationY,
+                                                 boolean reverse, boolean isText) {
+            int xCoord;
+            int yCoord;
+            int width = bitmap.getWidth();
+            int height = bitmap.getHeight();
+            if (width != height) {
+                throw new IllegalArgumentException("Image needs to be square");
+            }
+            if (opacity > 255) {
+                opacity = 255;
+            }
+            float scaleFactor = scale / 100.0f;
+            if (scaleFactor <= 0.0f) {
+                throw new IllegalArgumentException("Scale should larger than 0");
+            }
+            Matrix matrix = new Matrix();
+            matrix.postScale(scaleFactor, scaleFactor);
+            android.graphics.Bitmap transformedBitmap = android.graphics.Bitmap.createBitmap(bitmap, 0, 0, width, height, matrix, true);
+            if (orientation != 0) {
+                int w = transformedBitmap.getWidth();
+                int h = transformedBitmap.getHeight();
+                double rad = Math.toRadians(orientation);
+                double cos = Math.abs(Math.cos(rad));
+                double sin = Math.abs(Math.sin(rad));
+                int boundW = (int) Math.ceil((((double) w) * cos) + (((double) h) * sin));
+                int boundH = (int) Math.ceil((((double) w) * sin) + (((double) h) * cos));
+                int newSide = Math.max(boundW, boundH);
+                android.graphics.Bitmap squareBitmap = android.graphics.Bitmap.createBitmap(newSide, newSide, transformedBitmap.getConfig());
+                Canvas canvas = new Canvas(squareBitmap);
+                int bgColor = transformedBitmap.getPixel(0, 0);
+                canvas.drawColor(bgColor);
+                Matrix finalMatrix = new Matrix();
+                finalMatrix.postTranslate((-w) / 2.0f, (-h) / 2.0f);
+                finalMatrix.postRotate(orientation);
+                finalMatrix.postTranslate(newSide / 2.0f, newSide / 2.0f);
+                canvas.drawBitmap(transformedBitmap, finalMatrix, null);
+                transformedBitmap = squareBitmap;
+            }
+            int newWidth = transformedBitmap.getWidth();
+            int newHeight = transformedBitmap.getHeight();
+            int length = getGridSize();
+            int[] glyphArray = new int[length * length];
+            int y = 0;
+            while (y < length) {
+                int x = 0;
+                while (x < length) {
+                    int coordLength = length - 1;
+                    if (newWidth >= width) {
+                        int diffWidth = (newWidth - width) / 2;
+                        int diffHeight = (newHeight - height) / 2;
+                        xCoord = Math.round((x * (width - 1)) / coordLength) + diffWidth;
+                        yCoord = Math.round((y * (height - 1)) / coordLength) + diffHeight;
+                    } else {
+                        xCoord = Math.round((x * (width - 1)) / coordLength);
+                        yCoord = Math.round((y * (height - 1)) / coordLength);
+                    }
+                    try {
+                        int color = transformedBitmap.getPixel(xCoord, yCoord);
+                        int a = Color.alpha(color);
+                        int r = Color.red(color);
+                        int g = Color.green(color);
+                        int b = Color.blue(color);
+                        int gray = ((r + g) + b) / 3;
+                        int brightness = (gray * 4095) / 255;
+                        if (opacity > 255) {
+                            opacity = 255;
+                        }
+                        int brightness2 = (brightness * opacity) / 255;
+                        if (brightness2 < 0) {
+                            brightness2 = 0;
+                        }
+                        if (brightness2 > 4095) {
+                            brightness2 = 4095;
+                        }
+                        if (!reverse || a < 10) {
+                            glyphArray[(y * length) + x] = brightness2;
+                        } else {
+                            glyphArray[(y * length) + x] = 4095 - brightness2;
+                        }
+                        if (isText) {
+                            if (glyphArray[(y * length) + x] >= 1024) {
+                                glyphArray[(y * length) + x] = 4095;
+                            } else {
+                                glyphArray[(y * length) + x] = 0;
+                            }
+                        }
+                    } catch (Exception e) {
+                    }
+                    x++;
+                }
+                y++;
+            }
+            return Translate.shiftArray(glyphArray, locationX, locationY);
+        }
+    }
+
+    public static class Translate {
+
+        private static int[] translateX(int[] array, int shiftX) {
+            return shiftArray(array, shiftX, 0);
+        }
+
+        private static int[] translateY(int[] array, int shiftY) {
+            return shiftArray(array, 0, shiftY);
+        }
+
+        private static int[] shiftArray(int[] array, int shiftX, int shiftY) {
+            int length = getGridSize();
+            if (array == null || array.length != length * length) {
+                throw new IllegalArgumentException("Array length must be width * height");
+            }
+            int[] newArray = new int[length * length];
+            for (int i = 0; i < array.length; i++) {
+                int row = i / length;
+                int col = i % length;
+                int newRow = row + shiftY;
+                int newCol = col + shiftX;
+                if (newRow >= 0 && newRow < length && newCol >= 0 && newCol < length) {
+                    int newIndex = (newRow * length) + newCol;
+                    newArray[newIndex] = array[i];
+                }
+            }
+            return newArray;
+        }
     }
 }
 
