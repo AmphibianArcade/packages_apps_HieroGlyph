@@ -46,7 +46,6 @@ import com.android.settingslib.widget.MainSwitchPreference;
 import com.android.settingslib.widget.SettingsBasePreferenceFragment;
 import com.android.settingslib.widget.SliderPreference;
 
-import android.util.Log;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 
@@ -62,10 +61,8 @@ import static org.nukisystems.hieroglyph.Utils.InterfaceUtils.Preferences.getAll
 import static org.nukisystems.hieroglyph.Utils.InterfaceUtils.showDialog;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 

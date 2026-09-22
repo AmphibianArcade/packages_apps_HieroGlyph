@@ -213,4 +213,5 @@ public class CallReceiverService extends InCallService implements GlyphOwner {
                     disableCallAnimation();
                 }
             };
+
 }

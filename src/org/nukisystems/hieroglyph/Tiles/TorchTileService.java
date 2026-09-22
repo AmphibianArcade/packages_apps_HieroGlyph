@@ -39,7 +39,7 @@ public class TorchTileService extends TileService {
     
     private static final String ACTION_UPDATE_TILE = "org.nukisystems.hieroglyph.UPDATE_TORCH_TILE";
 
-    private BroadcastReceiver mUpdateReceiver = new BroadcastReceiver() {
+    private final BroadcastReceiver mUpdateReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             updateState();

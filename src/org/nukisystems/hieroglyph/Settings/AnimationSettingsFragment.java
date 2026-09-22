@@ -21,7 +21,6 @@ import static org.nukisystems.hieroglyph.Utils.InterfaceUtils.showDialog;
 import static org.nukisystems.hieroglyph.Utils.InterfaceUtils.showToast;
 
 import android.Manifest;
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
@@ -36,7 +35,6 @@ import android.os.Handler;
 import android.os.Looper;
 import android.provider.ContactsContract;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.View;
 
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -56,7 +54,6 @@ import com.android.settingslib.widget.SettingsBasePreferenceFragment;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -71,7 +68,6 @@ import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import org.nukisystems.hieroglyph.Manager.AnimationManager;
 import org.nukisystems.hieroglyph.Preference.LivePreview;
 import org.nukisystems.hieroglyph.R;
 import org.nukisystems.hieroglyph.Constants.Constants;

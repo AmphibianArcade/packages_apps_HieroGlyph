@@ -270,7 +270,7 @@ public class CSVUtils {
                 line = MatrixUtils.trimToValidFrame(line);
             } catch (Exception e) {
                 Log.d("CSVUtils", e.getMessage());
-                throw new IllegalArgumentException();
+                throw new IllegalArgumentException(e);
             }
             lines.add(line);
         }
