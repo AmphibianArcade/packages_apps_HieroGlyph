@@ -30,10 +30,12 @@ import android.util.Log;
 
 import org.nukisystems.hieroglyph.Constants.Constants;
 import org.nukisystems.hieroglyph.Manager.AnimationManager;
+import org.nukisystems.hieroglyph.Manager.GlyphToyManager;
 import org.nukisystems.hieroglyph.Manager.SettingsManager;
 import org.nukisystems.hieroglyph.Manager.StatusManager;
 import org.nukisystems.hieroglyph.Manager.StatusManager.GlyphPriority;
 import org.nukisystems.hieroglyph.Sensors.FlipToGlyphSensor;
+import org.nukisystems.hieroglyph.Services.ToyService.ToyIntent;
 import org.nukisystems.hieroglyph.Utils.ServiceUtils;
 
 public class FlipToGlyphService extends Service {
@@ -79,9 +81,18 @@ public class FlipToGlyphService extends Service {
     public void onDestroy() {
         if (DEBUG) Log.d(TAG, "Destroying service");
         mFlipToGlyphSensor.disable();
+        if (SettingsManager.Toys.isAODToyEnabled() && GlyphToyManager.isAodActive) {
+            ServiceUtils.startToyService(ToyIntent.ACTION_STOP_AOD);
+        }
         thread.quit();
         super.onDestroy();
     }
+
+    private final Runnable startAOD = () -> {
+        if (SettingsManager.Toys.isAODToyEnabled()) {
+            ServiceUtils.startToyService(ToyIntent.ACTION_START_AOD);
+        }
+    };
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -122,6 +133,8 @@ public class FlipToGlyphService extends Service {
                     );
                 }
             }
+
+            mThreadHandler.postDelayed(startAOD, 3000);
 
             ringerMode = mAudioManager.getRingerModeInternal();
             int preferredMode = SettingsManager.getFlipRingerMode();

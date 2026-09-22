@@ -64,5 +64,17 @@
             android:entryValues="@array/glyph_flip_ringer_mode_values"
             android:defaultValue="-1" />
 
+        <com.android.settingslib.PrimarySwitchPreference
+            android:key="glyph_settings_always_on_toy"
+            android:icon="@drawable/ic_joystick"
+            android:title="@string/glyph_settings_always_on_toy_title"
+            android:summary="@string/glyph_settings_toy_summary">
+            <intent android:action="android.intent.action.MAIN"
+                android:targetPackage="org.nukisystems.hieroglyph"
+                android:targetClass="org.nukisystems.hieroglyph.Settings.SubSettingsActivity">
+                <extra android:name="fragment" android:value=".Settings.Toy.AodToySettingsFragment" />
+            </intent>
+        </com.android.settingslib.PrimarySwitchPreference>
+
 
 </PreferenceScreen>

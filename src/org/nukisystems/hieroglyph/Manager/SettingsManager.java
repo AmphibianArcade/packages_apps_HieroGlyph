@@ -17,6 +17,7 @@
 package org.nukisystems.hieroglyph.Manager;
 
 import android.app.ActivityManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.media.AudioManager;
 import android.provider.Settings;
@@ -25,7 +26,10 @@ import androidx.preference.PreferenceManager;
 
 import com.android.internal.util.ArrayUtils;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.nukisystems.hieroglyph.Constants.Constants;
@@ -292,6 +296,85 @@ public final class SettingsManager {
                     .edit()
                     .putBoolean(Constants.Settings.Volume.LEVEL_ENABLE, enable)
                     .apply();
+        }
+    }
+
+    public static class Toys {
+
+        public static Set<String> getEnabledToys() {
+            Context ctx = getContext();
+            return PreferenceManager.getDefaultSharedPreferences(ctx).getStringSet(
+                            Constants.Settings.Toys.ENABLED_LIST, Collections.emptySet());
+        }
+
+        public static List<ComponentName> getEnabledToysComponents() {
+            Context ctx = getContext();
+            List<ComponentName> enabledToyComponents = new ArrayList<>();
+            Set<String> enabledComponentsSet = getEnabledToys();
+
+            if (!enabledComponentsSet.isEmpty()) {
+                for (String compString : enabledComponentsSet) {
+                    enabledToyComponents.add(ComponentName.unflattenFromString(compString));
+                }
+            }
+            return enabledToyComponents;
+        }
+
+        public static void setEnabledToys(Set<String> toyComponents) {
+            Context ctx = getContext();
+            PreferenceManager.getDefaultSharedPreferences(ctx)
+                    .edit()
+                    .putStringSet(Constants.Settings.Toys.ENABLED_LIST, toyComponents)
+                    .apply();
+        }
+
+        public static String getLastToy() {
+            Context ctx = getContext();
+            return PreferenceManager.getDefaultSharedPreferences(ctx)
+                            .getString(Constants.Settings.Toys.LAST_TOY, "");
+        }
+
+        public static void setLastToy(String toyComponent) {
+            Context ctx = getContext();
+            PreferenceManager.getDefaultSharedPreferences(ctx)
+                    .edit()
+                    .putString(Constants.Settings.Toys.LAST_TOY, toyComponent)
+                    .apply();
+        }
+
+        public static boolean isAODToyEnabled() {
+            Context ctx = getContext();
+            return PreferenceManager.getDefaultSharedPreferences(ctx)
+                    .getBoolean(Constants.Settings.Toys.AOD_TOY_ENABLE, true);
+        }
+
+        public static void setAODToyEnabled(boolean state) {
+            Context ctx = getContext();
+            PreferenceManager.getDefaultSharedPreferences(ctx)
+                    .edit()
+                    .putBoolean(Constants.Settings.Toys.AOD_TOY_ENABLE, state)
+                    .apply();
+        }
+
+
+        public static void setAODToy(String toyComponent) {
+            Context ctx = getContext();
+            PreferenceManager.getDefaultSharedPreferences(ctx)
+                    .edit()
+                    .putString(Constants.Settings.Toys.AOD_TOY, toyComponent)
+                    .apply();
+        }
+
+        public static String getAODToy() {
+            Context ctx = getContext();
+            return PreferenceManager.getDefaultSharedPreferences(ctx)
+                    .getString(Constants.Settings.Toys.AOD_TOY, "");
+        }
+
+        public static ComponentName getAODToyComponent() {
+            return getAODToy().isEmpty()
+                    ? null
+                    : ComponentName.unflattenFromString(getAODToy());
         }
     }
 

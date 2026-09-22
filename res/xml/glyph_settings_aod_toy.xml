@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:title="@string/glyph_settings_always_on_toy_title">
+
+    <com.android.settingslib.widget.MainSwitchPreference
+        android:key="glyph_settings_always_on_toy_sub_toggle"
+        android:title="@string/glyph_settings_always_on_toy_sub_toggle_title" />
+
+</PreferenceScreen>

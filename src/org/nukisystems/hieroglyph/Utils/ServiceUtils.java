@@ -188,6 +188,25 @@ public final class ServiceUtils {
     public static void stopProgressService() {
         if (DEBUG) Log.d(TAG, "Stopping Progress service");
         getContext().stopServiceAsUser(new Intent(getContext(), ProgressService.class),
+            UserHandle.CURRENT);
+    }
+
+    public static void startToyService() {
+        if (DEBUG) Log.d(TAG, "Starting Toy service");
+        getContext().startServiceAsUser(new Intent(getContext(), ToyService.class),
+                UserHandle.CURRENT);
+    }
+
+    public static void startToyService(String action) {
+        if (DEBUG) Log.d(TAG, "Starting Toy service");
+        Intent toyIntent = new Intent(getContext(), ToyService.class);
+        toyIntent.setAction(action);
+        getContext().startServiceAsUser(toyIntent, UserHandle.CURRENT);
+    }
+
+    public static void stopToyService() {
+        if (DEBUG) Log.d(TAG, "Stopping Toy service");
+        getContext().stopServiceAsUser(new Intent(getContext(), ToyService.class),
                 UserHandle.CURRENT);
     }
 
@@ -258,6 +277,12 @@ public final class ServiceUtils {
             }
             if (SettingsManager.isGlyphFlipEnabled()) {
                 startFlipToGlyphService();
+                if (SettingsManager.Toys.isAODToyEnabled()
+                        || !SettingsManager.Toys.getEnabledToys().isEmpty()) {
+                    startToyService();
+                } else {
+                    stopToyService();
+                }
             } else {
                 stopFlipToGlyphService();
             }

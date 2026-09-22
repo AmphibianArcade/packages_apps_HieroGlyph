@@ -49,6 +49,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.nukisystems.hieroglyph.Data;
 import org.nukisystems.hieroglyph.R;
@@ -523,6 +524,13 @@ public final class ResourceUtils {
             }
             return toyCache;
 
+        }
+
+        public static Map<ComponentName, Data.GlyphToy> getAOD(Context ctx) {
+            return get(ctx).entrySet()
+                    .stream()
+                    .filter(entry -> entry.getValue().supportsAOD())
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
         }
 
     }

@@ -14,12 +14,13 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.nukisystems.hieroglyph.Manager.AnimationManager
+import org.nukisystems.hieroglyph.Manager.GlyphToyManager
 import org.nukisystems.hieroglyph.Manager.StatusManager
 import org.nukisystems.hieroglyph.Manager.StatusManager.GlyphPriority
 import org.nukisystems.hieroglyph.Utils.CSVUtils
 import kotlin.time.Duration.Companion.milliseconds
 
-class ThirdPartyService : Service(), StatusManager.GlyphOwner {
+class ThirdPartyService : Service() {
 
     private var wakeLock: PowerManager.WakeLock? = null
     private val TAG: String = "ThirdPartyService"
@@ -47,7 +48,7 @@ class ThirdPartyService : Service(), StatusManager.GlyphOwner {
         }
 
         override fun setMatrixColors(iArray: IntArray?) {
-            if (StatusManager.isPriorityActive(GlyphPriority.AOD)) {
+            if (StatusManager.isPriorityActive(GlyphPriority.AOD) && GlyphToyManager.aodPlayable) {
                 iArray?.let { requestFrame(iArray) };
                 Log.d(TAG, "setMatrixColors(): received data: ${iArray.contentToString()}")
             }
@@ -74,7 +75,7 @@ class ThirdPartyService : Service(), StatusManager.GlyphOwner {
             Log.d("ThirdPartyService", "openSession()")
             acquireWakeLock() // Acquire the wake lock when opening the session
             StatusManager.acquire(this@ThirdPartyService,
-                GlyphPriority.THIRD_PARTY, this@ThirdPartyService)
+                GlyphPriority.THIRD_PARTY, null)
         }
 
         override fun closeSession() {
@@ -149,14 +150,4 @@ class ThirdPartyService : Service(), StatusManager.GlyphOwner {
         }
     }
 
-    override fun onSuspended() {
-        readyToDraw = false
-    }
-
-    override fun onActivated() {
-        matrixScope.launch {
-            delay(activationGapMs.milliseconds)
-            readyToDraw = true
-        }
-    }
 }

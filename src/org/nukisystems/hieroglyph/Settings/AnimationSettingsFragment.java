@@ -76,6 +76,7 @@ import org.nukisystems.hieroglyph.R;
 import org.nukisystems.hieroglyph.Constants.Constants;
 import org.nukisystems.hieroglyph.Manager.SettingsManager;
 import org.nukisystems.hieroglyph.Preference.MatrixPreference;
+import org.nukisystems.hieroglyph.Services.ToyService;
 import org.nukisystems.hieroglyph.Utils.CSVUtils;
 import org.nukisystems.hieroglyph.Utils.ResourceUtils;
 import org.nukisystems.hieroglyph.Utils.ServiceUtils;
@@ -121,6 +122,7 @@ public class AnimationSettingsFragment
     private PreferenceCategory appListCategory;
 
     private SwitchPreferenceCompat mGlyphFlipAnimationSwitch;
+    private PrimarySwitchPreference mAODToyPreference;
 
     private MatrixPreference mMatrixPreference;
 
@@ -400,6 +402,9 @@ public class AnimationSettingsFragment
                 mGlyphFlipAnimationSwitch = findPreference(Constants.Settings.Flip.SUB_ANIMATION_ENABLE);
                 mGlyphFlipAnimationSwitch.setOnPreferenceChangeListener(this);
 
+                mAODToyPreference = findPreference(Constants.Settings.Toys.AOD_TOY_FLIP_ENABLE);
+                mAODToyPreference.setOnPreferenceChangeListener(this);
+
             }
         }
 
@@ -480,6 +485,16 @@ public class AnimationSettingsFragment
             }
             mHandler.post(ServiceUtils::checkGlyphService);
 
+        }
+
+        if (preference == mAODToyPreference) {
+            boolean state = (Boolean) newValue;
+            SettingsManager.Toys.setAODToyEnabled(state);
+            if (state) {
+                ServiceUtils.startToyService(ToyService.ToyIntent.ACTION_START_AOD);
+            } else {
+                ServiceUtils.startToyService(ToyService.ToyIntent.ACTION_STOP_AOD);
+            }
         }
 
         return true;
@@ -1015,6 +1030,9 @@ public class AnimationSettingsFragment
                     resolveAppSummary(switchPref, pref.getKey());
                 }
             }
+        }
+        if (fragmentType.equals(FRAGMENT_TYPE_FLIP)) {
+            mAODToyPreference.setChecked(SettingsManager.Toys.isAODToyEnabled());
         }
     }
 

@@ -117,6 +117,17 @@ public final class Constants {
             public static final String GLYPH_SCHEDULE = PREFIX + "schedule";
         }
 
+        public static final class Toys {
+            public static final String ENABLE = PREFIX + "toy_enabled_toggle";
+
+            public static final String ENABLED_LIST = PREFIX + "toy_enabled_list";
+            public static final String LAST_TOY = PREFIX + "last_toy";
+
+            public static final String AOD_TOY_ENABLE = PREFIX + "always_on_toy_sub_toggle";
+            public static final String AOD_TOY = PREFIX + "aod_toy";
+            public static final String AOD_TOY_FLIP_ENABLE = PREFIX + "always_on_toy";
+        }
+
         public static final class Utilities {
             public static final String UTILITIES = PREFIX + "utilities";
             public static final String VALIDATE_CSV = "glyph_utilities_validate_csv";
@@ -209,6 +220,18 @@ public final class Constants {
 
         public static final String META_SUPPORTS_AOD = TOY_PREFIX + ".aod_support";
         public static final String META_SUPPORTS_LONGPRESS = TOY_PREFIX + ".longpress";
+    }
+
+    public static class GlyphToy {
+        public static final String STATUS_PREPARE = "prepare";
+        public static final String STATUS_START = "start";
+        public static final String STATUS_END = "end";
+        public static final int MSG_GLYPH_TOY = 1;
+        public static final String MSG_GLYPH_TOY_DATA = "data";
+        public static final String EVENT_CHANGE = "change";
+        public static final String EVENT_AOD = "aod";
+        public static final String EVENT_ACTION_DOWN = "action_down";
+        public static final String EVENT_ACTION_UP = "action_up";
     }
 
     public static boolean isPowershareSupported() {
