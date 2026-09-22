@@ -56,17 +56,17 @@
                 android:defaultValue="false"
                 android:summary="@string/glyph_settings_sub_animations_reverse_toggle_summary" />
 
-            <MultiSelectListPreference
-                android:key="glyph_settings_notifs_sub_essential"
-                android:icon="@drawable/ic_stack_star"
-                android:title="@string/glyph_settings_notifs_sub_essential_title"
-                android:dialogTitle="@string/glyph_settings_notifs_sub_essential_title"
-                android:entries="@array/glyph_settings_empty_array_string"
-                android:entryValues="@array/glyph_settings_empty_array_string"
-                android:summary="@string/glyph_settings_notifs_sub_essential_summary"
-                android:defaultValue="@array/glyph_settings_empty_array_string"
-                android:positiveButtonText="@android:string/ok"
-                android:negativeButtonText="@android:string/cancel" />
+<!--            <MultiSelectListPreference-->
+<!--                android:key="glyph_settings_notifs_sub_essential"-->
+<!--                android:icon="@drawable/ic_stack_star"-->
+<!--                android:title="@string/glyph_settings_notifs_sub_essential_title"-->
+<!--                android:dialogTitle="@string/glyph_settings_notifs_sub_essential_title"-->
+<!--                android:entries="@array/glyph_settings_empty_array_string"-->
+<!--                android:entryValues="@array/glyph_settings_empty_array_string"-->
+<!--                android:summary="@string/glyph_settings_notifs_sub_essential_summary"-->
+<!--                android:defaultValue="@array/glyph_settings_empty_array_string"-->
+<!--                android:positiveButtonText="@android:string/ok"-->
+<!--                android:negativeButtonText="@android:string/cancel" />-->
 
             <com.android.settingslib.widget.FooterPreference
             android:key="glyph_notifs_csv_hint"

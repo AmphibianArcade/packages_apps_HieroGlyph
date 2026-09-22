@@ -216,6 +216,7 @@ public class SettingsFragment extends SettingsBasePreferenceFragment implements 
 
         mChargingLevelPreference.setEnabled(glyphEnabled);
         mChargingLevelPreference.setOnPreferenceChangeListener(this);
+        mChargingCategory.setVisible(false);
 
         mChargingPowersharePreference = (SwitchPreferenceCompat) findPreference(Constants.Settings.Charging.POWERSHARE_ENABLE);
 
@@ -250,6 +251,8 @@ public class SettingsFragment extends SettingsBasePreferenceFragment implements 
                 ResourceUtils.getApplicationsWithPermission(true, mediaPermissions));
         mProgressMediaWhitelistPreference.setEntryValues(
                 ResourceUtils.getApplicationsWithPermission(false, mediaPermissions));
+
+        mProgressCategory.setVisible(false);
 
         mRedLedCategory = findPreference(Constants.Settings.RedLED.CATEGORY);
 

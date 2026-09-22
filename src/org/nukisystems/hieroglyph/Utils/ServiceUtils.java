@@ -105,14 +105,12 @@ public final class ServiceUtils {
 
     private static void startChargingService() {
         if (DEBUG) Log.d(TAG, "Starting Glyph charging service");
-        getContext().startServiceAsUser(new Intent(getContext(), ChargingService.class),
-                UserHandle.CURRENT);
+        // getContext().startServiceAsUser(new Intent(getContext(), ChargingService.class), UserHandle.CURRENT);
     }
 
     private static void stopChargingService() {
         if (DEBUG) Log.d(TAG, "Stopping Glyph charging service");
-        getContext().stopServiceAsUser(new Intent(getContext(), ChargingService.class),
-                UserHandle.CURRENT);
+       // getContext().stopServiceAsUser(new Intent(getContext(), ChargingService.class), UserHandle.CURRENT);
     }
 
     private static void startFlipToGlyphService() {
@@ -130,16 +128,14 @@ public final class ServiceUtils {
     private static void startPowershareService() {
         if (Constants.isPowershareSupported()) {
             if (DEBUG) Log.d(TAG, "Starting Glyph powershare service");
-            getContext().startServiceAsUser(new Intent(getContext(), PowershareService.class),
-                    UserHandle.CURRENT);
+            // getContext().startServiceAsUser(new Intent(getContext(), PowershareService.class), UserHandle.CURRENT);
         }
     }
 
     private static void stopPowershareService() {
         if (Constants.isPowershareSupported()) {
             if (DEBUG) Log.d(TAG, "Stopping Glyph powershare service");
-            getContext().stopServiceAsUser(new Intent(getContext(), PowershareService.class),
-                    UserHandle.CURRENT);
+             // getContext().stopServiceAsUser(new Intent(getContext(), PowershareService.class), UserHandle.CURRENT);
         }
     }
 
@@ -181,14 +177,12 @@ public final class ServiceUtils {
 
     public static void startProgressService() {
         if (DEBUG) Log.d(TAG, "Starting Progress service");
-        getContext().startServiceAsUser(new Intent(getContext(), ProgressService.class),
-                UserHandle.CURRENT);
+       // getContext().startServiceAsUser(new Intent(getContext(), ProgressService.class), UserHandle.CURRENT);
     }
 
     public static void stopProgressService() {
         if (DEBUG) Log.d(TAG, "Stopping Progress service");
-        getContext().stopServiceAsUser(new Intent(getContext(), ProgressService.class),
-            UserHandle.CURRENT);
+        // getContext().stopServiceAsUser(new Intent(getContext(), ProgressService.class), UserHandle.CURRENT);
     }
 
     public static void startToyService() {
