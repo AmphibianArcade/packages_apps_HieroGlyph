@@ -33,9 +33,12 @@ import android.util.Log;
 import org.nukisystems.hieroglyph.Manager.AnimationManager;
 import org.nukisystems.hieroglyph.Manager.SettingsManager;
 import org.nukisystems.hieroglyph.Constants.Constants;
+import org.nukisystems.hieroglyph.Manager.StatusManager;
+import org.nukisystems.hieroglyph.Manager.StatusManager.GlyphOwner;
+import org.nukisystems.hieroglyph.Manager.StatusManager.GlyphPriority;
 import org.nukisystems.hieroglyph.Utils.ResourceUtils;
 
-public class CallReceiverService extends InCallService {
+public class CallReceiverService extends InCallService implements GlyphOwner {
 
     private static final String TAG = "GlyphCallReceiverService";
     private static final boolean DEBUG = true;
@@ -48,31 +51,34 @@ public class CallReceiverService extends InCallService {
     private int contactId = 0;
     private String callingPkg = null;
 
+    private volatile boolean callActive = false;
+
     private final Runnable playCall = new Runnable() {
         @Override
         public void run() {
-            if (contactId != 0
-                    && SettingsManager.contactHasGlyphCallConfig(contactId)) {
+            if (contactId != 0 && SettingsManager.contactHasGlyphCallConfig(contactId)) {
                 AnimationManager.playCall(
+                        CallReceiverService.this,
                         SettingsManager.getGlyphCallAnimation(contactId),
                         SettingsManager.isGlyphCallAnimationReversed(contactId)
                 );
             } else if (callingPkg != null && SettingsManager.appHasGlyphCallConfig(callingPkg)) {
                 if (SettingsManager.isGlyphCallEnabled(callingPkg)) {
                     AnimationManager.playCall(
+                            CallReceiverService.this,
                             SettingsManager.getGlyphCallAnimation(callingPkg),
                             SettingsManager.isGlyphCallAnimationReversed(callingPkg)
                     );
                 }
             } else {
                 AnimationManager.playCall(
+                        CallReceiverService.this,
                         SettingsManager.getGlyphCallAnimation(),
                         SettingsManager.isGlyphCallAnimationReversed()
                 );
             }
         }
     };
-
     @Override
     public void onCallAdded(Call call) {
         super.onCallAdded(call);
@@ -176,14 +182,28 @@ public class CallReceiverService extends InCallService {
 
     private void enableCallAnimation() {
         if (DEBUG) Log.d(TAG, "enableCallAnimation");
+        callActive = true;
         mThreadHandler.post(playCall);
     }
 
     private void disableCallAnimation() {
         if (DEBUG) Log.d(TAG, "disableCallAnimation");
+        callActive = false;
         if (mThreadHandler.hasCallbacks(playCall))
             mThreadHandler.removeCallbacks(playCall);
-        AnimationManager.stopCall();
+        AnimationManager.stopCall(this);
+    }
+
+    @Override
+    public void onSuspended() {
+        mThreadHandler.removeCallbacks(playCall);
+    }
+
+    @Override
+    public void onActivated() {
+        if (callActive) {
+            mThreadHandler.post(playCall);
+        }
     }
 
     private final AudioManager.OnModeChangedListener mAudioManagerOnModeChangedListener

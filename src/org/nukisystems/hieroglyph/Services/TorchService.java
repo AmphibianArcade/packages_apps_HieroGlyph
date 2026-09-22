@@ -8,6 +8,7 @@ import android.os.PowerManager;
 import org.nukisystems.hieroglyph.Constants.Constants;
 import org.nukisystems.hieroglyph.Manager.AnimationManager;
 import org.nukisystems.hieroglyph.Manager.StatusManager;
+import org.nukisystems.hieroglyph.Manager.StatusManager.GlyphPriority;
 import org.nukisystems.hieroglyph.Utils.FileUtils;
 import org.nukisystems.hieroglyph.aidl.NanoGlyphManager;
 
@@ -60,13 +61,24 @@ public class TorchService extends Service {
         isRunning = false;
         super.onDestroy();
     }
-    
-    public void setTorch(boolean state) {
-        if (state && !wakeLock.isHeld()) wakeLock.acquire();
-        NanoGlyphManager.Java.Matrix.setBrightness(state ? 255 : 0);
 
-        StatusManager.setAllLedsActive(state);
-        if (!state && wakeLock.isHeld()) wakeLock.release();
+    private void lockGlyph(boolean state) {
+        if (state) {
+            StatusManager.acquire(this, GlyphPriority.TORCH, null);
+        } else {
+            StatusManager.release(this);
+        }
     }
+
+    private void setTorch(boolean state) {
+        if (state && !wakeLock.isHeld()) wakeLock.acquire();
+        try {
+            lockGlyph(state);
+            NanoGlyphManager.Java.Matrix.setBrightness(state ? 255 : 0);
+        } finally {
+            if (!state && wakeLock.isHeld()) wakeLock.release();
+        }
+    }
+
 
 }

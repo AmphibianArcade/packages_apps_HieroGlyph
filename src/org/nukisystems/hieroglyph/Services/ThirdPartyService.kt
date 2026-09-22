@@ -4,52 +4,60 @@ import android.app.Service
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.os.IBinder
 import android.os.PowerManager
 import android.util.Log
-import org.nukisystems.hieroglyph.Manager.AnimationManager
-import org.nukisystems.hieroglyph.Manager.StatusManager
 import com.nothing.thirdparty.IGlyphService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.nukisystems.hieroglyph.Manager.AnimationManager
+import org.nukisystems.hieroglyph.Manager.StatusManager
+import org.nukisystems.hieroglyph.Manager.StatusManager.GlyphPriority
 import org.nukisystems.hieroglyph.Utils.CSVUtils
-import org.nukisystems.hieroglyph.Utils.MatrixUtils
-import org.nukisystems.hieroglyph.aidl.NanoGlyphManager
+import kotlin.time.Duration.Companion.milliseconds
 
-class ThirdPartyService : Service() {
+class ThirdPartyService : Service(), StatusManager.GlyphOwner {
 
     private var wakeLock: PowerManager.WakeLock? = null
     private val TAG: String = "ThirdPartyService"
     private val matrixScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val bridgeComponent =
         ComponentName("com.nothing.thirdparty", "com.nothing.thirdparty.GlyphService")
+
+    private val activationGapMs: Int = 2000
+
+    @Volatile
+    private var readyToDraw = true
+
     private val binder = object : IGlyphService.Stub() {
 
         override fun setFrameColors(iArray: IntArray?) {
             return // Method is for segmented LED devices, ignore calls
         }
 
+        fun requestFrame(frame: IntArray, raw: Boolean = false) {
+            if (!readyToDraw) return
+            if (raw) AnimationManager.updateLedFrameRaw(
+                CSVUtils.scale12BitTo8BitByte(frame))
+            else AnimationManager.updateLedFrame(
+                CSVUtils.scale12BitTo8BitByte(frame))
+        }
+
         override fun setMatrixColors(iArray: IntArray?) {
-            Log.d(TAG, "setMatrixColors(): received data: ${iArray.contentToString()}")
-            matrixScope.launch {
-                iArray?.let {
-                    NanoGlyphManager.setMatrixFrame(
-                        CSVUtils.scale12BitTo8BitByte(
-                            MatrixUtils.trimToValidFrame(it)))
-                };
+            if (StatusManager.isPriorityActive(GlyphPriority.AOD)) {
+                iArray?.let { requestFrame(iArray) };
+                Log.d(TAG, "setMatrixColors(): received data: ${iArray.contentToString()}")
             }
         }
 
         override fun setAppMatrixColors(iArray: IntArray?) {
-            Log.d(TAG, "setAppMatrixColors(): received data: ${iArray.contentToString()}")
-            matrixScope.launch {
-                iArray?.let {
-                    NanoGlyphManager.setMatrixFrame(
-                        CSVUtils.scale12BitTo8BitByte(
-                            MatrixUtils.trimToValidFrame(it)))
-                };
+            if (StatusManager.isPriorityActive(GlyphPriority.THIRD_PARTY)
+                || StatusManager.isPriorityActive(GlyphPriority.TOY)) {
+                iArray?.let { requestFrame(iArray, true) };
+                Log.d(TAG, "setAppMatrixColors(): received data: ${iArray.contentToString()}")
             }
         }
 
@@ -65,21 +73,23 @@ class ThirdPartyService : Service() {
         override fun openSession() {
             Log.d("ThirdPartyService", "openSession()")
             acquireWakeLock() // Acquire the wake lock when opening the session
-            StatusManager.setAnimationActive(true);
+            StatusManager.acquire(this@ThirdPartyService,
+                GlyphPriority.THIRD_PARTY, this@ThirdPartyService)
         }
 
         override fun closeSession() {
             Log.d("ThirdPartyService", "closeSession()")
             matrixScope.launch {
-                NanoGlyphManager.setMatrixFrame(IntArray(MatrixUtils.getMinFrameLength()))
+                AnimationManager.clearLEDs()
             }
-            StatusManager.setAnimationActive(false);
+            StatusManager.release(this@ThirdPartyService);
             releaseWakeLock() // Release the wake lock when closing the session
         }
 
         override fun register(str: String) = true
         override fun registerSDK(key: String, device: String) = true
         override fun registerMatrixSDK(key: String) = true
+
     }
 
     override fun onBind(intent: Intent?): IGlyphService.Stub {
@@ -108,17 +118,15 @@ class ThirdPartyService : Service() {
             Log.e(TAG, "No permission to start service", e)
         }
         releaseWakeLock()
+        StatusManager.release(this@ThirdPartyService);
     }
 
     private fun ensureBridge() {
-        val intent = Intent().apply {
-            component = bridgeComponent
-        }
+        val intent = Intent().apply { component = bridgeComponent }
         try {
-            this.stopService(intent)
             this.startService(intent)
         } catch (e: IllegalStateException) {
-            Log.e(TAG, "Failed to restart GlyphBridge service", e)
+            Log.e(TAG, "Failed to start GlyphBridge service", e)
         } catch (e: SecurityException) {
             Log.e(TAG, "No permission to start service", e)
         }
@@ -138,6 +146,17 @@ class ThirdPartyService : Service() {
             wakeLock?.release()
             wakeLock = null
             Log.d("ThirdPartyService", "WakeLock released")
+        }
+    }
+
+    override fun onSuspended() {
+        readyToDraw = false
+    }
+
+    override fun onActivated() {
+        matrixScope.launch {
+            delay(activationGapMs.milliseconds)
+            readyToDraw = true
         }
     }
 }

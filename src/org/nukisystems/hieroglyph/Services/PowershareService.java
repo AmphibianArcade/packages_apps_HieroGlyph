@@ -25,6 +25,8 @@ import android.util.Log;
 
 import org.nukisystems.hieroglyph.Constants.Constants;
 import org.nukisystems.hieroglyph.Manager.AnimationManager;
+import org.nukisystems.hieroglyph.Manager.StatusManager;
+import org.nukisystems.hieroglyph.Manager.StatusManager.GlyphPriority;
 import org.nukisystems.hieroglyph.Utils.FileUtils;
 import org.nukisystems.hieroglyph.Utils.ResourceUtils;
 
@@ -34,6 +36,8 @@ public class PowershareService extends Service {
 
     private static final String TAG = "GlyphPowershareService";
     private static final boolean DEBUG = true;
+
+    private static final GlyphPriority PRIORITY = GlyphPriority.POWER;
 
     private static final String POWERSHARE_ACTIVE =
             ResourceUtils.getString(Constants.Res.STRING_POWERSHARE_STATUS_PATH);
@@ -139,6 +143,7 @@ public class PowershareService extends Service {
             if (DEBUG) Log.e(TAG, "PowershareActiveObserver: stopWatching");
             if (pause) this.continueWatching();
             ended = true;
+            StatusManager.release(this);
         }
 
         private void updatePowershareState() {
@@ -147,7 +152,7 @@ public class PowershareService extends Service {
             if (FileUtils.readLineInt(POWERSHARE_ACTIVE) == 1) {
                 if (lastState) return;
                 lastState = true;
-                AnimationManager.Coordinator.get().stream(mContext, "powershare");
+                AnimationManager.Coordinator.get().stream(mContext, this, PRIORITY, "powershare");
             } else {
                 lastState = false;
             }

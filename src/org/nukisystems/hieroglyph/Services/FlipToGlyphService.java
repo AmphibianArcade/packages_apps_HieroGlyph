@@ -32,7 +32,9 @@ import org.nukisystems.hieroglyph.Constants.Constants;
 import org.nukisystems.hieroglyph.Manager.AnimationManager;
 import org.nukisystems.hieroglyph.Manager.SettingsManager;
 import org.nukisystems.hieroglyph.Manager.StatusManager;
+import org.nukisystems.hieroglyph.Manager.StatusManager.GlyphPriority;
 import org.nukisystems.hieroglyph.Sensors.FlipToGlyphSensor;
+import org.nukisystems.hieroglyph.Utils.ServiceUtils;
 
 public class FlipToGlyphService extends Service {
 
@@ -48,6 +50,8 @@ public class FlipToGlyphService extends Service {
     private AudioManager mAudioManager;
     private FlipToGlyphSensor mFlipToGlyphSensor;
     private Context mContext;
+
+    private final GlyphPriority PRIORITY = GlyphPriority.FLIP;
 
     @Override
     public void onCreate() {
@@ -89,15 +93,33 @@ public class FlipToGlyphService extends Service {
         if (DEBUG) Log.d(TAG, "Flipped: " + flipped);
         if (flipped) {
             if (SettingsManager.isGlyphFlipAnimationEnabled()
-                    && StatusManager.isGlyphIdle()) {
+                    && !StatusManager.isAnythingActive()) {
                 String animationName = SettingsManager.getGlyphFlipAnimation();
                 boolean shouldReverse = SettingsManager.isGlyphFlipAnimationReversed();
                 if (animationName.equals(Constants.Settings.Notification.ANIMATION_ALTERNATE)) {
-                    AnimationManager.Coordinator.get().stream(mContext, SettingsManager.getGlyphNotifsAnimation(), false, true);
+                    AnimationManager.Coordinator.get().stream(
+                            mContext,
+                            this,
+                            PRIORITY,
+                            SettingsManager.getGlyphNotifsAnimation(),
+                            false,
+                            true
+                    );
                 } else if (shouldReverse) {
-                    AnimationManager.Coordinator.get().stream(mContext, animationName, true);
+                    AnimationManager.Coordinator.get().stream(
+                            mContext,
+                            this,
+                            PRIORITY,
+                            animationName,
+                            true
+                    );
                 } else {
-                    AnimationManager.Coordinator.get().stream(mContext, animationName);
+                    AnimationManager.Coordinator.get().stream(
+                            mContext,
+                            this,
+                            PRIORITY,
+                            animationName
+                    );
                 }
             }
 

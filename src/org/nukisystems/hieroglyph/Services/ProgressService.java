@@ -68,7 +68,7 @@ public class ProgressService extends Service {
         @Override
         public void run() {
             // AnimationManager.dismissProgress(mContext);
-            StatusManager.setProgressAnimationActive(false);
+            // StatusManager.setProgressAnimationActive(false);
         }
     };
 
@@ -199,8 +199,7 @@ public class ProgressService extends Service {
                     mLastDisplayedProgress = progress;
                     mLastDisplayedKey = key;
 
-                    if (!StatusManager.isVolumeAnimationActive() && 
-                        (!SettingsManager.isGlyphProgressMediaEnabled() || mLastMediaProgress == 0)) {
+                    if (!SettingsManager.isGlyphProgressMediaEnabled() || mLastMediaProgress == 0) {
                         playProgressAnimation(progress, 1);
                     }
                 }
@@ -268,7 +267,7 @@ public class ProgressService extends Service {
                             if (DEBUG) Log.d(TAG, "Music progress: " + progress + "%");
                             mLastMediaProgress = progress;
 
-                            if (!StatusManager.isVolumeAnimationActive() && mLastDisplayedProgress == -1) {
+                            if (mLastDisplayedProgress == -1) {
                                 playProgressAnimation(progress, 2);
                             }
                         }
@@ -320,7 +319,7 @@ public class ProgressService extends Service {
 
         mThreadHandler.post(() -> {
             // AnimationManager.playProgress(mContext, progress, progressType, false);
-            StatusManager.setProgressAnimationActive(true);
+            // StatusManager.setProgressAnimationActive(true);
         });
     }
 

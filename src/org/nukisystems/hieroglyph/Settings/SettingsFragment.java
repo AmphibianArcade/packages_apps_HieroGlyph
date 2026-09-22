@@ -69,13 +69,13 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import org.nukisystems.hieroglyph.Utils.FileUtils;
+import org.nukisystems.hieroglyph.Manager.StatusManager.GlyphPriority;
 import org.nukisystems.hieroglyph.Utils.ResourceUtils;
 import org.nukisystems.hieroglyph.Utils.ServiceUtils;
 import org.nukisystems.hieroglyph.aidl.NanoGlyphManager;
 
 public class SettingsFragment extends SettingsBasePreferenceFragment implements OnPreferenceChangeListener,
-        OnCheckedChangeListener {
+        OnCheckedChangeListener, StatusManager.GlyphOwner {
 
     private MainSwitchPreference mSwitchBar;
 
@@ -105,7 +105,10 @@ public class SettingsFragment extends SettingsBasePreferenceFragment implements 
     private Preference mSchedulePreference;
 
     private static final long BRIGHTNESS_PREVIEW_TIMEOUT_MS = 3000;
-    private final Runnable mStopBrightnessPreview = AnimationManager::clearLEDs;
+    private final Runnable mStopBrightnessPreview = () -> {
+        AnimationManager.clearLEDs();
+        StatusManager.release(this);
+    };
 
     private Preference mUtilitiesPreference;
 
@@ -305,7 +308,7 @@ public class SettingsFragment extends SettingsBasePreferenceFragment implements 
 
                     mHandler.removeCallbacks(mStopBrightnessPreview);
                     mHandler.post(() -> {
-                        if (StatusManager.isGlyphIdle()) { 
+                        if (StatusManager.acquire(this, GlyphPriority.PREVIEW, null)) {
                             NanoGlyphManager.Java.Matrix.setBrightness(rawBrightness);
                             mHandler.postDelayed(mStopBrightnessPreview, BRIGHTNESS_PREVIEW_TIMEOUT_MS);
                         }
@@ -396,7 +399,7 @@ public class SettingsFragment extends SettingsBasePreferenceFragment implements 
             ServiceUtils.checkGlyphService(false);
         });
     }
-    
+
     private void updateTorchTile() {
         try {
             Intent intent = new Intent("org.nukisystems.hieroglyph.UPDATE_TORCH_TILE");
@@ -478,6 +481,7 @@ public class SettingsFragment extends SettingsBasePreferenceFragment implements 
         if (mHandler.hasCallbacks(mStopBrightnessPreview)) {
             mHandler.removeCallbacks(mStopBrightnessPreview);
             mStopBrightnessPreview.run();
+            StatusManager.release(this);
         }
         super.onDestroy();
     }
@@ -526,6 +530,14 @@ public class SettingsFragment extends SettingsBasePreferenceFragment implements 
             }
         }
     }
+
+    @Override
+    public void onSuspended() {
+        StatusManager.release(this);
+    }
+
+    @Override
+    public void onActivated() {}
 
     private class SettingObserver extends ContentObserver {
         public SettingObserver() {

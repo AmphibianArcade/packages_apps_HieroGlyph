@@ -16,47 +16,172 @@
 
 package org.nukisystems.hieroglyph.Manager;
 
-import org.nukisystems.hieroglyph.Utils.ResourceUtils;
 import org.nukisystems.hieroglyph.Utils.MatrixUtils;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.TreeMap;
+import java.util.concurrent.locks.ReentrantLock;
 
 public final class StatusManager {
 
     private static final String TAG = "GlyphStatusManager";
     private static final boolean DEBUG = true;
 
-    private static boolean allLedActive = false;
-    private static volatile boolean animationActive = false;
-    private static boolean chargingAnimationActive = false;
-    private static boolean volumeAnimationActive = false;
-    private static boolean callLedActive = false;
-    private static boolean essentialLedActive = false;
-    private static boolean progressAnimationActive = false;
     private static boolean batterySavingActive = false;
     private static int progressType = 0;
-    private static int progressLedLast = 0;
-    private static int chargingLedLast = 0;
-    private static int[] batteryArray;
-    private static int volumeLedLast = 0;
     private static int[] volumeArray;
     private static int[] progressArray;
 
-    private static boolean callLedEnabled = false;
+    public enum GlyphPriority {
+        TORCH(100),
+        PREVIEW(90),
+        CONTACT_MARQUEE(85),
+        VOLUME(70),
+        FLIP(60),
+        CALL(45),
+        NOTIFICATION(40),
+        POWER(40),
+        THIRD_PARTY(35),
+        TOY(35),
+        PROGRESS(20),
+        ESSENTIAL(15),
+        AOD(10),
+        IDLE(0);
 
-    public static boolean isAnimationActive() {
-        return animationActive;
+        public final int level;
+        GlyphPriority(int level) { this.level = level; }
     }
 
-    public static void setAnimationActive(boolean status) {
-        animationActive = status;
+    public interface GlyphOwner {
+        void onSuspended();
+        void onActivated();
     }
 
-    public static boolean isChargingAnimationActive() {
-        return chargingAnimationActive;
+    private static final ReentrantLock lock = new ReentrantLock();
+
+    private static final TreeMap<RequestKey, GlyphOwner> requests = new TreeMap<>();
+    private static final Map<Object, RequestKey> keysByOwner = new HashMap<>();
+    private static long sequence = 0;
+
+    private static RequestKey activeKey = null;
+
+    private record RequestKey(int priorityLevel, long seq, Object owner)
+            implements Comparable<RequestKey> {
+        public int compareTo(RequestKey o) {
+            int c = Integer.compare(o.priorityLevel, this.priorityLevel);
+            if (c != 0) return c;
+            return Long.compare(this.seq, o.seq);
+        }
     }
 
-    public static void setChargingAnimationActive(boolean status) {
-        chargingAnimationActive = status;
+    private static final GlyphOwner NOOP = new GlyphOwner() {
+        public void onSuspended() {}
+        public void onActivated() {}
+    };
+
+    public static boolean acquire(Object owner, GlyphPriority priority, GlyphOwner callback) {
+        lock.lock();
+        try {
+            GlyphOwner cb = (callback != null) ? callback : NOOP;
+
+            RequestKey existing = keysByOwner.remove(owner);
+            if (existing != null) requests.remove(existing);
+
+            RequestKey key = new RequestKey(priority.level, sequence++, owner);
+            requests.put(key, cb);
+            keysByOwner.put(owner, key);
+
+            recomputeActive();
+            return activeKey != null && activeKey.owner() == owner;
+        } finally {
+            lock.unlock();
+        }
     }
+
+    public static void release(Object owner) {
+        lock.lock();
+        try {
+            RequestKey key = keysByOwner.remove(owner);
+            if (key == null) return;
+            requests.remove(key);
+            recomputeActive();
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public static boolean isOwnedBy(Object owner) {
+        lock.lock();
+        try {
+            return activeKey != null && activeKey.owner() == owner;
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public static boolean isPriorityActive(GlyphPriority priority) {
+        lock.lock();
+        try {
+            return activeKey != null && activeKey.priorityLevel() == priority.level;
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public static boolean isAtLeastActive(GlyphPriority priority) {
+        lock.lock();
+        try {
+            return activeKey != null && activeKey.priorityLevel() >= priority.level;
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private static void recomputeActive() {
+        RequestKey newTop = requests.isEmpty() ? null : requests.firstKey();
+        if (Objects.equals(newTop, activeKey)) return;
+
+        if (activeKey != null) {
+            GlyphOwner prevCb = requests.get(activeKey);
+            // prevCb may be null if it was removed already (released while active)
+            if (prevCb != null) prevCb.onSuspended();
+        }
+        activeKey = newTop;
+        if (activeKey != null) {
+            requests.get(activeKey).onActivated();
+        }
+    }
+
+    public static boolean tryAcquireNow(Object owner, GlyphPriority priority) {
+        lock.lock();
+        try {
+            RequestKey existing = keysByOwner.remove(owner);
+            if (existing != null) requests.remove(existing);
+
+            RequestKey key = new RequestKey(priority.level, sequence++, owner);
+            requests.put(key, new GlyphOwner() {
+                public void onSuspended() {}
+                public void onActivated() {}
+            });
+            keysByOwner.put(owner, key);
+
+            boolean won = requests.firstKey().equals(key);
+
+            if (!won) {
+                requests.remove(key);
+                keysByOwner.remove(owner);
+                return false;
+            }
+
+            recomputeActive();
+            return true;
+        } finally {
+            lock.unlock();
+        }
+    }
+
 
     public static boolean isBatterySavingActive() {
         return batterySavingActive;
@@ -64,65 +189,6 @@ public final class StatusManager {
 
     public static void setBatterySavingActive(boolean status) {
         batterySavingActive = status;
-    }
-
-    public static boolean isVolumeAnimationActive() {
-        return volumeAnimationActive;
-    }
-
-    public static void setVolumeAnimationActive(boolean status) {
-        volumeAnimationActive = status;
-    }
-
-    public static boolean isAllLedActive() {
-        return allLedActive;
-    }
-
-    public static void setAllLedsActive(boolean status) {
-        allLedActive = status;
-    }
-
-    public static boolean isCallLedActive() {
-        return callLedActive;
-    }
-
-    public static void setCallLedActive(boolean status) {
-        callLedActive = status;
-    }
-
-    public static boolean isEssentialLedActive() {
-        return essentialLedActive;
-    }
-
-    public static void setEssentialLedActive(boolean status) {
-        essentialLedActive = status;
-    }
-
-    public static int getChargingLedLast() {
-        return chargingLedLast;
-    }
-
-    public static void setChargingLedLast(int last) {
-        chargingLedLast = last;
-    }
-
-    public static int[] getBatteryArray() {
-        if (batteryArray == null) {
-            batteryArray = new int[MatrixUtils.getMinFrameLength()];
-        }
-        return batteryArray;
-    }
-
-    public static void setBatteryArray(int[] batteryArrayNext) {
-        batteryArray = batteryArrayNext;
-    }
-
-    public static int getVolumeLedLast() {
-        return volumeLedLast;
-    }
-
-    public static void setVolumeLedLast(int last) {
-        volumeLedLast = last;
     }
 
     public static int[] getVolumeArray() {
@@ -136,21 +202,6 @@ public final class StatusManager {
         volumeArray = volumeArrayNext;
     }
 
-    public static boolean isCallLedEnabled() {
-        return callLedEnabled;
-    }
-
-    public static void setCallLedEnabled(boolean status) {
-        callLedEnabled = status;
-    }
-
-    public static boolean isProgressAnimationActive() {
-        return progressAnimationActive;
-    }
-
-    public static void setProgressAnimationActive(boolean status) {
-        progressAnimationActive = status;
-    }
 
     public static int getProgressType() {
         return progressType;
@@ -158,14 +209,6 @@ public final class StatusManager {
 
     public static void setProgressType(int type) {
         progressType = type;
-    }
-
-    public static int getProgressLedLast() {
-        return progressLedLast;
-    }
-
-    public static void setProgressLedLast(int last) {
-        progressLedLast = last;
     }
 
     public static int[] getProgressArray() {
@@ -179,13 +222,13 @@ public final class StatusManager {
         progressArray = progressArrayNext;
     }
 
-    public static boolean isGlyphIdle() {
-        if (isAllLedActive() || isCallLedActive() || isAnimationActive() 
-            || isChargingAnimationActive() || isVolumeAnimationActive() 
-            || isCallLedEnabled() || isProgressAnimationActive()) {
-            return false;
-        } else {
-            return true;
+
+    public static boolean isAnythingActive() {
+        lock.lock();
+        try {
+            return activeKey != null;
+        } finally {
+            lock.unlock();
         }
     }
 }

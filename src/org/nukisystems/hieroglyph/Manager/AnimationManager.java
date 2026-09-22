@@ -29,13 +29,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.nukisystems.hieroglyph.Constants.Constants;
+import org.nukisystems.hieroglyph.Manager.StatusManager.GlyphPriority;
 import org.nukisystems.hieroglyph.Utils.CSVUtils;
 import org.nukisystems.hieroglyph.Utils.MatrixUtils;
 import org.nukisystems.hieroglyph.Utils.MatrixUtils.Volume.Style;
@@ -44,7 +43,7 @@ import org.nukisystems.hieroglyph.aidl.NanoGlyphManager;
 
 public final class AnimationManager {
 
-    private static final AtomicBoolean stopped = new AtomicBoolean(false);
+    private static AtomicBoolean stopped = new AtomicBoolean(false);
 
     private static final String TAG = "GlyphAnimationManager";
     private static final boolean DEBUG = true;
@@ -69,108 +68,76 @@ public final class AnimationManager {
         }
     }
 
-    private static Future<?> submit(Runnable runnable) {
-        ExecutorService executorService = Executors.newSingleThreadExecutor();
-        return executorService.submit(runnable);
-    }
-
-    private static boolean check(String name, boolean wait) {
-        if (DEBUG) Log.d(TAG, "Playing animation | name: " + name + " | waiting: " + Boolean.toString(wait));
-
-        if (StatusManager.isAllLedActive()) {
-            if (DEBUG) Log.d(TAG, "All LEDs are active, exiting animation | name: " + name);
-            return false;
-        }
-
-        if (StatusManager.isCallLedActive()) {
-            if (DEBUG) Log.d(TAG, "Call animation is currently active, exiting animation | name: " + name);
-            return false;
-        }
-
-        if (StatusManager.isAnimationActive()) {
-            long start = System.currentTimeMillis();
-            if (wait) {
-                if (DEBUG) Log.d(TAG, "There is already an animation playing, wait | name: " + name);
-                while (StatusManager.isAnimationActive()) {
-                    if (System.currentTimeMillis() - start >= 2500) return false;
-                }
-            } else {
-                if (DEBUG) Log.d(TAG, "There is already an animation playing, exiting | name: " + name);
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    private static boolean checkInterruption(String name) {
-        return StatusManager.isAllLedActive()
-                || (!Objects.equals(name, "call") && StatusManager.isCallLedEnabled())
-                || (Objects.equals(name, "call") && !StatusManager.isCallLedEnabled())
-                || (Objects.equals(name, "progress") && StatusManager.isVolumeAnimationActive());
-    }
 
     public static void stopHardwareAnimation() {
         if (stopped.compareAndSet(false, true)) {
-            StatusManager.setAnimationActive(false);
             NanoGlyphManager.Java.Matrix.stop();
             stopped.set(false);
             releaseWakeLock();
         }
     }
 
-    public static void playCall(String name, boolean reversed) {
-        StatusManager.setCallLedEnabled(true);
+    public static void playCall(Object owner, String name, boolean reversed) {
+        boolean gotIt = StatusManager.acquire(owner, StatusManager.GlyphPriority.CALL, null);
+        if (!gotIt) return;
 
-        if (!check("call: " + name, true))
-            return;
+        stopped.set(false);
+        try {
+            runAnimationLoop(owner, name, reversed);
+        } finally {
+            StatusManager.release(owner);
+        }
+    }
 
-        StatusManager.setCallLedActive(true);
+    public static void stop() {
+        stopped.set(true);
+    }
 
-        while (StatusManager.isCallLedEnabled()) {
+    private static void runAnimationLoop(Object owner, String name, boolean reversed) {
+        while (!stopped.get() && StatusManager.isOwnedBy(owner)) {
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(
                     ResourceUtils.getCallAnimation(name)))) {
                 Iterator<String> it = CSVUtils.iterateCsvLines(reader, reversed);
-                while (it.hasNext()) {
-                    if (checkInterruption("call")) throw new InterruptedException();
-                    String[] pattern = it.next().split(",");
-                    if (ArrayUtils.contains(Constants.getSupportedAnimationPatternLengths(), pattern.length)) {
-                        updateLedFrame(pattern);
-                    } else {
-                        if (DEBUG) Log.d(TAG, "Animation line length mismatch | name: " + name + " | line: " + it.next());
-                        throw new InterruptedException();
+                while (it.hasNext() && !stopped.get() && StatusManager.isOwnedBy(owner)) {
+                    String line = it.next();
+                    String[] pattern = line.split(",");
+                    if (!ArrayUtils.contains(Constants.getSupportedAnimationPatternLengths(), pattern.length)) {
+                        if (DEBUG) Log.d(TAG, "Animation line length mismatch | name: " + name + " | line: " + line);
+                        return;
                     }
+                    updateLedFrame(pattern);
                     Thread.sleep(16, 666000);
                 }
+            } catch (InterruptedException e) {
+                return;
             } catch (Exception e) {
                 if (DEBUG) Log.d(TAG, "Exception while playing animation | name: " + name + " | exception: " + e);
-            } finally {
-                if (StatusManager.isAllLedActive()) {
-                    if (DEBUG) Log.d(TAG, "All LED active, pause playing animation | name: " + name);
-                    while (StatusManager.isAllLedActive()) {}
-                }
+                return;
             }
         }
     }
 
-    public static void stopCall() {
+    public static void stopCall(Object owner) {
         if (DEBUG) Log.d(TAG, "Disabling Call Animation");
-        StatusManager.setCallLedEnabled(false);
-        clearLEDs();
-        StatusManager.setCallLedActive(false);
-        if (DEBUG) Log.d(TAG, "Done playing Call Animation");
+        if (StatusManager.isOwnedBy(owner)) {
+            clearLEDs();
+        }
+        StatusManager.release(owner);
     }
 
     public static void updateLedFrame(int[] pattern) {
-        float maxPatternBrightness = (float) Constants.MAX_PATTERN_BRIGHTNESS;
         float currentBrightness = (float) Constants.getBrightness();
         int[] newPattern = new int[pattern.length];
 
         for (int i = 0; i < pattern.length; i++) {
-            newPattern[i] = Math.round(pattern[i] / maxPatternBrightness * currentBrightness);
+            newPattern[i] = applyDimmer(pattern[i],  Math.round(currentBrightness));
         }
+        updateLedFrameRaw(newPattern);
+    }
+
+    public static void updateLedFrameRaw(int[] pattern) {
         try {
-            NanoGlyphManager.Java.Matrix.setFrame(MatrixUtils.trimToValidFrame(newPattern));
+            NanoGlyphManager.Java.Matrix.setFrame(MatrixUtils.trimToValidFrame(pattern));
         } catch (Exception e) {
             Log.w (TAG, "Unable to trim pattern:" + e.getMessage());
         }
@@ -204,79 +171,67 @@ public final class AnimationManager {
 
     }
 
-    public static void playVolume(Context context, int volumeLevel, boolean wait) {
-        if (!check("volume", wait))
-            return;
+    public static void playVolume(Context context, int volumeLevel) {
 
         acquireWakeLock(context);
-
-        StatusManager.setAnimationActive(true);
-        StatusManager.setVolumeAnimationActive(true);
-
         Style animStyle = Style.fromInt(SettingsManager.Volume.getStyle());
         int rotation = SettingsManager.Volume.getRotation();
-
         boolean showCross = SettingsManager.Volume.showCrossWhenEmpty();
         int[] volumeMatrixFrame = new int[MatrixUtils.getMaxFrameLength()];
+
         try {
+            if (!StatusManager.isPriorityActive(GlyphPriority.VOLUME)) return;
+
             if (volumeLevel > 0) {
                 volumeMatrixFrame = MatrixUtils.Volume.generateFrame(animStyle, volumeLevel, rotation);
+            } else if (showCross) {
+                volumeMatrixFrame = MatrixUtils.Shape.Cross(
+                        Constants.getMaxBrightness(), (MatrixUtils.getGridSize() / 2) - 4);
             } else {
-                if (showCross) {
-                    volumeMatrixFrame = MatrixUtils.Shape.Cross(
-                            Constants.getMaxBrightness(), (MatrixUtils.getGridSize() / 2 ) - 4);
-                } else {
-                    Arrays.fill(volumeMatrixFrame, 0);
-                }
+                Arrays.fill(volumeMatrixFrame, 0);
             }
+
             StatusManager.setVolumeArray(volumeMatrixFrame);
             updateLedFrame(volumeMatrixFrame);
+
             Thread.sleep(16, 666000);
         } catch (InterruptedException e) {
-            if (DEBUG) Log.d(TAG, "Exception while playing animation, interrupted | name: volume");
-            if (!StatusManager.isAllLedActive()) clearLEDs();
+            if (DEBUG) Log.d(TAG, "volume animation interrupted");
         } catch (Exception e) {
-            if (DEBUG) Log.d(TAG, "Exception while playing animation, invalid frame | name: volume");
+            if (DEBUG) Log.d(TAG, "invalid volume frame: " + e);
         } finally {
-            StatusManager.setAnimationActive(false);
-            if (DEBUG) Log.d(TAG, "Done playing animation | name: volume");
             releaseWakeLock();
+            if (DEBUG) Log.d(TAG, "done playing volume animation");
         }
     }
 
-    public static int applyDimmer(int rawValue, int globalBrightness) {
-        rawValue = Math.clamp(rawValue, 0, 4095);
-        globalBrightness = Math.clamp(globalBrightness, 0, 255);
-        return (rawValue * globalBrightness + 127) / 255;
-    }
-
-    public static void dismissVolume(Context context) {
+    public static void dismissVolume(Context context, Object owner) {
         int[] emptyArray = new int[MatrixUtils.getMinFrameLength()];
         int[] volumeArray = StatusManager.getVolumeArray();
 
         if (Arrays.equals(emptyArray, volumeArray)) {
-            StatusManager.setVolumeAnimationActive(false);
-            return;
+            return; // nothing to dismiss, no lock needed
         }
 
-        if (!check("Dismiss volume", false))
-            return;
+        boolean gotIt = StatusManager.acquire(owner, GlyphPriority.VOLUME, null);
+        if (!gotIt) return;
 
         acquireWakeLock(context);
-
-        StatusManager.setAnimationActive(true);
-
         try {
-            if (checkInterruption("Dismiss volume")) throw new InterruptedException();
-            clearLEDs();
-        } catch (InterruptedException e) {
-            if (DEBUG) Log.d(TAG, "Exception while playing animation, interrupted | name: Dismiss volume");
+            if (StatusManager.isOwnedBy(owner)) {
+                clearLEDs();
+            }
         } finally {
-            StatusManager.setVolumeAnimationActive(false);
-            StatusManager.setAnimationActive(false);
-            if (DEBUG) Log.d(TAG, "Done playing animation | name: Dismiss volume");
             releaseWakeLock();
+            StatusManager.release(owner);
+            if (DEBUG) Log.d(TAG, "done dismissing volume");
         }
+    }
+
+    public static int applyDimmer(int rawValue, int globalBrightness) {
+        rawValue = Math.clamp(rawValue, 0, Constants.MAX_PATTERN_BRIGHTNESS);
+        globalBrightness = Math.clamp(globalBrightness, 0, 255);
+        return (rawValue * globalBrightness + 127) / 255;
     }
 
     public static void clearLEDs() {
@@ -291,107 +246,111 @@ public final class AnimationManager {
 
         private final Object lock = new Object();
         private Thread currentWorker;
-        private long currentGeneration = 0; 
+        private Object currentOwner;
+        private long currentGeneration = 0;
 
-        private Coordinator() {}
-
-        public void stream(Context ctx, String name) {
-            streamToHardware(ctx, null, name, false, false, null);
+        public void stream(Context ctx, Object owner, GlyphPriority priority, String name) {
+            stream(ctx, owner, priority, null, name, false, false, null);
         }
 
-        public void stream(Context ctx, String name, Runnable onComplete) {
-            streamToHardware(ctx, null, name, false, false, onComplete);
+        public void stream(Context ctx, Object owner, GlyphPriority priority, String name, Runnable onComplete) {
+            stream(ctx, owner, priority, null, name, false, false, onComplete);
         }
 
-        public void stream(Context ctx, String name, boolean reverse) {
-            streamToHardware(ctx, null, name, reverse, false, null);
+        public void streamCsv(Context ctx, Object owner, GlyphPriority priority, String csv, String name) {
+            stream(ctx, owner, priority, csv, name, false, false, null);
         }
 
-        public void stream(Context ctx, String name, boolean reverse, Runnable onComplete) {
-            streamToHardware(ctx, null, name, reverse, false, onComplete);
+        public void stream(Context ctx, Object owner, GlyphPriority priority, String name, boolean reverse) {
+            stream(ctx, owner, priority, null, name, reverse, false, null);
         }
 
-        public void stream(Context ctx, String name, boolean reverse, boolean alternateOnce) {
-            streamToHardware(ctx, null, name, reverse, alternateOnce, null);
+        public void stream(Context ctx, Object owner, GlyphPriority priority, String name, boolean reverse, boolean alternateOnce) {
+            stream(ctx, owner, priority, null, name, reverse, alternateOnce, null);
         }
 
-        public void stream(Context ctx, String name, boolean reverse, boolean alternateOnce, Runnable onComplete) {
-            streamToHardware(ctx, null, name, reverse, alternateOnce, onComplete);
-        }
 
-        public void streamCsv(Context ctx, String csv, String name, boolean reverse, boolean alternateOnce) {
-            streamToHardware(ctx, csv, name, reverse, alternateOnce, null);
-        }
-
-        public void streamCsv(Context ctx, String csv, String name) {
-            streamToHardware(ctx, csv, name, false, false, null);
-        }
-
-        public void streamCsv(Context ctx, String csv, String name, Runnable onComplete) {
-            streamToHardware(ctx, csv, name, false, false, onComplete);
-        }
-
-        public void streamCsv(Context ctx, String csv, String name, boolean reverse) {
-            streamToHardware(ctx, csv, name, reverse, false, null);
-        }
-
-        public void streamCsv(Context ctx, String csv, String name, boolean reverse, Runnable onComplete) {
-            streamToHardware(ctx, csv, name, reverse, false, onComplete);
-        }
-
-        public void streamToHardware(Context ctx, String csv, String name,
-                                boolean reverse, boolean alternateOnce,
-                                Runnable onComplete) {
+        public void stream(Context ctx, Object owner, GlyphPriority priority, String csv, String name,
+                           boolean reverse, boolean alternateOnce, Runnable onComplete) {
             final long myGeneration;
             synchronized (lock) {
-                if (currentWorker != null) {
-                    Log.d(TAG, "cancelling previous animation run");
-                    currentWorker.interrupt();
-                }
-                myGeneration = ++currentGeneration;
+                // Cancel and release whatever was running before, regardless of who owned it.
+                interruptCurrentLocked();
 
-                StatusManager.setAnimationActive(true);
+                boolean gotIt = StatusManager.acquire(owner, priority, null);
+                if (!gotIt) {
+                    if (DEBUG) Log.d(TAG, "denied lock for " + name + " at priority " + priority);
+                    return;
+                }
+
+                myGeneration = ++currentGeneration;
+                currentOwner = owner;
+
                 acquireWakeLock(ctx);
 
                 Thread worker = new Thread(() ->
-                        runWorker(csv, name, reverse, alternateOnce, onComplete, myGeneration),
+                        runWorker(owner, csv, name, reverse, alternateOnce, onComplete, myGeneration),
                         "anim-stream");
                 currentWorker = worker;
                 worker.start();
             }
         }
 
-        private void runWorker(String csv, String name,
-                            boolean reverse, boolean alternateOnce,
-                            Runnable onComplete, long myGeneration) {
+        private void runWorker(Object owner, String csv, String name,
+                               boolean reverse, boolean alternateOnce,
+                               Runnable onComplete, long myGeneration) {
             try {
+                if (!StatusManager.isOwnedBy(owner)) return; // preempted before we even started drawing
+
                 List<int[]> frames = readFrames(csv, name, reverse, alternateOnce);
                 if (frames == null || frames.isEmpty()) {
                     Log.w(TAG, "no valid frames for " + name);
                     return;
                 }
-                if (Thread.currentThread().isInterrupted()) return;
+                if (Thread.currentThread().isInterrupted() || !StatusManager.isOwnedBy(owner)) return;
 
                 NanoGlyphManager.Java.Matrix.playPatternAndAwaitCompletion(
-                    frames, 60, result -> {
-                        if (!result) {
-                            Log.w(TAG, "animation ended abnormally");
+                        frames, 60, result -> {
+                            if (!result) Log.w(TAG, "animation ended abnormally");
+                            if (onComplete != null) onComplete.run();
                         }
-                        if (onComplete != null) {
-                            onComplete.run();
-                        }
-                    }
                 );
-
             } catch (Throwable t) {
                 Log.e(TAG, "worker failed", t);
             } finally {
-                stopHardwareAnimation();
                 synchronized (lock) {
+                    // Only clean up if we're still the current generation — an interrupting
+                    // caller already did cleanup for us otherwise.
                     if (currentGeneration == myGeneration) {
+                        NanoGlyphManager.Java.Matrix.stop();
+                        releaseWakeLock();
+                        StatusManager.release(owner);
                         currentWorker = null;
+                        currentOwner = null;
                     }
                 }
+            }
+        }
+
+        // must be called while holding `lock`
+        private void interruptCurrentLocked() {
+            if (currentWorker != null) {
+                Log.d(TAG, "cancelling previous animation run");
+                currentWorker.interrupt();
+                if (currentOwner != null) {
+                    NanoGlyphManager.Java.Matrix.stop();
+                    releaseWakeLock();
+                    StatusManager.release(currentOwner);
+                }
+                currentGeneration++; 
+                currentWorker = null;
+                currentOwner = null;
+            }
+        }
+
+        public void cancelCurrent() {
+            synchronized (lock) {
+                interruptCurrentLocked();
             }
         }
 
@@ -416,7 +375,7 @@ public final class AnimationManager {
                 }
                 for (int[] arr : frames) {
                     for (int i = 0; i < arr.length; i++) {
-                        arr[i] = (arr[i] * Constants.getBrightness()) / 4095;
+                        arr[i] = (applyDimmer(arr[i], Constants.getBrightness()));
                     }
                 }
             } catch (Exception e) {
@@ -424,15 +383,6 @@ public final class AnimationManager {
                 return null;
             }
             return frames;
-        }
-
-        public void cancelCurrent() {
-            synchronized (lock) {
-                if (currentWorker != null) {
-                    Log.d(TAG, "cancelling current animation run");
-                    currentWorker.interrupt();
-                }
-            }
         }
     }
 }

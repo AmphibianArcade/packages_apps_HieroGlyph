@@ -124,7 +124,7 @@ public class TorchTileService extends TileService {
     }
 
     private boolean getEnabled() {
-        return StatusManager.isAllLedActive();
+        return StatusManager.isPriorityActive(StatusManager.GlyphPriority.TORCH);
     }
 
     private void setEnabled(boolean enabled) {

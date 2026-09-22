@@ -46,6 +46,7 @@ import java.util.concurrent.Future;
 import org.nukisystems.hieroglyph.Constants.Constants;
 import org.nukisystems.hieroglyph.Manager.AnimationManager;
 import org.nukisystems.hieroglyph.Manager.SettingsManager;
+import org.nukisystems.hieroglyph.Manager.StatusManager;
 import org.nukisystems.hieroglyph.Utils.CSVUtils;
 
 public class NotificationService extends NotificationListenerService
@@ -105,6 +106,7 @@ public class NotificationService extends NotificationListenerService
         // AnimationManager.stopEssential();
         mSharedPreferences.unregisterOnSharedPreferenceChangeListener(this);
         mSettingObserver.unregister(mContentResolver);
+        StatusManager.release(this);
         thread.quit();
         super.onDestroy();
     }
@@ -165,13 +167,13 @@ public class NotificationService extends NotificationListenerService
                 if (SettingsManager.appHasGlyphNotifsConfig(packageName)) {
                     if (SettingsManager.isGlyphNotifsAnimationReversed(packageName)) {
                         AnimationManager.Coordinator.get().stream(
-                                mContext,
+                                mContext, this, StatusManager.GlyphPriority.NOTIFICATION,
                                 SettingsManager.getGlyphNotifsAnimation(packageName),
                                 true
                         );
                     } else {
                         AnimationManager.Coordinator.get().stream(
-                                mContext,
+                                mContext, this, StatusManager.GlyphPriority.NOTIFICATION,
                                 SettingsManager.getGlyphNotifsAnimation(packageName)
                         );
                     }
@@ -179,20 +181,20 @@ public class NotificationService extends NotificationListenerService
                     if (SettingsManager.isGlyphNotifsSyncEnabled()
                             && CSVUtils.Holder.Notification.isAvailable()) {
                         AnimationManager.Coordinator.get().streamCsv(
-                                mContext,
+                                mContext, this, StatusManager.GlyphPriority.NOTIFICATION,
                                 CSVUtils.Holder.Notification.getCsv(),
                                 "notification"
                         );
                     } else {
                         if (SettingsManager.isGlyphNotifsAnimationReversed()) {
                             AnimationManager.Coordinator.get().stream(
-                                    mContext,
+                                    mContext, this, StatusManager.GlyphPriority.NOTIFICATION,
                                     SettingsManager.getGlyphNotifsAnimation(),
                                     true
                             );
                         } else {
                             AnimationManager.Coordinator.get().stream(
-                                    mContext,
+                                    mContext, this, StatusManager.GlyphPriority.NOTIFICATION,
                                     SettingsManager.getGlyphNotifsAnimation()
                             );
                         }

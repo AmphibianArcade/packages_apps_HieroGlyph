@@ -31,6 +31,7 @@ import android.util.Log;
 
 import org.nukisystems.hieroglyph.Manager.AnimationManager;
 import org.nukisystems.hieroglyph.Manager.StatusManager;
+import org.nukisystems.hieroglyph.Manager.StatusManager.GlyphPriority;
 
 public class VolumeLevelService extends Service {
 
@@ -42,14 +43,9 @@ public class VolumeLevelService extends Service {
     private VolumeChangeReceiver mVolumeChangeReceiver;
 
     private Context mContext;
+    private GlyphPriority PRIORITY = GlyphPriority.VOLUME;
 
     private AudioManager audioManager;
-    private final Runnable dismissVolume = new Runnable() {
-        @Override
-        public void run() {
-            AnimationManager.dismissVolume(mContext);
-        }
-    };
 
     @Override
     public void onCreate() {
@@ -79,9 +75,8 @@ public class VolumeLevelService extends Service {
         if (DEBUG) Log.d(TAG, "Destroying service");
         unregisterReceiver(mVolumeChangeReceiver);
         thread.quit();
-        if (StatusManager.isVolumeAnimationActive()) {
-            AnimationManager.dismissVolume(mContext);
-            StatusManager.setVolumeAnimationActive(false);
+        if (StatusManager.isPriorityActive(PRIORITY)) {
+            AnimationManager.dismissVolume(mContext, this);
         }
         super.onDestroy();
     }
@@ -91,28 +86,41 @@ public class VolumeLevelService extends Service {
         return null;
     }
 
+    private void playVolume(int volumeLevel) {
+        boolean gotIt = StatusManager.acquire(this, GlyphPriority.VOLUME, null);
+        if (!gotIt) {
+            if (DEBUG) Log.d(TAG, "denied lock for volume animation");
+            return;
+        }
+        AnimationManager.playVolume(this, volumeLevel);
+    }
+
+    private final Runnable dismissVolume = () -> {
+            AnimationManager.clearLEDs();
+            StatusManager.release(this);
+    };
+
     private class VolumeChangeReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
             if ("android.media.VOLUME_CHANGED_ACTION".equals(intent.getAction())) {
                 int streamType = intent.getIntExtra("android.media.EXTRA_VOLUME_STREAM_TYPE", -1);
                 int currentVolume = intent.getIntExtra("android.media.EXTRA_VOLUME_STREAM_VALUE", -1);
-                int oldVolume = intent.getIntExtra("android.media.EXTRA_PREV_VOLUME_STREAM_VALUE", -1);
 
                 // Only check streams which are shown in the volume panel
                 if ((streamType >= 0 && streamType <= AudioSystem.NUM_STREAMS)
                         && currentVolume >= 0) {
                     int maxVolume = audioManager.getStreamMaxVolume(streamType);
                     int currentVolumePercent = (int) (Math.round(100D / maxVolume * currentVolume));
-                    if (mThreadHandler.hasCallbacks(dismissVolume)) {
-                        mThreadHandler.removeCallbacks(dismissVolume);
-                    }
                     if (DEBUG) {
                         Log.d(TAG, "Volume level changed for stream type " + streamType +
                                ", currentVolumePercent: " + currentVolumePercent);
                     }
+                    if (mThreadHandler.hasCallbacks(dismissVolume)) {
+                        mThreadHandler.removeCallbacks(dismissVolume);
+                    }
                     mThreadHandler.post(() -> {
-                        AnimationManager.playVolume(context, currentVolumePercent, false);
+                        playVolume(currentVolumePercent);
                     });
                     mThreadHandler.postDelayed(dismissVolume, 3000);
                 }
