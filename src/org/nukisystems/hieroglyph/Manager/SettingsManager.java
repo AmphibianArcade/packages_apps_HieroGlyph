@@ -465,7 +465,7 @@ public final class SettingsManager {
 
     public static boolean isGlyphAutoBrightnessEnabled() {
         Context ctx = getContext();
-        return !ResourceUtils.getString("glyph_light_sensor").isBlank() 
+        return !ResourceUtils.getString(Constants.Res.STRING_LIGHT_SENSOR).isBlank()
             && PreferenceManager.getDefaultSharedPreferences(ctx)
             .getBoolean(Constants.Settings.Brightness.AUTO_BRIGHTNESS_ENABLE, false)
             && isGlyphEnabled();
