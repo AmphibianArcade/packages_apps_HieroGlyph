@@ -76,7 +76,7 @@ public class VolumeLevelService extends Service {
         unregisterReceiver(mVolumeChangeReceiver);
         thread.quit();
         if (StatusManager.isPriorityActive(PRIORITY)) {
-            AnimationManager.dismissVolume(mContext, this);
+            mThreadHandler.post(dismissVolume);
         }
         super.onDestroy();
     }

@@ -203,29 +203,6 @@ public final class AnimationManager {
         }
     }
 
-    public static void dismissVolume(Context context, Object owner) {
-        int[] emptyArray = new int[MatrixUtils.getMinFrameLength()];
-        int[] volumeArray = StatusManager.getVolumeArray();
-
-        if (Arrays.equals(emptyArray, volumeArray)) {
-            return; // nothing to dismiss, no lock needed
-        }
-
-        boolean gotIt = StatusManager.acquire(owner, GlyphPriority.VOLUME, null);
-        if (!gotIt) return;
-
-        acquireWakeLock(context);
-        try {
-            if (StatusManager.isOwnedBy(owner)) {
-                clearLEDs();
-            }
-        } finally {
-            releaseWakeLock();
-            StatusManager.release(owner);
-            if (DEBUG) Log.d(TAG, "done dismissing volume");
-        }
-    }
-
     public static int applyDimmer(int rawValue, int globalBrightness) {
         rawValue = Math.clamp(rawValue, 0, Constants.MAX_PATTERN_BRIGHTNESS);
         globalBrightness = Math.clamp(globalBrightness, 0, Constants.MAX_PATTERN_BRIGHTNESS);
