@@ -29,7 +29,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 import org.nukisystems.hieroglyph.Constants.Constants;
-import org.nukisystems.hieroglyph.Manager.AnimationManager;
+import org.nukisystems.hieroglyph.Data;
+import org.nukisystems.hieroglyph.Preference.LivePreview;
 import org.nukisystems.hieroglyph.R;
 import org.nukisystems.hieroglyph.Utils.CSVUtils;
 
@@ -50,6 +51,8 @@ public class OggSettingsFragment extends SettingsBasePreferenceFragment {
     private String TAG = this.getClass().getSimpleName();
 
     private final Handler mHandler = new Handler(Looper.getMainLooper());
+
+    private LivePreview livePreview;
 
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
@@ -111,6 +114,8 @@ public class OggSettingsFragment extends SettingsBasePreferenceFragment {
         } else {
             addSavePreferences();
         }
+
+        livePreview = new LivePreview(requireContext(), this);
 
     }
 
@@ -217,12 +222,14 @@ public class OggSettingsFragment extends SettingsBasePreferenceFragment {
     public boolean onPreferenceTreeClick(Preference preference) {
         if (Constants.Settings.Utilities.OGG_LIVE_PREVIEW.equals(preference.getKey())) {
            beginLivePreview();
+            return true;
         }
 
         if (Constants.Settings.Utilities.OGG_EXPORT_CSV.equals(preference.getKey())) {
             exportCsvFromOgg(0);
+            return true;
         }
-        return true;
+        return super.onPreferenceTreeClick(preference);
     }
 
     private void beginLivePreview() {
@@ -230,21 +237,15 @@ public class OggSettingsFragment extends SettingsBasePreferenceFragment {
         mLivePreviewPreference.setSummary(
             R.string.glyph_settings_animations_live_preview_summary_playing
         );
-        mHandler.postDelayed(() -> {
-            AnimationManager.Coordinator.get().streamCsv(
-                    requireContext(),
-                    csv,
-                    metadata.get(mapKeyFilename),
-                    () -> {
-                        if (isAdded()) getActivity().runOnUiThread(this::resetLivePreviewPref);
-                    }
-            );
-        }, 1000);
+        livePreview.setStateListener(() -> {
+            if (isAdded()) getActivity().runOnUiThread(this::resetLivePreviewPref);
+                });
+        livePreview.setAnimation(new Data.CsvContent(csv), metadata.get(mapKeyFilename));
+        mHandler.postDelayed(livePreview::start, 1000);
     }
 
     private void endLivePreview() {
-        AnimationManager.Coordinator.get().cancelCurrent();
-        resetLivePreviewPref();
+        livePreview.stop();
     }
 
     private void resetLivePreviewPref() {

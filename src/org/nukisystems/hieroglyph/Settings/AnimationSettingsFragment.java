@@ -71,6 +71,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import org.nukisystems.hieroglyph.Manager.AnimationManager;
+import org.nukisystems.hieroglyph.Preference.LivePreview;
 import org.nukisystems.hieroglyph.R;
 import org.nukisystems.hieroglyph.Constants.Constants;
 import org.nukisystems.hieroglyph.Manager.SettingsManager;
@@ -98,6 +99,8 @@ public class AnimationSettingsFragment
     private String fragmentPkg = null;
 
     PackageManager mPackageManager;
+
+    private LivePreview livePreview;
 
     private PreferenceScreen mScreen;
 
@@ -399,6 +402,8 @@ public class AnimationSettingsFragment
 
             }
         }
+
+        livePreview = new LivePreview(requireContext(), this);
     }
 
     private record AppEntry(ApplicationInfo app, PackageInfo packageInfo, String label) { }
@@ -939,8 +944,9 @@ public class AnimationSettingsFragment
     public boolean onPreferenceTreeClick(Preference preference) {
         if (livePreviewKey.equals(preference.getKey())) {
             beginLivePreview();
+            return true;
         }
-        return true;
+        return super.onPreferenceTreeClick(preference);
     }
 
     private void beginLivePreview() {
@@ -951,20 +957,15 @@ public class AnimationSettingsFragment
         shouldAlternate = fragmentType.equals(FRAGMENT_TYPE_FLIP)
                     && mListPreference.getValue().equals(Constants.Settings.Notification.ANIMATION_ALTERNATE);
         boolean shouldReverse = mReverseAnimationSwitch.isChecked() && !shouldAlternate;
-        mHandler.postDelayed(() -> {
-            AnimationManager.Coordinator.get().stream(
-                requireContext(),
-                getGlyphAnimation(),
-                shouldReverse,
-                shouldAlternate,
-                () -> { if (isAdded()) getActivity().runOnUiThread(this::resetLivePreviewPref); }
-            );
-        }, 1000);
+        livePreview.setStateListener(() -> {
+                    if (isAdded()) getActivity().runOnUiThread(this::resetLivePreviewPref);
+                });
+        livePreview.setAnimation(getGlyphAnimation(), shouldReverse, shouldAlternate);
+        mHandler.postDelayed(livePreview::start, 1000);
     }
 
     private void endLivePreview() {
-        AnimationManager.Coordinator.get().cancelCurrent();
-        resetLivePreviewPref();
+        livePreview.stop();
     }
 
     private void resetLivePreviewPref() {
