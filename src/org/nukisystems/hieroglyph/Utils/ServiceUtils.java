@@ -301,5 +301,6 @@ public final class ServiceUtils {
         stopVolumeLevelService();
         stopAutoBrightnessService();
         stopProgressService();
+        AnimationManager.clearLEDs();
     }
 }
