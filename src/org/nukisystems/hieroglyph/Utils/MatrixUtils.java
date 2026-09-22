@@ -168,7 +168,7 @@ public class MatrixUtils {
                     int fillCount = Math.toIntExact(
                             Math.round((level * (double) getGridSize()) / 100D));
                     volumeMatrixFrame = Row.fill(
-                            volumeMatrixFrame, 1, fillCount, Constants.getMaxBrightness());
+                            volumeMatrixFrame, 1, fillCount, Constants.MAX_PATTERN_BRIGHTNESS);
                     volumeMatrixFrame =
                             switch (rotation) {
                                 case 1 -> Rotate.cw90(volumeMatrixFrame);
@@ -180,7 +180,7 @@ public class MatrixUtils {
 
                 case CHECKERBOARD -> { // Checkerboard brightness
                     int brightness = Math.toIntExact(
-                            Math.round((level * (double) Constants.getMaxBrightness()) / 10D));
+                            Math.round((level * (double) Constants.MAX_PATTERN_BRIGHTNESS / 10D)));
                     volumeMatrixFrame = Shape.checkerboardOdd(brightness);
                 }
                 case CHECKERBOARD_LINEAR -> { // Checkerboard row step
@@ -206,24 +206,24 @@ public class MatrixUtils {
                 case DIAMOND_FILL -> { // Diamond pattern fill
                     int scale = Math.toIntExact(
                             Math.round((level * (double) getGridSize() / 150D)));
-                    volumeMatrixFrame = Shape.Diamond(scale, Constants.getMaxBrightness());
+                    volumeMatrixFrame = Shape.Diamond(scale, Constants.MAX_PATTERN_BRIGHTNESS);
                 }
                 case RADIAL_CHECKERBOARD_FADE_OUT -> { // Checkerboard brightness fade from center
                     volumeMatrixFrame = Mask.radialFadeOut(Shape.checkerboardOdd(), level);
                 }
                 case RADIAL_OUTWARD -> {
                     volumeMatrixFrame = new int[getMaxFrameLength()];
-                    Arrays.fill(volumeMatrixFrame, 255);
+                    Arrays.fill(volumeMatrixFrame, Constants.MAX_PATTERN_BRIGHTNESS);
                     volumeMatrixFrame = Mask.radialClampOut(volumeMatrixFrame, level);
                 }
                 case RADIAL_FADE_OUTWARD -> {
                     volumeMatrixFrame = new int[getMaxFrameLength()];
-                    Arrays.fill(volumeMatrixFrame, 255);
+                    Arrays.fill(volumeMatrixFrame, Constants.MAX_PATTERN_BRIGHTNESS);
                     volumeMatrixFrame = Mask.radialFadeOut(volumeMatrixFrame, level);
                 }
                 case RADIAL_INWARD -> {
                     volumeMatrixFrame = new int[getMaxFrameLength()];
-                    Arrays.fill(volumeMatrixFrame, 255);
+                    Arrays.fill(volumeMatrixFrame, Constants.MAX_PATTERN_BRIGHTNESS);
                     volumeMatrixFrame = Mask.radialClampIn(volumeMatrixFrame, level);
                 }
                 case RADIAL_CHECKERBOARD_OUTWARD -> {
@@ -257,7 +257,7 @@ public class MatrixUtils {
                     double falloff = radius <= 0 ? 0.0 : Math.max(0.0, 1.0 - (dist / radius));
 
                     int masked = (int) Math.round(frame[idx] * falloff);
-                    newFrame[idx] = Math.clamp(masked, 0, 255);
+                    newFrame[idx] = Math.clamp(masked, 0, Constants.MAX_PATTERN_BRIGHTNESS);
                 }
             }
 
@@ -324,7 +324,7 @@ public class MatrixUtils {
                     double mask = dist >= radius ? 1.0 : 0.0;
 
                     int masked = (int) Math.round(frame[idx] * mask);
-                    newFrame[idx] = Math.clamp(masked, 0, 255);
+                    newFrame[idx] = Math.clamp(masked, 0, Constants.MAX_PATTERN_BRIGHTNESS);
                 }
             }
 
@@ -351,9 +351,9 @@ public class MatrixUtils {
                                 + count
                 );
                 return origFrame;
-            } else if (brightness < 0 || brightness > 255) {
+            } else if (brightness < 0 || brightness > Constants.MAX_PATTERN_BRIGHTNESS) {
                 Log.w(TAG,
-                        "Invalid brightness value, must be within range: 0 <= brightness >= 255, found "
+                        "Invalid brightness value, must be within range: 0 <= brightness >= 4095, found "
                                 + brightness
                 );
                 return origFrame;
@@ -400,9 +400,9 @@ public class MatrixUtils {
             }
 
             for (int v : values) {
-                if (v < 0 || v > 255) {
+                if (v < 0 || v > Constants.MAX_PATTERN_BRIGHTNESS) {
                     Log.w(TAG,
-                            "Invalid brightness value in values array, must be within range: 0 <= brightness >= 255, found "
+                            "Invalid brightness value in values array, must be within range: 0 <= brightness >= 4095, found "
                                     + v
                     );
                     return origFrame;
@@ -437,11 +437,11 @@ public class MatrixUtils {
         }
 
         public static int[] fillSingleOdd() {
-            return fillSingle(getGridSize(), Constants.getMaxBrightness(), false);
+            return fillSingle(getGridSize(), Constants.MAX_PATTERN_BRIGHTNESS, false);
         }
 
         public static int[] fillSingleEven() {
-            return fillSingle(getGridSize(), Constants.getMaxBrightness(), true);
+            return fillSingle(getGridSize(), Constants.MAX_PATTERN_BRIGHTNESS, true);
         }
 
 
@@ -514,7 +514,7 @@ public class MatrixUtils {
         }
 
         private static int[] Checkerboard(boolean even) {
-            return Checkerboard(even, 255);
+            return Checkerboard(even, Constants.MAX_PATTERN_BRIGHTNESS);
         }
 
         public static int[] checkerboardEven() {

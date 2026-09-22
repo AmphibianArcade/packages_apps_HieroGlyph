@@ -162,10 +162,8 @@ public final class AnimationManager {
             Log.w(TAG, "Invalid led index: " + led  + " in updateLedSingle");
             return;
         }
-        float maxPatternBrightness = (float) Constants.MAX_PATTERN_BRIGHTNESS;
-        float currentBrightness = (float) Constants.getBrightness();
 
-        brightness = Math.round(brightness / maxPatternBrightness * currentBrightness);
+        brightness = applyDimmer(brightness, Constants.MAX_PATTERN_BRIGHTNESS);
 
         NanoGlyphManager.Java.Matrix.setSingle(led, brightness);
 
@@ -230,8 +228,8 @@ public final class AnimationManager {
 
     public static int applyDimmer(int rawValue, int globalBrightness) {
         rawValue = Math.clamp(rawValue, 0, Constants.MAX_PATTERN_BRIGHTNESS);
-        globalBrightness = Math.clamp(globalBrightness, 0, 255);
-        return (rawValue * globalBrightness + 127) / 255;
+        globalBrightness = Math.clamp(globalBrightness, 0, Constants.MAX_PATTERN_BRIGHTNESS);
+        return (rawValue * globalBrightness + (Constants.MAX_PATTERN_BRIGHTNESS / 2)) / Constants.MAX_PATTERN_BRIGHTNESS;
     }
 
     public static void clearLEDs() {
