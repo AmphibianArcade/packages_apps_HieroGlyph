@@ -20,6 +20,7 @@
     </integer-array>
 
     <integer-array name="glyph_matrix_brightness_levels" translatable="false">
+        <item>30</item>
         <item>60</item>
         <item>131</item>
         <item>187</item>
