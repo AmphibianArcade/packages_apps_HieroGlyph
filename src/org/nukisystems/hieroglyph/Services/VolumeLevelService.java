@@ -122,7 +122,7 @@ public class VolumeLevelService extends Service {
                     mThreadHandler.post(() -> {
                         playVolume(currentVolumePercent);
                     });
-                    mThreadHandler.postDelayed(dismissVolume, 3000);
+                    mThreadHandler.postDelayed(dismissVolume, 1500);
                 }
             }
         }
