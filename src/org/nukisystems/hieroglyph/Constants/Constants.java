@@ -126,6 +126,7 @@ public final class Constants {
             public static final String AOD_TOY_ENABLE = PREFIX + "always_on_toy_sub_toggle";
             public static final String AOD_TOY = PREFIX + "aod_toy";
             public static final String AOD_TOY_FLIP_ENABLE = PREFIX + "always_on_toy";
+            public static final String AOD_TOY_STOP_UNFLIP = PREFIX + "always_on_toy_stop_on_unflip";
         }
 
         public static final class Utilities {

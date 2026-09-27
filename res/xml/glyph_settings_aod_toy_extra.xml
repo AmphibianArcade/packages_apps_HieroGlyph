@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:title="@string/glyph_settings_always_on_toy_title">
+
+    <SwitchPreferenceCompat
+        android:key="glyph_settings_always_on_toy_stop_on_unflip"
+        android:title="@string/glyph_settings_always_on_toy_stop_on_unflip_title"
+        android:summary="@string/glyph_settings_always_on_toy_stop_on_unflip_summary" />
+
+</PreferenceScreen>

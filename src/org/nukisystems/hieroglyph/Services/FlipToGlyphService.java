@@ -94,6 +94,12 @@ public class FlipToGlyphService extends Service {
         }
     };
 
+    private final Runnable exitAOD = () -> {
+        if (SettingsManager.Toys.isAODToyEnabled()) {
+            ServiceUtils.startToyService(ToyIntent.ACTION_STOP_AOD);
+        }
+    };
+
     @Override
     public IBinder onBind(Intent intent) {
         return null;
@@ -132,7 +138,10 @@ public class FlipToGlyphService extends Service {
                     );
                 }
             }
-
+            
+            if (mThreadHandler.hasCallbacks(exitAOD)) {
+                mThreadHandler.removeCallbacks(exitAOD);
+            }
             mThreadHandler.postDelayed(startAOD, 1000);
 
             ringerMode = mAudioManager.getRingerModeInternal();
@@ -149,6 +158,13 @@ public class FlipToGlyphService extends Service {
             int preferredMode = SettingsManager.getFlipRingerMode();
             if (preferredMode != -1) {
                 mAudioManager.setRingerModeInternal(ringerMode);
+            }
+
+            if (SettingsManager.Toys.shouldStopAODOnUnflip()) {
+                if (mThreadHandler.hasCallbacks(startAOD)) {
+                    mThreadHandler.removeCallbacks(startAOD);
+                }
+                mThreadHandler.postDelayed(exitAOD, 3000);
             }
         }
         isFlipped = flipped;

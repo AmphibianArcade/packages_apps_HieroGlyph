@@ -241,4 +241,9 @@
     <string name="glyph_settings_always_on_toy_title">Always-on Glyph Toys</string>
     <string name="glyph_settings_always_on_toy_sub_toggle_title">Enable Always-on Glyph Toy</string>
 
+    <string name="glyph_settings_always_on_toy_stop_on_unflip_title">Hide when face-up</string>
+    <string name="glyph_settings_always_on_toy_stop_on_unflip_summary">After a short delay, disable Always-on Glyph toy when device isn\'t flipped over to save battery</string>
+
+    <string name="glyph_settings_always_on_toy_menu_extra_settings_title">Settings</string>
+
 </resources>

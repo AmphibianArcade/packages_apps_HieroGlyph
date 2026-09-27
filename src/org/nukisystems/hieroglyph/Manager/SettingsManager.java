@@ -356,6 +356,11 @@ public final class SettingsManager {
                     .apply();
         }
 
+        public static boolean shouldStopAODOnUnflip() {
+            Context ctx = getContext();
+            return PreferenceManager.getDefaultSharedPreferences(ctx)
+                    .getBoolean(Constants.Settings.Toys.AOD_TOY_STOP_UNFLIP, false);
+        }
 
         public static void setAODToy(String toyComponent) {
             Context ctx = getContext();

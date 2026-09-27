@@ -1,9 +1,14 @@
 package org.nukisystems.hieroglyph.Settings.Toy;
 
 import android.content.ComponentName;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+
 import androidx.preference.PreferenceManager;
 import androidx.preference.PreferenceScreen;
 import androidx.preference.Preference;
@@ -19,6 +24,7 @@ import org.nukisystems.hieroglyph.Constants.Constants;
 import org.nukisystems.hieroglyph.Data;
 import org.nukisystems.hieroglyph.Manager.SettingsManager;
 import org.nukisystems.hieroglyph.Services.ToyService.ToyIntent;
+import org.nukisystems.hieroglyph.Settings.SubSettingsActivity;
 import org.nukisystems.hieroglyph.Utils.InterfaceUtils;
 import org.nukisystems.hieroglyph.Utils.ResourceUtils;
 import org.nukisystems.hieroglyph.Utils.ServiceUtils;
@@ -46,7 +52,26 @@ public class AodToySettingsFragment extends SettingsBasePreferenceFragment
                 SelectorWithWidgetPreference currentSelect =
                         findPreference(SettingsManager.Toys.getAODToy());
                 if (currentSelect != null) currentSelect.setChecked(true);
+                setHasOptionsMenu(true);
 
+        }
+
+        @Override
+        public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+                inflater.inflate(R.layout.menu_aod_toy, menu);
+                super.onCreateOptionsMenu(menu, inflater);
+        }
+
+        @Override
+        public boolean onOptionsItemSelected(MenuItem item) {
+                if (item.getItemId() == R.id.menu_aod_toy_extra_settings) {
+                        Intent intent = new Intent(Intent.ACTION_MAIN);
+                        intent.setComponent(new ComponentName(requireContext(), SubSettingsActivity.class));
+                        intent.putExtra("fragment", AodToyExtraSettingsFragment.class.getName());
+                        requireContext().startActivity(intent);
+                        return true;
+                }
+                return super.onOptionsItemSelected(item);
         }
 
         @Override
