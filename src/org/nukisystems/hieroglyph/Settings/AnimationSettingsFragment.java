@@ -21,6 +21,7 @@ import static org.nukisystems.hieroglyph.Utils.InterfaceUtils.showDialog;
 import static org.nukisystems.hieroglyph.Utils.InterfaceUtils.showToast;
 
 import android.Manifest;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
@@ -1029,6 +1030,19 @@ public class AnimationSettingsFragment
         }
         if (fragmentType.equals(FRAGMENT_TYPE_FLIP)) {
             mAODToyPreference.setChecked(SettingsManager.Toys.isAODToyEnabled());
+            setToySummary();
+        }
+    }
+
+    private void setToySummary() {
+        if (mAODToyPreference != null) {
+            if (SettingsManager.Toys.getAODToyComponent() != null) {
+                ComponentName toyComponent = SettingsManager.Toys.getAODToyComponent();
+                String toyName = ResourceUtils.Toys.getAOD(requireContext()).get(toyComponent).title();
+                mAODToyPreference.setSummary(toyName);
+            } else {
+                mAODToyPreference.setSummary(R.string.glyph_settings_toy_summary);
+            }
         }
     }
 
