@@ -70,23 +70,25 @@ class ThirdPartyService : Service() {
 
         override fun closeAppMatrix() {
             Log.d("ThirdPartyService", "closeAppMatrix() called")
-            closeSession()
+            unInit()
         }
 
-        override fun openSession() {
-            Log.d("ThirdPartyService", "openSession()")
+        override fun init() {
+            Log.d("ThirdPartyService", "init()")
             acquireWakeLock() // Acquire the wake lock when opening the session
             StatusManager.acquire(this@ThirdPartyService,
                 GlyphPriority.THIRD_PARTY, null)
         }
 
-        override fun closeSession() {
-            Log.d("ThirdPartyService", "closeSession()")
-            matrixScope.launch {
-                AnimationManager.clearLEDs()
+        override fun unInit() {
+            Log.d("ThirdPartyService", "unInit() called")
+            if (StatusManager.isPriorityActive(GlyphPriority.THIRD_PARTY)) {
+                matrixScope.launch {
+                    AnimationManager.clearLEDs()
+                }
             }
             StatusManager.release(this@ThirdPartyService);
-            releaseWakeLock() // Release the wake lock when closing the session
+            releaseWakeLock()
         }
 
         override fun register(str: String) = true
