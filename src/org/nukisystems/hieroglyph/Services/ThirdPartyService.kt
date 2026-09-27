@@ -48,7 +48,9 @@ class ThirdPartyService : Service() {
         }
 
         override fun setMatrixColors(iArray: IntArray?) {
-            if (StatusManager.isPriorityActive(GlyphPriority.AOD) && GlyphToyManager.aodPlayable) {
+            if (StatusManager.isPriorityActive(GlyphPriority.THIRD_PARTY)
+                || (StatusManager.isPriorityActive(GlyphPriority.AOD) 
+                    && GlyphToyManager.aodPlayable)) {
                 iArray?.let { requestFrame(iArray) };
                 Log.d(TAG, "setMatrixColors(): received data: ${iArray.contentToString()}")
             }
