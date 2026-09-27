@@ -321,5 +321,6 @@ public final class ServiceUtils {
         stopAutoBrightnessService();
         stopProgressService();
         AnimationManager.clearLEDs();
+        if (StatusManager.isAnythingActive()) StatusManager.releaseAll();
     }
 }

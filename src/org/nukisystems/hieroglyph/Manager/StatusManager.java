@@ -182,6 +182,17 @@ public final class StatusManager {
         }
     }
 
+    public static void releaseAll() {
+        lock.lock();
+        try {
+            activeKey = null;
+            keysByOwner.clear();
+            requests.clear();
+        } finally {
+            lock.unlock();
+        }
+    }
+
 
     public static boolean isBatterySavingActive() {
         return batterySavingActive;
