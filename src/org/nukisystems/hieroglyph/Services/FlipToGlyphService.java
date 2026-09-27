@@ -133,7 +133,7 @@ public class FlipToGlyphService extends Service {
                 }
             }
 
-            mThreadHandler.postDelayed(startAOD, 3000);
+            mThreadHandler.postDelayed(startAOD, 1000);
 
             ringerMode = mAudioManager.getRingerModeInternal();
             int preferredMode = SettingsManager.getFlipRingerMode();
