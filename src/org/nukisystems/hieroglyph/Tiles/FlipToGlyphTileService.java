@@ -75,6 +75,7 @@ public class FlipToGlyphTileService extends TileService {
         super.onClick();
         setEnabled(!getEnabled());
         updateState();
+        ServiceUtils.checkGlyphService();
     }
 
     private boolean getEnabled() {
@@ -82,11 +83,10 @@ public class FlipToGlyphTileService extends TileService {
     }
 
     private boolean getAvailable() {
-        return SettingsManager.isGlyphEnabledIgnoreSchedule();
+        return Constants.CONTEXT != null && SettingsManager.isGlyphEnabledIgnoreSchedule();
     }
 
     private void setEnabled(boolean enabled) {
         SettingsManager.setGlyphFlipEnabled(enabled);
-        ServiceUtils.checkGlyphService();
     }
 }
