@@ -24,6 +24,8 @@ import android.content.ComponentName;
 import android.content.Intent;
 import android.os.Bundle;
 import org.nukisystems.hieroglyph.Constants.Constants;
+import org.nukisystems.hieroglyph.Settings.Toy.AodToySettingsFragment;
+import org.nukisystems.hieroglyph.Tiles.AlwaysOnGlyphToyTileService;
 import org.nukisystems.hieroglyph.Tiles.FlipToGlyphTileService;
 
 import com.android.settingslib.collapsingtoolbar.CollapsingToolbarBaseActivity;
@@ -42,23 +44,33 @@ public class SettingsActivity extends CollapsingToolbarBaseActivity {
 
         ComponentName component = getIntent().getParcelableExtra(Intent.EXTRA_COMPONENT_NAME);
 
-        if (component != null
-                && component.getClassName().equals(FlipToGlyphTileService.class.getName())) {
-            Intent intent = new Intent(Constants.CONTEXT, AnimationSettingsActivity.class);
-            intent.putExtra("type", "flip");
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(intent);
-            finish();
-        } else {
-            Fragment fragment = getSupportFragmentManager().findFragmentById(com.android.settingslib.collapsingtoolbar.R.id.content_frame);
-            if (fragment == null) {
-                mSettingsFragment = new SettingsFragment();
-                getSupportFragmentManager().beginTransaction()
-                        .add(com.android.settingslib.collapsingtoolbar.R.id.content_frame, mSettingsFragment)
-                        .commit();
-            } else {
-                mSettingsFragment = (SettingsFragment) fragment;
+
+        if (component != null) {
+            String cls = component.getClassName();
+
+            if (cls.equals(FlipToGlyphTileService.class.getName())) {
+                Intent intent = new Intent(Constants.CONTEXT, AnimationSettingsActivity.class);
+                intent.putExtra("type", "flip");
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
+                finish();
+            } else if (cls.equals(AlwaysOnGlyphToyTileService.class.getName())) {
+                Intent intent = new Intent(Constants.CONTEXT, SubSettingsActivity.class);
+                intent.putExtra("fragment", AodToySettingsFragment.class.getName());
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
+                finish();
             }
+        }
+
+        Fragment fragment = getSupportFragmentManager().findFragmentById(com.android.settingslib.collapsingtoolbar.R.id.content_frame);
+        if (fragment == null) {
+            mSettingsFragment = new SettingsFragment();
+            getSupportFragmentManager().beginTransaction()
+                    .add(com.android.settingslib.collapsingtoolbar.R.id.content_frame, mSettingsFragment)
+                    .commit();
+        } else {
+            mSettingsFragment = (SettingsFragment) fragment;
         }
     }
 }

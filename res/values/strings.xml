@@ -238,7 +238,7 @@
     <string name="glyph_settings_toy_title">Glyph Toys</string>
     <string name="glyph_settings_toy_summary">Interactive tools and mini-games</string>
 
-    <string name="glyph_settings_always_on_toy_title">Always-on Glyph Toys</string>
+    <string name="glyph_settings_always_on_toy_title">Always-on Glyph Toy</string>
     <string name="glyph_settings_always_on_toy_sub_toggle_title">Enable Always-on Glyph Toy</string>
 
     <string name="glyph_settings_always_on_toy_stop_on_unflip_title">Hide when face-up</string>
