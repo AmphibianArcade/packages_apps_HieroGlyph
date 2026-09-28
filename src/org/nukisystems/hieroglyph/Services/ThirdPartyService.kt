@@ -28,11 +28,6 @@ class ThirdPartyService : Service() {
     private val bridgeComponent =
         ComponentName("com.nothing.thirdparty", "com.nothing.thirdparty.GlyphService")
 
-    private val activationGapMs: Int = 2000
-
-    @Volatile
-    private var readyToDraw = true
-
     private val binder = object : IGlyphService.Stub() {
 
         override fun setFrameColors(iArray: IntArray?) {
@@ -40,7 +35,6 @@ class ThirdPartyService : Service() {
         }
 
         fun requestFrame(frame: IntArray, raw: Boolean = false) {
-            if (!readyToDraw) return
             if (raw) AnimationManager.updateLedFrameRaw(
                 CSVUtils.scale12BitTo8BitByte(frame))
             else AnimationManager.updateLedFrame(
