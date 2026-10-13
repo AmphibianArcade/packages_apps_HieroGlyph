@@ -240,6 +240,15 @@ public final class AnimationManager {
             stream(ctx, owner, priority, null, name, reverse, false, null);
         }
 
+        public void stream(Context ctx, Object owner, GlyphPriority priority, String name, boolean reverse, Runnable onComplete) {
+            stream(ctx, owner, priority, null, name, reverse, false, onComplete);
+        }
+
+        public void stream(Context ctx, Object owner, GlyphPriority priority, String name, boolean reverse, boolean alternateOnce, Runnable onComplete) {
+            stream(ctx, owner, priority, null, name, reverse, alternateOnce, onComplete);
+        }
+
+
         public void stream(Context ctx, Object owner, GlyphPriority priority, String name, boolean reverse, boolean alternateOnce) {
             stream(ctx, owner, priority, null, name, reverse, alternateOnce, null);
         }

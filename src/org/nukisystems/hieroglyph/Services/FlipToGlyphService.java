@@ -81,9 +81,7 @@ public class FlipToGlyphService extends Service {
     public void onDestroy() {
         if (DEBUG) Log.d(TAG, "Destroying service");
         mFlipToGlyphSensor.disable();
-        if (SettingsManager.Toys.isAODToyEnabled() && GlyphToyManager.isAodActive) {
-            ServiceUtils.startToyService(ToyIntent.ACTION_STOP_AOD);
-        }
+        if (GlyphToyManager.isAodActive) mThreadHandler.post(exitAOD);
         thread.quit();
         super.onDestroy();
     }
@@ -98,6 +96,13 @@ public class FlipToGlyphService extends Service {
         if (SettingsManager.Toys.isAODToyEnabled()) {
             ServiceUtils.startToyService(ToyIntent.ACTION_STOP_AOD);
         }
+    };
+
+    private final Runnable aodOnFlip = () -> {
+        if (mThreadHandler.hasCallbacks(exitAOD)) {
+            mThreadHandler.removeCallbacks(exitAOD);
+        }
+        mThreadHandler.postDelayed(startAOD, 1000);
     };
 
     @Override
@@ -119,30 +124,25 @@ public class FlipToGlyphService extends Service {
                             PRIORITY,
                             SettingsManager.getGlyphNotifsAnimation(),
                             false,
-                            true
-                    );
+                            true,
+                            aodOnFlip);
                 } else if (shouldReverse) {
                     AnimationManager.Coordinator.get().stream(
                             mContext,
                             this,
                             PRIORITY,
                             animationName,
-                            true
-                    );
+                            true,
+                            aodOnFlip);
                 } else {
                     AnimationManager.Coordinator.get().stream(
                             mContext,
                             this,
                             PRIORITY,
-                            animationName
-                    );
+                            animationName,
+                            aodOnFlip);
                 }
             }
-            
-            if (mThreadHandler.hasCallbacks(exitAOD)) {
-                mThreadHandler.removeCallbacks(exitAOD);
-            }
-            mThreadHandler.postDelayed(startAOD, 1000);
 
             ringerMode = mAudioManager.getRingerModeInternal();
             int preferredMode = SettingsManager.getFlipRingerMode();
