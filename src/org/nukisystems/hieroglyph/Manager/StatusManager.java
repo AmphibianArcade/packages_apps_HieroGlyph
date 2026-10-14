@@ -16,6 +16,8 @@
 
 package org.nukisystems.hieroglyph.Manager;
 
+import android.util.Log;
+
 import org.nukisystems.hieroglyph.Utils.MatrixUtils;
 
 import java.util.HashMap;
@@ -94,7 +96,17 @@ public final class StatusManager {
             keysByOwner.put(owner, key);
 
             recomputeActive();
-            return activeKey != null && activeKey.owner() == owner;
+            boolean result = activeKey != null && activeKey.owner() == owner;
+            if (!result) {
+                Log.w(TAG, "Failed to acquire lock! | Owner: "
+                        + owner.getClass()
+                        + " | Priority: " + priority);
+            } else {
+                Log.d(TAG, "Lock success! | Owner: "
+                        + owner.getClass()
+                        + " | Priority: " + priority);
+            }
+            return result;
         } finally {
             lock.unlock();
         }
@@ -107,6 +119,7 @@ public final class StatusManager {
             if (key == null) return;
             requests.remove(key);
             recomputeActive();
+            Log.d(TAG, "Lock released for: " + owner.getClass());
         } finally {
             lock.unlock();
         }
