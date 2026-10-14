@@ -21,7 +21,6 @@ class GlyphToyManager (
 ) : StatusManager.GlyphOwner {
     private var TAG = "GlyphToyManager"
     private var current: ToyConnection? = null
-    private var currentData: Data.GlyphToy? = null
 
     private val aodHandler = Handler(Looper.getMainLooper())
     private var aodRunnable: Runnable? = null
@@ -30,12 +29,13 @@ class GlyphToyManager (
         override fun onSuspended() { }
         override fun onActivated() { }
     }
-    private val aodOwner = this
+
+    val aodOwner = this@GlyphToyManager
 
     companion object {
         @JvmField
         var isAodActive = false
-        var aodPlayable = false
+        var currentData: Data.GlyphToy? = null
     }
 
     fun queryInstalledToys(): Map<ComponentName, Data.GlyphToy> =
@@ -63,8 +63,10 @@ class GlyphToyManager (
         val flipEnabled = settings.isGlyphFlipEnabled()
         val aodComponent: ComponentName = getCurrentAODToy() ?: return
         if (!config.isAODToyEnabled() || !flipEnabled) return
-        activate(aodComponent, true)
-        onEnterAod()
+        if (StatusManager.acquire(aodOwner, GlyphPriority.AOD, aodOwner)) {
+            activate(aodComponent, true)
+            startAodTicking()
+        }
     }
 
     suspend fun showIcon(toyComponent: ComponentName) {
@@ -91,20 +93,6 @@ class GlyphToyManager (
         config.setLastToy(next.flattenToString());
     }
 
-    fun onEnterAod() {
-        StatusManager.acquire(aodOwner, GlyphPriority.AOD, aodOwner)
-        if (currentData?.supportsAOD == true) {
-            startAodTicking()
-        }
-    }
-
-    fun onExitAod() {
-        AnimationManager.clearLEDs()
-        StatusManager.release(aodOwner)
-        stopAodTicking()
-        aodPlayable = false
-    }
-
     private fun startAodTicking() {
         if (aodRunnable != null) return
         aodRunnable = object : Runnable {
@@ -116,25 +104,31 @@ class GlyphToyManager (
             }
         }
         aodHandler.post(aodRunnable!!)
-        aodHandler.postDelayed({ aodPlayable = true }, 2500)
+        isAodActive = true
     }
 
     private fun stopAodTicking() {
         aodRunnable?.let { aodHandler.removeCallbacks(it) }
         aodRunnable = null
-        aodPlayable = false
+        isAodActive = false
     }
 
     fun deactivateCurrent() {
         current?.unbind()
         current = null
         currentData = null
-        StatusManager.release(toyOwner)
+        onExit()
     }
 
     fun deactivateAOD() {
         deactivateCurrent()
-        onExitAod()
+        stopAodTicking()
+    }
+
+    fun onExit() {
+        StatusManager.release(aodOwner)
+        StatusManager.release(toyOwner)
+        AnimationManager.clearLEDs()
     }
 
     fun notifyAod() = current?.sendEvent(Constants.GlyphToy.EVENT_AOD)
@@ -142,11 +136,10 @@ class GlyphToyManager (
     fun notifyButtonUp() = current?.sendEvent(Constants.GlyphToy.EVENT_ACTION_UP)
 
     override fun onSuspended() {
-        stopAodTicking()
+        Log.d(TAG, "AOD priority lost, suspending!")
+        deactivateAOD()
     }
 
-    override fun onActivated() {
-        startAodTicking()
-    }
+    override fun onActivated() { }
 
 }

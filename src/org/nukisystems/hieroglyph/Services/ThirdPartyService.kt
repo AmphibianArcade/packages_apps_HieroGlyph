@@ -13,12 +13,15 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.nukisystems.hieroglyph.Data
 import org.nukisystems.hieroglyph.Manager.AnimationManager
-import org.nukisystems.hieroglyph.Manager.GlyphToyManager
+import org.nukisystems.hieroglyph.Manager.GlyphToyManager as toyMgr
+import org.nukisystems.hieroglyph.Manager.SettingsManager
 import org.nukisystems.hieroglyph.Manager.StatusManager
 import org.nukisystems.hieroglyph.Manager.StatusManager.GlyphPriority
+import org.nukisystems.hieroglyph.Services.ToyService.ToyIntent as toyIntent
 import org.nukisystems.hieroglyph.Utils.CSVUtils
-import kotlin.time.Duration.Companion.milliseconds
+import org.nukisystems.hieroglyph.Utils.ServiceUtils
 
 class ThirdPartyService : Service() {
 
@@ -43,23 +46,38 @@ class ThirdPartyService : Service() {
 
         override fun setMatrixColors(iArray: IntArray?) {
             if (StatusManager.isPriorityActive(GlyphPriority.THIRD_PARTY)
-                || (StatusManager.isPriorityActive(GlyphPriority.AOD) 
-                    && GlyphToyManager.aodPlayable)) {
+                || StatusManager.isPriorityActive(GlyphPriority.AOD)) {
                 iArray?.let { requestFrame(iArray) };
                 Log.d(TAG, "setMatrixColors(): received data: ${iArray.contentToString()}")
             }
         }
 
         override fun setAppMatrixColors(iArray: IntArray?) {
-            if (StatusManager.isPriorityActive(GlyphPriority.THIRD_PARTY)
+            if (StatusManager.acquire(this@ThirdPartyService, GlyphPriority.THIRD_PARTY, null)
                 || StatusManager.isPriorityActive(GlyphPriority.TOY)) {
                 iArray?.let { requestFrame(iArray, true) };
                 Log.d(TAG, "setAppMatrixColors(): received data: ${iArray.contentToString()}")
             }
         }
 
-        override fun setGlyphMatrixTimeout(needTimeout: Boolean) {
+        override fun init() {
+            Log.d("ThirdPartyService", "init()")
+            acquireWakeLock() // Acquire the wake lock when opening the session
+            if (!isCallerAod()) StatusManager.acquire(this@ThirdPartyService,
+                GlyphPriority.THIRD_PARTY, null)
+        }
 
+        override fun unInit() {
+            Log.d("ThirdPartyService", "unInit() called")
+            if (StatusManager.isPriorityActive(GlyphPriority.THIRD_PARTY)) {
+                matrixScope.launch { AnimationManager.clearLEDs() }
+            }
+            StatusManager.release(this@ThirdPartyService);
+            matrixScope.launch {
+                delay(2000L)
+                restoreAOD()
+            }
+            releaseWakeLock()
         }
 
         override fun closeAppMatrix() {
@@ -67,27 +85,17 @@ class ThirdPartyService : Service() {
             unInit()
         }
 
-        override fun init() {
-            Log.d("ThirdPartyService", "init()")
-            acquireWakeLock() // Acquire the wake lock when opening the session
-            StatusManager.acquire(this@ThirdPartyService,
-                GlyphPriority.THIRD_PARTY, null)
-        }
+        override fun setGlyphMatrixTimeout(needTimeout: Boolean) {
 
-        override fun unInit() {
-            Log.d("ThirdPartyService", "unInit() called")
-            if (StatusManager.isPriorityActive(GlyphPriority.THIRD_PARTY)) {
-                matrixScope.launch {
-                    AnimationManager.clearLEDs()
-                }
-            }
-            StatusManager.release(this@ThirdPartyService);
-            releaseWakeLock()
         }
 
         override fun register(str: String) = true
         override fun registerSDK(key: String, device: String) = true
-        override fun registerMatrixSDK(key: String) = true
+        override fun registerMatrixSDK(key: String): Boolean {
+            Log.w(TAG, "register matrix!")
+            init()
+            return true
+        }
 
     }
 
@@ -120,6 +128,11 @@ class ThirdPartyService : Service() {
         StatusManager.release(this@ThirdPartyService);
     }
 
+    private fun isCallerAod(): Boolean {
+        val toyData: Data.GlyphToy = toyMgr.currentData ?: return false
+        return toyData.supportsAOD
+    }
+
     private fun ensureBridge() {
         val intent = Intent().apply { component = bridgeComponent }
         try {
@@ -145,6 +158,18 @@ class ThirdPartyService : Service() {
             wakeLock?.release()
             wakeLock = null
             Log.d("ThirdPartyService", "WakeLock released")
+        }
+    }
+
+    private fun stopAOD() {
+        if (SettingsManager.Toys.isAODToyEnabled()) {
+            ServiceUtils.startToyService(toyIntent.ACTION_STOP_AOD)
+        }
+    }
+
+    private fun restoreAOD() {
+        if (SettingsManager.Toys.isAODToyEnabled()) {
+            ServiceUtils.startToyService(toyIntent.ACTION_START_AOD)
         }
     }
 
