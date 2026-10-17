@@ -67,12 +67,6 @@ public final class ServiceUtils {
         return false;
     }
 
-    private static void startCallReceiverService() {
-        if (DEBUG) Log.d(TAG, "Starting Glyph call receiver service");
-        getContext().startServiceAsUser(new Intent(getContext(), CallReceiverService.class),
-                UserHandle.CURRENT);
-    }
-
     private static void startToneHelperService() {
         if (DEBUG) Log.d(TAG, "Starting Tone helper service");
         getContext().startServiceAsUser(new Intent(getContext(), ToneHelperService.class),
