@@ -18,10 +18,12 @@ package org.nukisystems.hieroglyph.Services;
 
 import android.app.Notification;
 import android.app.NotificationChannel;
+import android.app.NotificationChannelGroup;
 import android.app.NotificationManager;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.SharedPreferences;
 import android.database.ContentObserver;
@@ -29,6 +31,9 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.Looper;
+import android.os.Process;
+import android.os.UserHandle;
+import android.os.UserManager;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.service.notification.NotificationListenerService;
@@ -38,12 +43,14 @@ import android.util.Log;
 import com.android.internal.util.ArrayUtils;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import org.nukisystems.hieroglyph.Constants.Constants;
+import org.nukisystems.hieroglyph.Data;
 import org.nukisystems.hieroglyph.Manager.AnimationManager;
 import org.nukisystems.hieroglyph.Manager.SettingsManager;
 import org.nukisystems.hieroglyph.Manager.StatusManager;
@@ -218,6 +225,50 @@ public class NotificationService extends NotificationListenerService
             //AnimationManager.playEssential();
         }
     }
+
+    @Override
+    public void onListenerConnected() {
+        UserHandle user = Process.myUserHandle();
+        for (ApplicationInfo app : getPackageManager().getInstalledApplications(0)) {
+            String pkg = app.packageName;
+            try {
+                Data.ApplicationData.Notification.setData(
+                        getApplicationContext(),
+                        pkg,
+                        getNotificationChannels(pkg, user),
+                        getNotificationChannelGroups(pkg, user));
+            } catch (SecurityException ignored) { }
+        }
+    }
+
+    @Override
+    public void onNotificationChannelModified(String pkg, UserHandle user,
+                                              NotificationChannel channel, int modificationType) {
+        if (user != Process.myUserHandle()) return;
+        switch (modificationType) {
+            case NOTIFICATION_CHANNEL_OR_GROUP_ADDED -> {
+                Data.ApplicationData.Notification.addChannel(getApplicationContext(), pkg, channel);
+            }
+            case NOTIFICATION_CHANNEL_OR_GROUP_DELETED -> {
+                Data.ApplicationData.Notification.removeChannel(getApplicationContext(), pkg, channel);
+            }
+        }
+    }
+
+    @Override
+    public void onNotificationChannelGroupModified(String pkg, UserHandle user,
+                                                   NotificationChannelGroup group, int modificationType) {
+        if (user != Process.myUserHandle()) return;
+        switch (modificationType) {
+            case NOTIFICATION_CHANNEL_OR_GROUP_ADDED -> {
+                Data.ApplicationData.Notification.addChannelGroup(getApplicationContext(), pkg, group);
+            }
+            case NOTIFICATION_CHANNEL_OR_GROUP_DELETED -> {
+                Data.ApplicationData.Notification.removeChannelGroup(getApplicationContext(), pkg, group);
+            }
+        }
+    }
+
 
     private boolean hasProgressBar(Notification notification) {
         if (notification == null || notification.extras == null) return false;
