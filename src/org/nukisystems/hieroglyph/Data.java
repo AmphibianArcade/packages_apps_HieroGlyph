@@ -198,6 +198,13 @@ public class Data {
                     .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
         }
 
+        public static Map<String, ApplicationData> getCallApps(Context ctx) {
+            if (appDataCache.isEmpty()) init(ctx);
+            return appDataCache.entrySet().stream()
+                    .filter(e -> e.getValue().canManageOwnCalls())
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        }
+
         public static Map<String, ApplicationData> getNotificationApps(Context ctx) {
             if (appDataCache.isEmpty()) init(ctx);
             return appDataCache.entrySet().stream()
