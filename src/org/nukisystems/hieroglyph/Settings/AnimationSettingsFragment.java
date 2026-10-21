@@ -69,6 +69,7 @@ import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import org.nukisystems.hieroglyph.Data;
 import org.nukisystems.hieroglyph.Preference.LivePreview;
 import org.nukisystems.hieroglyph.R;
 import org.nukisystems.hieroglyph.Constants.Constants;
@@ -508,12 +509,9 @@ public class AnimationSettingsFragment
     );
 
     private void inflateAppLists() {
-
         if (fragmentType.equals(FRAGMENT_TYPE_CALL)) {
-            String[] callPermissions = {"android.permission.MANAGE_OWN_CALLS"};
-            List<String> callApps =
-                    new ArrayList<>(Arrays.asList(
-                            ResourceUtils.getApplicationsWithPermission(false, callPermissions)));
+            Map<String, Data.ApplicationData> callApps =
+                    Data.ApplicationData.getCallApps(Constants.CONTEXT);
 
             callApps.remove(getDefaultDialer());
 
@@ -521,44 +519,46 @@ public class AnimationSettingsFragment
                 getPreferenceScreen().removePreference(appListCategory);
                 return;
             }
-
-            for (String pkg : callApps) addAppPreference(pkg);
-
+            addAppPreferences(callApps);
         }
 
-        if (fragmentType.equals(FRAGMENT_TYPE_NOTIF)) loadNotificationApps();
-
+        if (fragmentType.equals(FRAGMENT_TYPE_NOTIF)) {
+            Map<String, Data.ApplicationData> notificationApps =
+                    Data.ApplicationData.getNotificationApps(Constants.CONTEXT);
+                        addAppPreferences(notificationApps);
+        }
     }
 
-    private void addAppPreference(String pkg) {
-        String label = getPackageLabel(pkg);
-        PrimarySwitchPreference mSwitchPreference
-                = new PrimarySwitchPreference(getPreferenceScreen().getContext());
-        mSwitchPreference.setKey(pkg);
-        mSwitchPreference.setTitle(" " + label);
-        try {
-            mSwitchPreference.setIcon(mPackageManager.getApplicationIcon(pkg));
-        } catch (PackageManager.NameNotFoundException e) {
-            mSwitchPreference.setIcon(mPackageManager.getDefaultActivityIcon());
-        }
-        mSwitchPreference.setChecked(isAnimationEnabled(pkg));
-        mSwitchPreference.setOnPreferenceClickListener(preference -> {
-            String key = preference.getKey();
-            Intent intent = new Intent(requireContext(),
-                    AnimationSettingsActivity.class);
-            intent.putExtra("type", fragmentType);
-            intent.putExtra("package", key);
-            startActivity(intent);
-            return true;
-        });
-        mSwitchPreference.setOnPreferenceChangeListener((preference, newValue) -> {
-            String key = preference.getKey();
-            setAnimationEnabled(key, (Boolean) newValue);
-            return true;
-        });
-        resolveAppSummary(mSwitchPreference, pkg);
-        appListCategory.addPreference(mSwitchPreference);
-
+    private void addAppPreferences(Map<String, Data.ApplicationData> appData) {
+        appData.entrySet().stream()
+                .sorted(Map.Entry.comparingByValue(Comparator.comparing(Data.ApplicationData::label)))
+                .forEach(entry -> {
+                    String pkg = entry.getKey();
+                    Data.ApplicationData data = entry.getValue();
+                        String label = data.label();
+                        PrimarySwitchPreference mSwitchPreference
+                                = new PrimarySwitchPreference(getPreferenceScreen().getContext());
+                        mSwitchPreference.setKey(pkg);
+                        mSwitchPreference.setTitle(" " + label);
+                        mSwitchPreference.setIcon(data.icon());
+                        mSwitchPreference.setChecked(isAnimationEnabled(pkg));
+                        mSwitchPreference.setOnPreferenceClickListener(preference -> {
+                            String key = preference.getKey();
+                            Intent intent = new Intent(requireContext(),
+                                    AnimationSettingsActivity.class);
+                            intent.putExtra("type", fragmentType);
+                            intent.putExtra("package", key);
+                            startActivity(intent);
+                            return true;
+                        });
+                        mSwitchPreference.setOnPreferenceChangeListener((preference, newValue) -> {
+                            String key = preference.getKey();
+                            setAnimationEnabled(key, (Boolean) newValue);
+                            return true;
+                        });
+                        resolveAppSummary(mSwitchPreference, pkg);
+                        appListCategory.addPreference(mSwitchPreference);
+                });
     }
 
     private void addDeletePref(String sharedPref, String msgLabel) {
