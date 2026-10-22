@@ -34,6 +34,7 @@ public class BootCompletedReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(final Context context, Intent intent) {
+        String action = intent.getAction();
         if (DEBUG) Log.d(TAG, "Received boot completed intent");
         Constants.CONTEXT = context.getApplicationContext();
         
@@ -43,5 +44,9 @@ public class BootCompletedReceiver extends BroadcastReceiver {
         }
         
         ServiceUtils.checkGlyphService(true);
+
+        if (action != null && action.equals(Intent.ACTION_BOOT_COMPLETED)) {
+            Data.ApplicationData.init(context.getApplicationContext());
+        }
     }
 }
