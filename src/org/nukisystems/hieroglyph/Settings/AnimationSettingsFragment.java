@@ -530,35 +530,31 @@ public class AnimationSettingsFragment
     }
 
     private void addAppPreferences(Map<String, Data.ApplicationData> appData) {
-        appData.entrySet().stream()
-                .sorted(Map.Entry.comparingByValue(Comparator.comparing(Data.ApplicationData::label)))
-                .forEach(entry -> {
-                    String pkg = entry.getKey();
-                    Data.ApplicationData data = entry.getValue();
-                        String label = data.label();
-                        PrimarySwitchPreference mSwitchPreference
-                                = new PrimarySwitchPreference(getPreferenceScreen().getContext());
-                        mSwitchPreference.setKey(pkg);
-                        mSwitchPreference.setTitle(" " + label);
-                        mSwitchPreference.setIcon(data.icon());
-                        mSwitchPreference.setChecked(isAnimationEnabled(pkg));
-                        mSwitchPreference.setOnPreferenceClickListener(preference -> {
-                            String key = preference.getKey();
-                            Intent intent = new Intent(requireContext(),
-                                    AnimationSettingsActivity.class);
-                            intent.putExtra("type", fragmentType);
-                            intent.putExtra("package", key);
-                            startActivity(intent);
-                            return true;
-                        });
-                        mSwitchPreference.setOnPreferenceChangeListener((preference, newValue) -> {
-                            String key = preference.getKey();
-                            setAnimationEnabled(key, (Boolean) newValue);
-                            return true;
-                        });
-                        resolveAppSummary(mSwitchPreference, pkg);
-                        appListCategory.addPreference(mSwitchPreference);
-                });
+        appData.forEach((pkg, data) -> {
+            String label = data.label();
+            PrimarySwitchPreference mSwitchPreference
+                    = new PrimarySwitchPreference(getPreferenceScreen().getContext());
+            mSwitchPreference.setKey(pkg);
+            mSwitchPreference.setTitle(" " + label);
+            mSwitchPreference.setIcon(data.icon());
+            mSwitchPreference.setChecked(isAnimationEnabled(pkg));
+            mSwitchPreference.setOnPreferenceClickListener(preference -> {
+                String key = preference.getKey();
+                Intent intent = new Intent(requireContext(),
+                        AnimationSettingsActivity.class);
+                intent.putExtra("type", fragmentType);
+                intent.putExtra("package", key);
+                startActivity(intent);
+                return true;
+            });
+            mSwitchPreference.setOnPreferenceChangeListener((preference, newValue) -> {
+                String key = preference.getKey();
+                setAnimationEnabled(key, (Boolean) newValue);
+                return true;
+            });
+            resolveAppSummary(mSwitchPreference, pkg);
+            appListCategory.addPreference(mSwitchPreference);
+        });
     }
 
     private void addDeletePref(String sharedPref, String msgLabel) {
