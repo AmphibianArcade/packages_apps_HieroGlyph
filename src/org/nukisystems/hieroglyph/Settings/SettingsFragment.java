@@ -49,6 +49,7 @@ import com.android.settingslib.widget.SliderPreference;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 
+import org.nukisystems.hieroglyph.Data.ApplicationData;
 import org.nukisystems.hieroglyph.Manager.AnimationManager;
 import org.nukisystems.hieroglyph.Manager.StatusManager;
 import org.nukisystems.hieroglyph.R;
@@ -61,7 +62,10 @@ import static org.nukisystems.hieroglyph.Utils.InterfaceUtils.Preferences.getAll
 import static org.nukisystems.hieroglyph.Utils.InterfaceUtils.showDialog;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -133,6 +137,9 @@ public class SettingsFragment extends SettingsBasePreferenceFragment implements 
             }
         }
     };
+
+    private Map<String, ApplicationData> mediaData;
+    private Map<String, ApplicationData> micData;
 
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
@@ -244,10 +251,14 @@ public class SettingsFragment extends SettingsBasePreferenceFragment implements 
         mProgressMediaPreference.setOnPreferenceChangeListener(this);
 
         mProgressMediaWhitelistPreference = findPreference(Constants.Settings.Progress.MEDIA_WHITELIST);
-        mProgressMediaWhitelistPreference.setEntries(
-                ResourceUtils.getApplicationsWithPermission(true, mediaPermissions));
+
+        mediaData = ApplicationData.getMediaApps(context.getApplicationContext());
+        mProgressMediaWhitelistPreference.setEntries(mediaData.values().stream()
+                .map(ApplicationData::label)
+                .toArray(CharSequence[]::new));
+
         mProgressMediaWhitelistPreference.setEntryValues(
-                ResourceUtils.getApplicationsWithPermission(false, mediaPermissions));
+                mediaData.keySet().toArray(CharSequence[]::new));
 
         mProgressCategory.setVisible(false);
 
@@ -258,10 +269,13 @@ public class SettingsFragment extends SettingsBasePreferenceFragment implements 
         mMicActivityPreference.setEnabled(glyphEnabled);
 
         mMicActivityWhitelistPreference = findPreference(Constants.Settings.RedLED.MIC_ACTIVITY_WHITELIST);
-        mMicActivityWhitelistPreference.setEntries(
-                ResourceUtils.getApplicationsWithPermission(true, micPermissions));
-        mMicActivityWhitelistPreference.setEntryValues(
-                ResourceUtils.getApplicationsWithPermission(false, micPermissions));
+
+        micData = ApplicationData.getMicApps(context.getApplicationContext());
+        mMicActivityWhitelistPreference.setEntries(micData.values().stream()
+                .map(ApplicationData::label)
+                .toArray(CharSequence[]::new));
+
+        mMicActivityWhitelistPreference.setEntryValues(micData.keySet().toArray(CharSequence[]::new));
         mMicActivityWhitelistPreference.setOnPreferenceChangeListener(this);
         mMicActivityWhitelistPreference.setEnabled(glyphEnabled);
 
