@@ -10,11 +10,18 @@ import java.util.Map;
 import android.Manifest;
 import android.app.NotificationChannel;
 import android.app.NotificationChannelGroup;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Build;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.util.Log;
 
 import java.util.Collections;
@@ -32,6 +39,10 @@ public class Data {
     private static final String audioRecordPermission = Manifest.permission.RECORD_AUDIO;
     private static final String mediaPermission = Manifest.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK;
     private static final String notificationPermission = Manifest.permission.POST_NOTIFICATIONS;
+
+    private static PackageChangeReceiver receiver;
+    private static HandlerThread handlerThread;
+    private static Handler backgroundHandler;
 
     private static final String TAG = "GlyphData";
 
@@ -123,62 +134,80 @@ public class Data {
 
         static final AtomicBoolean updatePending = new AtomicBoolean(false);
 
-        public static void init(Context ctx) {
-            updatePending.compareAndSet(false,true);
+        public static synchronized void init(Context ctx) {
 
-            PackageManager pm = ctx.getPackageManager();
-            List<PackageInfo> allApps = pm.getInstalledPackages(PackageManager.GET_PERMISSIONS);
-            for (PackageInfo pkg : allApps) {
-                String pkgName = pkg.packageName;
-                Drawable icon = null;
-                boolean canManageOwnCalls = false;
-                boolean canUseMic = false;
-                boolean canBindMedia = false ;
-                boolean canNotify = false;
-                String label = pkg.applicationInfo.loadLabel(pm).toString();
+            if (receiver != null) return;
+
+            handlerThread = new HandlerThread("PackageCache");
+            handlerThread.start();
+            backgroundHandler = new Handler(handlerThread.getLooper());
+
+            receiver = new PackageChangeReceiver();
+            IntentFilter filter = new IntentFilter();
+            filter.addAction(Intent.ACTION_PACKAGE_ADDED);
+            filter.addAction(Intent.ACTION_PACKAGE_REMOVED);
+            filter.addAction(Intent.ACTION_PACKAGE_REPLACED);
+            filter.addDataScheme("package");
+
+            ctx.getApplicationContext().registerReceiver(receiver, filter, null, backgroundHandler);
+
+            backgroundHandler.post(() -> {
+                updatePending.compareAndSet(false, true);
+
+                PackageManager pm = ctx.getPackageManager();
+                List<PackageInfo> allApps = pm.getInstalledPackages(PackageManager.GET_PERMISSIONS);
+                for (PackageInfo pkg : allApps) {
+                    String pkgName = pkg.packageName;
+                    Drawable icon = null;
+                    boolean canManageOwnCalls = false;
+                    boolean canUseMic = false;
+                    boolean canBindMedia = false;
+                    boolean canNotify = false;
+                    String label = pkg.applicationInfo.loadLabel(pm).toString();
 
 
-                int pkgFlags = pkg.applicationInfo.flags;
-                if (pkg.requestedPermissions == null) continue;
-                if (pm.getLaunchIntentForPackage(pkg.packageName) == null) continue;
-                if ((pkgFlags & ApplicationInfo.FLAG_INSTALLED) == 0
-                        || (pkgFlags & ApplicationInfo.FLAG_PERSISTENT) != 0) continue;
-                for (String perm : pkg.requestedPermissions) {
-                    switch (perm) {
-                        case callPermission -> canManageOwnCalls = true;
-                        case micFgPermission, audioRecordPermission -> canUseMic = true;
-                        case mediaPermission -> canBindMedia = true;
-                        case notificationPermission -> {
-                            if (pkg.applicationInfo.targetSdkVersion >= Build.VERSION_CODES.TIRAMISU) {
-                                canNotify = true;
+                    int pkgFlags = pkg.applicationInfo.flags;
+                    if (pkg.requestedPermissions == null) continue;
+                    if (pm.getLaunchIntentForPackage(pkg.packageName) == null) continue;
+                    if ((pkgFlags & ApplicationInfo.FLAG_INSTALLED) == 0
+                            || (pkgFlags & ApplicationInfo.FLAG_PERSISTENT) != 0) continue;
+                    for (String perm : pkg.requestedPermissions) {
+                        switch (perm) {
+                            case callPermission -> canManageOwnCalls = true;
+                            case micFgPermission, audioRecordPermission -> canUseMic = true;
+                            case mediaPermission -> canBindMedia = true;
+                            case notificationPermission -> {
+                                if (pkg.applicationInfo.targetSdkVersion >= Build.VERSION_CODES.TIRAMISU) {
+                                    canNotify = true;
+                                }
                             }
                         }
                     }
+
+                    try {
+                        icon = pm.getApplicationIcon(pkgName);
+                    } catch (PackageManager.NameNotFoundException e) {
+                        icon = pm.getDefaultActivityIcon();
+                    }
+
+                    if (pkg.applicationInfo.targetSdkVersion < Build.VERSION_CODES.TIRAMISU) {
+                        canNotify = true;
+                    }
+
+                    appDataCache.put(pkgName, new ApplicationData(
+                            label,
+                            icon,
+                            Collections.emptyList(),
+                            Collections.emptyList(),
+                            canManageOwnCalls,
+                            canUseMic,
+                            canBindMedia,
+                            canNotify)
+                    );
                 }
 
-                try {
-                    icon = pm.getApplicationIcon(pkgName);
-                } catch (PackageManager.NameNotFoundException e) {
-                    icon = pm.getDefaultActivityIcon();
-                }
-
-                if (pkg.applicationInfo.targetSdkVersion < Build.VERSION_CODES.TIRAMISU) {
-                    canNotify = true;
-                }
-
-                appDataCache.put(pkgName, new ApplicationData(
-                        label,
-                        icon,
-                        Collections.emptyList(),
-                        Collections.emptyList(),
-                        canManageOwnCalls,
-                        canUseMic,
-                        canBindMedia,
-                        canNotify)
-                );
-            }
-
-            updatePending.compareAndSet(true, false);
+                updatePending.compareAndSet(true, false);
+            });
         }
 
 
@@ -391,5 +420,30 @@ public class Data {
 
     };
 
+    public static class PackageChangeReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Uri data = intent.getData();
+            if (data == null) return;
+            String pkg = data.getSchemeSpecificPart();
+
+            String action = intent.getAction();
+            if (action == null) return;
+
+            switch (action) {
+                case Intent.ACTION_PACKAGE_ADDED:
+                case Intent.ACTION_PACKAGE_REPLACED:
+                    try {
+                        ApplicationData.fillPackageInfo(context, pkg);
+                    } catch (PackageManager.NameNotFoundException ignored) {}
+                    break;
+                case Intent.ACTION_PACKAGE_REMOVED:
+                    if (!intent.getBooleanExtra(Intent.EXTRA_REPLACING, false)) {
+                        ApplicationData.remove(pkg);
+                    }
+                    break;
+            }
+        }
+    }
 
 }
