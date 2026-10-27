@@ -24,11 +24,19 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.util.Log;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
+import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -131,7 +139,8 @@ public class Data {
             boolean canBindMedia,
             boolean canNotify) {
 
-        private static final Map<String, ApplicationData> appDataCache = new HashMap<>();
+        private static final ConcurrentHashMap<String, ApplicationData> appDataCache
+                = new ConcurrentHashMap<>();
 
         static final AtomicBoolean updatePending = new AtomicBoolean(false);
 
@@ -195,11 +204,11 @@ public class Data {
                         canNotify = true;
                     }
 
-                    appDataCache.put(pkgName, new ApplicationData(
+                    appDataCache.putIfAbsent(pkgName, new ApplicationData(
                             label,
                             icon,
-                            Collections.emptyList(),
-                            Collections.emptyList(),
+                            new CopyOnWriteArrayList<NotificationChannel>(),
+                            new CopyOnWriteArrayList<NotificationChannelGroup>(),
                             canManageOwnCalls,
                             canUseMic,
                             canBindMedia,
