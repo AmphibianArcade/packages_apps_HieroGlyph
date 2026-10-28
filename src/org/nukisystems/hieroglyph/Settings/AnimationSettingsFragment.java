@@ -148,6 +148,7 @@ public class AnimationSettingsFragment
 
     private boolean isAppSpecific = false;
     private boolean isChannelSpecific = false;
+    private boolean isGlobalAppNotification = false;
 
     public static final String ARG_FRAGMENT_TYPE = "type";
     public static final String ARG_CONTACT_ID = "contact_id";
@@ -171,6 +172,8 @@ public class AnimationSettingsFragment
         isContactSpecific = !contactId.isEmpty();
         isAppSpecific = !targetPkg.isEmpty();
         isChannelSpecific = (isAppSpecific && !notificationChannelId.isEmpty());
+        isGlobalAppNotification = (fragmentType.equals(FRAGMENT_TYPE_NOTIF) &&
+                isAppSpecific && !isChannelSpecific);
 
         if (isContactSpecific) {
             contactName = ResourceUtils.getContactName(requireContext(), contactId);
@@ -244,7 +247,8 @@ public class AnimationSettingsFragment
                             fragmentTitle =
                                     requireContext().getString(R.string.glyph_settings_notifs_toggle_title)
                                     + " (" + pkgLabel + ")";
-                        addPreferencesFromResource(R.xml.glyph_notifs_settings_app);
+
+                        addPreferencesFromResource(R.xml.glyph_notifs_settings_app_no_mainswitch);
                         mScreen = getPreferenceScreen();
                     }
                 }
@@ -373,8 +377,8 @@ public class AnimationSettingsFragment
             }
         }
 
-        if (!isContactSpecific) {
-            mSwitchBar = findPreference(enableKey);
+        mSwitchBar = findPreference(enableKey);
+        if (mSwitchBar != null && !isContactSpecific) {
             mSwitchBar.addOnSwitchChangeListener(this);
             if (fragmentType.equals(FRAGMENT_TYPE_FLIP)) {
                 mSwitchBar.setChecked(SettingsManager.isGlyphFlipEnabled());
