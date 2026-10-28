@@ -562,12 +562,13 @@ public class AnimationSettingsFragment
     private void addAppPreferences(Map<String, Data.ApplicationData> appData) {
         appData.forEach((pkg, data) -> {
             String label = data.label();
+            boolean animationEnabled = isAnimationEnabled(pkg);
             PrimarySwitchPreference mSwitchPreference
                     = new PrimarySwitchPreference(getPreferenceScreen().getContext());
             mSwitchPreference.setKey(pkg);
             mSwitchPreference.setTitle(" " + label);
             mSwitchPreference.setIcon(data.icon());
-            mSwitchPreference.setChecked(isAnimationEnabled(pkg));
+            mSwitchPreference.setChecked(animationEnabled);
             if (fragmentType.equals(FRAGMENT_TYPE_NOTIF)) {
                 mSwitchPreference.setOnPreferenceClickListener(preference -> {
                     String key = preference.getKey();
@@ -595,10 +596,17 @@ public class AnimationSettingsFragment
             }
             mSwitchPreference.setOnPreferenceChangeListener((preference, newValue) -> {
                 String key = preference.getKey();
-                setAnimationEnabled(key, (Boolean) newValue);
+                Boolean val = (Boolean) newValue;
+                setAnimationEnabled(key, val);
+                if (val) {
+                    resolveAppSummary((PrimarySwitchPreference) preference, key);
+                } else {
+                    preference.setSummary(null);
+                }
                 return true;
             });
-            resolveAppSummary(mSwitchPreference, pkg);
+
+            if (animationEnabled) resolveAppSummary(mSwitchPreference, pkg);
             appListCategory.addPreference(mSwitchPreference);
         });
     }
@@ -939,12 +947,25 @@ public class AnimationSettingsFragment
                 if (pref instanceof PrimarySwitchPreference) {
                     PrimarySwitchPreference switchPref = (PrimarySwitchPreference) pref;
                     switch (fragmentType) {
-                        case FRAGMENT_TYPE_NOTIF ->
-                                switchPref.setChecked(SettingsManager.isGlyphNotifsEnabled(pref.getKey()));
-                        case FRAGMENT_TYPE_CALL ->
-                                switchPref.setChecked(SettingsManager.isGlyphCallEnabled(pref.getKey()));
+                        case FRAGMENT_TYPE_NOTIF -> {
+                            boolean state = SettingsManager.isGlyphNotifsEnabled(pref.getKey());
+                            switchPref.setChecked(state);
+                            if (state) {
+                                resolveAppSummary(switchPref, pref.getKey());
+                            } else {
+                                switchPref.setSummary(null);
+                            }
+                        }
+                        case FRAGMENT_TYPE_CALL -> {
+                            boolean state = SettingsManager.isGlyphCallEnabled(pref.getKey());
+                            switchPref.setChecked(state);
+                            if (state) {
+                                resolveAppSummary(switchPref, pref.getKey());
+                            } else {
+                                switchPref.setSummary(null);
+                            }
+                        }
                     }
-                    resolveAppSummary(switchPref, pref.getKey());
                 }
             }
         }
@@ -974,7 +995,11 @@ public class AnimationSettingsFragment
             for (Preference pref : getAllPreferences(appListCategory)) {
                 if (pref instanceof PrimarySwitchPreference) {
                     PrimarySwitchPreference switchPref = (PrimarySwitchPreference) pref;
-                    resolveAppSummary(switchPref, pref.getKey(), comp);
+                    if (switchPref.isChecked()) {
+                        resolveAppSummary(switchPref, pref.getKey(), comp);
+                    } else {
+                        switchPref.setSummary(null);
+                    }
                 }
             }
         }
