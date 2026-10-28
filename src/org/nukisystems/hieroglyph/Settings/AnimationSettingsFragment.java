@@ -20,8 +20,10 @@ import static org.nukisystems.hieroglyph.Utils.InterfaceUtils.Preferences.getAll
 import static org.nukisystems.hieroglyph.Utils.InterfaceUtils.showDialog;
 import static org.nukisystems.hieroglyph.Utils.InterfaceUtils.showToast;
 
+import android.app.Activity;
 import android.Manifest;
 import android.content.ComponentName;
+import android.app.NotificationChannel;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
@@ -86,17 +88,14 @@ public class AnimationSettingsFragment
 
     private final String TAG = this.getClass().getSimpleName();
 
-    private static final String FRAGMENT_TYPE_NOTIF = "NOTIFS";
-    private static final String FRAGMENT_TYPE_CALL = "CALL";
-    private static final String FRAGMENT_TYPE_FLIP = "FLIP";
-
     private Handler mHandler = new Handler(Looper.getMainLooper());
 
     private final ExecutorService mAppExecutor =
             Executors.newSingleThreadExecutor();
 
     private String fragmentType = null;
-    private String fragmentPkg = null;
+    private String targetPkg = null;
+    private String notificationChannelId = null;
 
     PackageManager mPackageManager;
 
@@ -148,17 +147,30 @@ public class AnimationSettingsFragment
     private String contactName;
 
     private boolean isAppSpecific = false;
+    private boolean isChannelSpecific = false;
+
+    public static final String ARG_FRAGMENT_TYPE = "type";
+    public static final String ARG_CONTACT_ID = "contact_id";
+    public static final String ARG_PACKAGE = "package";
+    public static final String ARG_CHANNEL_ID = "channel_id";
+
+    public static final String FRAGMENT_TYPE_NOTIF = "NOTIFS";
+    public static final String FRAGMENT_TYPE_CALL = "CALL";
+    public static final String FRAGMENT_TYPE_FLIP = "FLIP";
+
 
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
 
         Bundle args = getArguments();
-        fragmentType = args.getString("type", "").toUpperCase();
-        contactId = args.getString("contact_id", "");
-        fragmentPkg = args.getString("package", "");
+        fragmentType = args.getString(ARG_FRAGMENT_TYPE, "").toUpperCase();
+        contactId = args.getString(ARG_CONTACT_ID, "");
+        targetPkg = args.getString(ARG_PACKAGE, "");
+        notificationChannelId = args.getString(ARG_CHANNEL_ID, "");
 
         isContactSpecific = !contactId.isEmpty();
-        isAppSpecific = !fragmentPkg.isEmpty();
+        isAppSpecific = !targetPkg.isEmpty();
+        isChannelSpecific = (isAppSpecific && !notificationChannelId.isEmpty());
 
         if (isContactSpecific) {
             contactName = ResourceUtils.getContactName(requireContext(), contactId);
@@ -178,7 +190,8 @@ public class AnimationSettingsFragment
             return;
         }
 
-        if (isContactSpecific && !fragmentType.equals(FRAGMENT_TYPE_CALL)) {
+        if (isContactSpecific && !fragmentType.equals(FRAGMENT_TYPE_CALL)
+                || isChannelSpecific && !isAppSpecific) {
             getParentFragmentManager().popBackStack();
             showToast("Fragment parameters are invalid!");
             return;
@@ -188,91 +201,14 @@ public class AnimationSettingsFragment
 
         evaluatePrefs();
 
-        getActivity().setTitle(fragmentTitle);
-
-        if (!isContactSpecific) {
-            mSwitchBar = findPreference(enableKey);
-            mSwitchBar.addOnSwitchChangeListener(this);
-            if (fragmentType.equals(FRAGMENT_TYPE_FLIP)) {
-                mSwitchBar.setChecked(SettingsManager.isGlyphFlipEnabled());
-            } else {
-                mSwitchBar.setChecked(isAnimationEnabled());
-            }
-        }
-
-        mListPreference = findPreference(animationListKey);
-        mListPreference.setOnPreferenceChangeListener(this);
-
-        if (mToneSyncSwitch != null) {
-            if (mToneSyncSwitch.isChecked()) {
-                mListPreference.setTitle(R.string.glyph_settings_sub_animations_title_sync_enabled);
-            } else {
-                mListPreference.setTitle(R.string.glyph_settings_sub_animations_title);
-            }
-        }
-
-        bundledAnimationList = getAnimations(0);
-        userAnimationList = getAnimations(1);
-
-        List<String[]> paired = new ArrayList<>();
-        for (String name : bundledAnimationList) {
-            paired.add(new String[]{name, name});
-        }
-        for (String name : userAnimationList) {
-            paired.add(new String[]{name, userAnimationPrefix + name});
-        }
-
-        paired.sort(Comparator.comparing(p -> p[0]));
-
-        List<String> animationEntryList
-                = paired.stream().map(p -> p[0]).collect(Collectors.toList());
-        List<String> animationEntryValues
-                = paired.stream().map(p -> p[1]).collect(Collectors.toList());
-
-        if (fragmentType.equals(FRAGMENT_TYPE_FLIP)) {
-            boolean hasFlipCsv = ResourceUtils.hasFlipCsv();
-            animationEntryList.addFirst(
-                    getString(R.string.glyph_settings_flip_animation_option_follow_notification)
-            );
-            if (hasFlipCsv) {
-                animationEntryList.addFirst(getString(R.string.glyph_settings_default_option));
-            }
-            animationEntryValues.addFirst(Constants.Settings.Notification.ANIMATION_ALTERNATE);
-            if (hasFlipCsv) animationEntryValues.addFirst("flip");
-        }
-        mListPreference.setEntries(animationEntryList.toArray(new String[0]));
-        mListPreference.setEntryValues(animationEntryValues.toArray(new String[0]));
-            if (!animationEntryValues.contains(mListPreference.getValue())) {
-                if (!fragmentType.equals(FRAGMENT_TYPE_FLIP)) {
-                    mListPreference.setValue(ResourceUtils.getString(defaultAnimation));
-                } else {
-                    mListPreference.setValue(SettingsManager.getGlyphFlipAnimation());
-                }
-        }
-
-        mLivePreviewPreference = findPreference(livePreviewKey);
-        mMatrixPreference = findPreference(animationPreviewKey);
-
-        mReverseAnimationSwitch = findPreference(reverseAnimationKey);
-        mReverseAnimationSwitch.setOnPreferenceChangeListener(this);
-
     }
 
     private void evaluatePrefs() {
         switch (fragmentType) {
             case FRAGMENT_TYPE_NOTIF -> {
-                if (isAppSpecific) {
-                    getPreferenceManager().setSharedPreferencesName(Constants.Settings.Notification.APP_PREF_PREFIX
-                            + fragmentPkg);
-                    addPreferencesFromResource(R.xml.glyph_notifs_settings_app);
-                    mScreen = getPreferenceScreen();
-                    String pkgLabel = getPackageLabel(fragmentPkg);
-                    fragmentTitle
-                            = requireContext().getString(R.string.glyph_settings_notifs_toggle_title)
-                            + " (" + pkgLabel + ")";
-                    addDeletePref(Constants.Settings.Notification.APP_PREF_PREFIX + fragmentPkg, pkgLabel);
-                } else {
+                if (!isAppSpecific) {
                     addPreferencesFromResource(R.xml.glyph_notifs_settings);
+                    mScreen = getPreferenceScreen();
                     fragmentTitle = requireContext().getString(R.string.glyph_settings_notifs_toggle_title);
 
                     appListCategory = findPreference(Constants.Settings.Notification.SUB_CATEGORY);
@@ -280,11 +216,37 @@ public class AnimationSettingsFragment
 
                     mToneSyncSwitch = findPreference(Constants.Settings.Notification.TONE_SYNC);
                     mToneSyncSwitch.setOnPreferenceChangeListener(this);
+                } else {
+                    String pkgLabel =
+                            Data.ApplicationData.getApplication(requireContext(), targetPkg).label();
+                    String prefName;
+                    if (isChannelSpecific) {
+                        prefName = SettingsManager.buildAppChannelPrefName(targetPkg, notificationChannelId);
+                            getPreferenceManager().setSharedPreferencesName(prefName);
+                            String channelName = Data.ApplicationData.Notification.getChannelName(
+                                    requireContext(),
+                                    targetPkg,
+                                    notificationChannelId
+                            );
+                            if (channelName.isEmpty()) {
+                                getParentFragmentManager().popBackStack();
+                                return;
+                            }
+                            fragmentTitle = channelName + " (" + pkgLabel + ")";
+                    } else {
+                        prefName = SettingsManager.buildAppNotifsPrefName(targetPkg);
+                            getPreferenceManager().setSharedPreferencesName(prefName);
+                            fragmentTitle =
+                                    requireContext().getString(R.string.glyph_settings_notifs_toggle_title)
+                                    + " (" + pkgLabel + ")";
+                    }
+                    addPreferencesFromResource(R.xml.glyph_notifs_settings_app);
+                    mScreen = getPreferenceScreen();
+                    addDeletePref(prefName, pkgLabel);
                 }
 
-                animationPreviewKey = Constants.Settings.Notification.SUB_PREVIEW;
-
                 enableKey = Constants.Settings.Notification.SUB_ENABLE;
+                animationPreviewKey = Constants.Settings.Notification.SUB_PREVIEW;
 
                 livePreviewKey = Constants.Settings.Notification.SUB_LIVE_PREVIEW;
 
@@ -298,7 +260,7 @@ public class AnimationSettingsFragment
             case FRAGMENT_TYPE_CALL -> {
                 if (isAppSpecific) {
                     getPreferenceManager().setSharedPreferencesName(Constants.Settings.Call.APP_PREF_PREFIX
-                            + fragmentPkg);
+                            + targetPkg);
                     addPreferencesFromResource(R.xml.glyph_call_settings_app);
                     mScreen = getPreferenceScreen();
                     String pkgLabel = Data.ApplicationData.getApplication(requireContext(), targetPkg).label();
@@ -317,7 +279,7 @@ public class AnimationSettingsFragment
                                 android.R.string.ok,
                                 () -> {
                                     requireContext().deleteSharedPreferences(
-                                            Constants.Settings.Call.APP_PREF_PREFIX + fragmentPkg);
+                                            Constants.Settings.Call.APP_PREF_PREFIX + targetPkg);
                                     getActivity().finish();
                                 },
                                 android.R.string.cancel, null);
@@ -406,6 +368,74 @@ public class AnimationSettingsFragment
 
             }
         }
+
+        if (!isContactSpecific) {
+            mSwitchBar = findPreference(enableKey);
+            mSwitchBar.addOnSwitchChangeListener(this);
+            if (fragmentType.equals(FRAGMENT_TYPE_FLIP)) {
+                mSwitchBar.setChecked(SettingsManager.isGlyphFlipEnabled());
+            } else {
+                mSwitchBar.setChecked(isAnimationEnabled());
+            }
+        }
+
+        mListPreference = findPreference(animationListKey);
+        mListPreference.setOnPreferenceChangeListener(this);
+
+        if (mToneSyncSwitch != null) {
+            if (mToneSyncSwitch.isChecked()) {
+                mListPreference.setTitle(R.string.glyph_settings_sub_animations_title_sync_enabled);
+            } else {
+                mListPreference.setTitle(R.string.glyph_settings_sub_animations_title);
+            }
+        }
+
+        bundledAnimationList = getAnimations(0);
+        userAnimationList = getAnimations(1);
+
+        List<String[]> paired = new ArrayList<>();
+        for (String name : bundledAnimationList) {
+            paired.add(new String[]{name, name});
+        }
+        for (String name : userAnimationList) {
+            paired.add(new String[]{name, userAnimationPrefix + name});
+        }
+
+        paired.sort(Comparator.comparing(p -> p[0]));
+
+        List<String> animationEntryList
+                = paired.stream().map(p -> p[0]).collect(Collectors.toList());
+        List<String> animationEntryValues
+                = paired.stream().map(p -> p[1]).collect(Collectors.toList());
+
+        if (fragmentType.equals(FRAGMENT_TYPE_FLIP)) {
+            boolean hasFlipCsv = ResourceUtils.hasFlipCsv();
+            animationEntryList.addFirst(
+                    getString(R.string.glyph_settings_flip_animation_option_follow_notification)
+            );
+            if (hasFlipCsv) {
+                animationEntryList.addFirst(getString(R.string.glyph_settings_default_option));
+            }
+            animationEntryValues.addFirst(Constants.Settings.Notification.ANIMATION_ALTERNATE);
+            if (hasFlipCsv) animationEntryValues.addFirst("flip");
+        }
+        mListPreference.setEntries(animationEntryList.toArray(new String[0]));
+        mListPreference.setEntryValues(animationEntryValues.toArray(new String[0]));
+        if (!animationEntryValues.contains(mListPreference.getValue())) {
+            if (!fragmentType.equals(FRAGMENT_TYPE_FLIP)) {
+                mListPreference.setValue(ResourceUtils.getString(defaultAnimation));
+            } else {
+                mListPreference.setValue(SettingsManager.getGlyphFlipAnimation());
+            }
+        }
+
+        mLivePreviewPreference = findPreference(livePreviewKey);
+        mMatrixPreference = findPreference(animationPreviewKey);
+
+        mReverseAnimationSwitch = findPreference(reverseAnimationKey);
+        mReverseAnimationSwitch.setOnPreferenceChangeListener(this);
+
+        getActivity().setTitle(fragmentTitle);
 
         livePreview = new LivePreview(requireContext(), this);
     }
@@ -538,15 +568,31 @@ public class AnimationSettingsFragment
             mSwitchPreference.setTitle(" " + label);
             mSwitchPreference.setIcon(data.icon());
             mSwitchPreference.setChecked(isAnimationEnabled(pkg));
-            mSwitchPreference.setOnPreferenceClickListener(preference -> {
-                String key = preference.getKey();
-                Intent intent = new Intent(requireContext(),
-                        AnimationSettingsActivity.class);
-                intent.putExtra("type", fragmentType);
-                intent.putExtra("package", key);
-                startActivity(intent);
-                return true;
-            });
+            if (fragmentType.equals(FRAGMENT_TYPE_NOTIF)) {
+                mSwitchPreference.setOnPreferenceClickListener(preference -> {
+                    String key = preference.getKey();
+                    Bundle b = new Bundle();
+                    b.putString(ARG_PACKAGE, key);
+                    b.putString(ARG_CHANNEL_ID, notificationChannelId);
+                    Intent intent = new Intent(requireContext(),
+                            SubSettingsActivity.class);
+                    intent.putExtra(SubSettingsActivity.ARGS_FRAGMENT,
+                            NotificationChannelsFragment.class.getName());
+                    intent.putExtra("args", b);
+                    startActivity(intent);
+                    return true;
+                });
+            } else {
+                mSwitchPreference.setOnPreferenceClickListener(preference -> {
+                    String key = preference.getKey();
+                    Intent intent = new Intent(requireContext(),
+                            AnimationSettingsActivity.class);
+                    intent.putExtra(ARG_FRAGMENT_TYPE, fragmentType);
+                    intent.putExtra(ARG_PACKAGE, key);
+                    startActivity(intent);
+                    return true;
+                });
+            }
             mSwitchPreference.setOnPreferenceChangeListener((preference, newValue) -> {
                 String key = preference.getKey();
                 setAnimationEnabled(key, (Boolean) newValue);
@@ -640,7 +686,12 @@ public class AnimationSettingsFragment
         switch (fragmentType) {
             case FRAGMENT_TYPE_NOTIF -> {
                 if (isAppSpecific) {
-                    return SettingsManager.getGlyphNotifsAnimation(fragmentPkg);
+                    if (isChannelSpecific) {
+                        return SettingsManager.Notification.getChannelAnimation(
+                                targetPkg, notificationChannelId);
+                    } else {
+                        return SettingsManager.getGlyphNotifsAnimation(targetPkg);
+                    }
                 } else {
                     return SettingsManager.getGlyphNotifsAnimation();
                 }
@@ -650,7 +701,7 @@ public class AnimationSettingsFragment
                 if (isContactSpecific) {
                     return SettingsManager.getGlyphCallAnimation(Integer.parseInt(contactId));
                 } else if (isAppSpecific) {
-                    return SettingsManager.getGlyphCallAnimation(fragmentPkg);
+                    return SettingsManager.getGlyphCallAnimation(targetPkg);
                 } else {
                     return SettingsManager.getGlyphCallAnimation();
                 }
@@ -699,9 +750,12 @@ public class AnimationSettingsFragment
         switch (fragmentType) {
             case FRAGMENT_TYPE_NOTIF -> {
                 if (isAppSpecific) {
-                    return SettingsManager.isGlyphNotifsEnabled(fragmentPkg);
-                } else if (checkPkg != null) {
-                    return SettingsManager.isGlyphNotifsEnabled(checkPkg);
+                    if (isChannelSpecific) {
+                        return SettingsManager.Notification.isChannelAnimationEnabled(
+                                targetPkg, notificationChannelId);
+                    } else {
+                        return SettingsManager.isGlyphNotifsEnabled(targetPkg);
+                    }
                 } else {
                     return SettingsManager.isGlyphNotifsEnabled();
                 }
@@ -709,7 +763,7 @@ public class AnimationSettingsFragment
 
             case FRAGMENT_TYPE_CALL -> {
                 if (isAppSpecific) {
-                    return SettingsManager.isGlyphCallEnabled(fragmentPkg);
+                    return SettingsManager.isGlyphCallEnabled(targetPkg);
                 } else if (checkPkg != null) {
                     SettingsManager.isGlyphCallEnabled(checkPkg);
                 } else {
@@ -729,14 +783,19 @@ public class AnimationSettingsFragment
         switch (fragmentType) {
             case FRAGMENT_TYPE_NOTIF -> {
                 if (isAppSpecific) {
-                    SettingsManager.setGlyphNotifsEnabled(fragmentPkg, state);
+                    if (isChannelSpecific) {
+                        SettingsManager.Notification.setChannelAnimationEnabled(
+                                state, targetPkg, notificationChannelId);
+                    } else {
+                        SettingsManager.setGlyphNotifsEnabled(targetPkg, state);
+                    }
                 } else {
                     SettingsManager.setGlyphNotifsEnabled(state);
                 }
             }
             case FRAGMENT_TYPE_CALL -> {
                 if (isAppSpecific) {
-                    SettingsManager.setGlyphCallEnabled(fragmentPkg, state);
+                    SettingsManager.setGlyphCallEnabled(targetPkg, state);
                 } else {
                     SettingsManager.setGlyphCallEnabled(state);
                 }

@@ -94,6 +94,7 @@ public final class Constants {
             public static final String SUB_CATEGORY = PREFIX + "notifs_sub";
             public static final String SUB_ENABLE = PREFIX + "notifs_sub_toggle";
             public static final String REVERSE_ANIMATION_ENABLE = PREFIX + "notifs_sub_animations_reverse_toggle";
+            public static final String GLOBAL_ANIMATION_ENABLE = PREFIX + "notifications_global_animation";
 
             public static final String ANIMATION_ALTERNATE = "notif_alternate";
             public static final String APP_PREF_PREFIX = "notif_";

@@ -178,18 +178,39 @@ public class NotificationService extends NotificationListenerService
             String notifKey = sbn.getKey();
             Runnable runnable = () -> {
                 if (SettingsManager.appHasGlyphNotifsConfig(packageName)) {
-                    if (SettingsManager.isGlyphNotifsAnimationReversed(packageName)) {
-                        AnimationManager.Coordinator.get().stream(
+                        if (SettingsManager.Notification.isGlobalAppAnimationEnabled(packageName)) {
+                            if (SettingsManager.isGlyphNotifsAnimationReversed(packageName)) {
+                                AnimationManager.Coordinator.get().stream(
                                 mContext, this, StatusManager.GlyphPriority.NOTIFICATION,
                                 SettingsManager.getGlyphNotifsAnimation(packageName),
                                 true
                         );
-                    } else {
-                        AnimationManager.Coordinator.get().stream(
+                            } else {
+                                AnimationManager.Coordinator.get().stream(
                                 mContext, this, StatusManager.GlyphPriority.NOTIFICATION,
                                 SettingsManager.getGlyphNotifsAnimation(packageName)
                         );
-                    }
+                            }
+                        } else if (SettingsManager.Notification.channelHasGlyphNotifsConfig(
+                                packageName, packageChannelID)) {
+                            if (SettingsManager.Notification.isChannelAnimationEnabled(packageName, packageChannelID)) {
+                                if (SettingsManager.Notification.isChannelAnimationReversed(packageName, packageChannelID)) {
+                                    AnimationManager.Coordinator.get().stream(
+                                        mContext, 
+                                        this, 
+                                        StatusManager.GlyphPriority.NOTIFICATION,
+                                        SettingsManager.Notification.getChannelAnimation(packageName, packageChannelID), true
+                                    );
+                                } else {
+                                    AnimationManager.Coordinator.get().stream(
+                                        mContext, 
+                                        this, 
+                                        StatusManager.GlyphPriority.NOTIFICATION,
+                                        SettingsManager.Notification.getChannelAnimation(packageName, packageChannelID)
+                                    );
+                                }
+                            }
+                        }
                 } else {
                     if (SettingsManager.isGlyphNotifsSyncEnabled()
                             && CSVUtils.Holder.Notification.isAvailable()) {

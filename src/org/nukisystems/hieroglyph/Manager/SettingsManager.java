@@ -19,6 +19,7 @@ package org.nukisystems.hieroglyph.Manager;
 import android.app.ActivityManager;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.media.AudioManager;
 import android.provider.Settings;
 
@@ -52,7 +53,7 @@ public final class SettingsManager {
     }
 
     public static String buildAppNotifsPrefName(String pkg) {
-        return Constants.GLYPH_NOTIF_APP_PREF_PREFIX + pkg;
+        return Constants.Settings.Notification.APP_PREF_PREFIX + pkg;
     }
 
     public static String buildAppChannelPrefName(String pkg, String channelId) {
@@ -534,5 +535,69 @@ public final class SettingsManager {
         int currentUser = ActivityManager.getCurrentUser();
         Settings.Secure.putIntForUser(ctx.getContentResolver(),
                 key, state ? 1 : 0, currentUser);
+    }
+
+    public static class Notification {
+        public static void setChannelAnimationEnabled(boolean state, String pkg, String channelId) {
+            Context ctx = getContext();
+            ctx.getSharedPreferences(buildAppChannelPrefName(pkg, channelId), Context.MODE_PRIVATE)
+                    .edit()
+                    .putBoolean(Constants.Settings.Notification.SUB_ENABLE, state)
+                    .commit();
+        }
+
+        public static boolean isChannelAnimationEnabled(String pkg, String channelId) {
+            Context ctx = getContext();
+            return ctx.getSharedPreferences(buildAppChannelPrefName(pkg, channelId),
+                            Context.MODE_PRIVATE)
+                    .getBoolean(Constants.Settings.Notification.SUB_ENABLE, true);
+        }
+
+        public static boolean isChannelAnimationReversed(String pkg, String channelId) {
+            Context ctx = getContext();
+            return ctx.getSharedPreferences(buildAppChannelPrefName(pkg, channelId),
+                            Context.MODE_PRIVATE)
+                    .getBoolean(Constants.Settings.Notification.REVERSE_ANIMATION_ENABLE, false);
+        }
+
+        public static String getChannelAnimation(String pkg, String channelId) {
+            Context ctx = getContext();
+            return ctx.getSharedPreferences(buildAppChannelPrefName(pkg, channelId),
+                            Context.MODE_PRIVATE)
+                    .getString(Constants.Settings.Notification.SUB_ANIMATIONS,
+                            getGlyphNotifsAnimation(pkg));
+        }
+
+        public static void setGlobalAppAnimationEnabled(String pkg, boolean state) {
+            Context ctx = getContext();
+            ctx.getSharedPreferences(buildAppNotifsPrefName(pkg), Context.MODE_PRIVATE)
+                    .edit()
+                    .putBoolean(Constants.Settings.Notification.GLOBAL_ANIMATION_ENABLE, state)
+                    .commit();
+        }
+
+        public static boolean isGlobalAppAnimationEnabled(String pkg) {
+            Context ctx = getContext();
+            return ctx.getSharedPreferences(buildAppNotifsPrefName(pkg), Context.MODE_PRIVATE)
+                    .getBoolean(Constants.Settings.Notification.GLOBAL_ANIMATION_ENABLE, true);
+        }
+
+        public static boolean channelHasGlyphNotifsConfig(String pkg, String channelId) {
+            Context ctx = getContext();
+            return !ctx.getSharedPreferences(
+                            buildAppChannelPrefName(pkg, channelId), Context.MODE_PRIVATE)
+                    .getAll().isEmpty()
+                    || isChannelAnimationReversed(pkg, channelId)
+                    || !getChannelAnimation(pkg, channelId).equals(getGlyphNotifsAnimation());
+        }
+
+        public static boolean channelHasGlyphNotifsConfig(String pkg, String channelId, String comp) {
+            Context ctx = getContext();
+            return !ctx.getSharedPreferences(
+                    buildAppChannelPrefName(pkg, channelId), Context.MODE_PRIVATE)
+                    .getAll().isEmpty()
+                    || isChannelAnimationReversed(pkg, channelId)
+                    || !getChannelAnimation(pkg, channelId).equals(comp);
+        }
     }
 }
