@@ -19,12 +19,15 @@
 package org.nukisystems.hieroglyph;
 
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.util.Log;
 
 import org.nukisystems.hieroglyph.Constants.Constants;
 import org.nukisystems.hieroglyph.Manager.GlyphScheduleManager;
+import org.nukisystems.hieroglyph.Settings.SettingsActivity;
 import org.nukisystems.hieroglyph.Utils.ServiceUtils;
 
 public class BootCompletedReceiver extends BroadcastReceiver {
