@@ -7,8 +7,30 @@ import androidx.annotation.NonNull;
 
 import java.util.HashMap;
 import java.util.Map;
+import android.Manifest;
+import android.app.NotificationChannel;
+import android.app.NotificationChannelGroup;
+import android.content.Context;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.os.Build;
+import android.util.Log;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 public class Data {
+
+    private static final String callPermission = Manifest.permission.MANAGE_OWN_CALLS;
+    private static final String micFgPermission = Manifest.permission.FOREGROUND_SERVICE_MICROPHONE;
+    private static final String audioRecordPermission = Manifest.permission.RECORD_AUDIO;
+    private static final String mediaPermission = Manifest.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK;
+    private static final String notificationPermission = Manifest.permission.POST_NOTIFICATIONS;
+
+    private static final String TAG = "GlyphData";
 
     public static final class CsvContent implements CharSequence {
 
@@ -82,5 +104,271 @@ public class Data {
     }
 
     public static Map<ComponentName, GlyphToy> toyCache = new HashMap<>();
+
+
+    public record ApplicationData (
+            String label,
+            Drawable icon,
+            List<NotificationChannel> channels,
+            List<NotificationChannelGroup> channelGroups,
+            boolean canManageOwnCalls,
+            boolean canUseMic,
+            boolean canBindMedia,
+            boolean canNotify) {
+
+        private static final Map<String, ApplicationData> appDataCache = new HashMap<>();
+
+        static final AtomicBoolean updatePending = new AtomicBoolean(false);
+
+        public static void init(Context ctx) {
+            updatePending.compareAndSet(false,true);
+
+            PackageManager pm = ctx.getPackageManager();
+            List<PackageInfo> allApps = pm.getInstalledPackages(PackageManager.GET_PERMISSIONS);
+            for (PackageInfo pkg : allApps) {
+                String pkgName = pkg.packageName;
+                Drawable icon = null;
+                boolean canManageOwnCalls = false;
+                boolean canUseMic = false;
+                boolean canBindMedia = false ;
+                boolean canNotify = false;
+                String label = pkg.applicationInfo.loadLabel(pm).toString();
+
+
+                int pkgFlags = pkg.applicationInfo.flags;
+                if (pkg.requestedPermissions == null) continue;
+                if (pm.getLaunchIntentForPackage(pkg.packageName) == null) continue;
+                if ((pkgFlags & ApplicationInfo.FLAG_INSTALLED) == 0
+                        || (pkgFlags & ApplicationInfo.FLAG_PERSISTENT) != 0) continue;
+                for (String perm : pkg.requestedPermissions) {
+                    switch (perm) {
+                        case callPermission -> canManageOwnCalls = true;
+                        case micFgPermission, audioRecordPermission -> canUseMic = true;
+                        case mediaPermission -> canBindMedia = true;
+                        case notificationPermission -> {
+                            if (pkg.applicationInfo.targetSdkVersion >= Build.VERSION_CODES.TIRAMISU) {
+                                canNotify = true;
+                            }
+                        }
+                    }
+                }
+
+                try {
+                    icon = pm.getApplicationIcon(pkgName);
+                } catch (PackageManager.NameNotFoundException e) {
+                    icon = pm.getDefaultActivityIcon();
+                }
+
+                if (pkg.applicationInfo.targetSdkVersion < Build.VERSION_CODES.TIRAMISU) {
+                    canNotify = true;
+                }
+
+                appDataCache.put(pkgName, new ApplicationData(
+                        label,
+                        icon,
+                        Collections.emptyList(),
+                        Collections.emptyList(),
+                        canManageOwnCalls,
+                        canUseMic,
+                        canBindMedia,
+                        canNotify)
+                );
+            }
+
+            updatePending.compareAndSet(true, false);
+        }
+
+
+        public static Map<String, ApplicationData> get(Context ctx) {
+            if (appDataCache.isEmpty()) init(ctx);
+            return appDataCache;
+        }
+
+        public static Map<String, ApplicationData> getMediaApps(Context ctx) {
+            if (appDataCache.isEmpty()) init(ctx);
+            return appDataCache.entrySet().stream()
+                    .filter(e -> e.getValue().canBindMedia())
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        }
+
+        public static Map<String, ApplicationData> getMicApps(Context ctx) {
+            if (appDataCache.isEmpty()) init(ctx);
+            return appDataCache.entrySet().stream()
+                    .filter(e -> e.getValue().canUseMic())
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        }
+
+        public static Map<String, ApplicationData> getNotificationApps(Context ctx) {
+            if (appDataCache.isEmpty()) init(ctx);
+            return appDataCache.entrySet().stream()
+                    .filter(e -> e.getValue().canNotify())
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        }
+
+        public static ApplicationData getApplication(Context ctx, String pkg) {
+            if (appDataCache.isEmpty()) init(ctx);
+            return appDataCache.get(pkg);
+        }
+
+        public static void remove(String pkg) {
+            appDataCache.remove(pkg);
+        }
+
+        public static void fillPackageInfo(Context ctx, String pkg) throws PackageManager.NameNotFoundException {
+            updatePending.compareAndSet(false,true);
+
+            PackageManager pm = ctx.getPackageManager();
+            PackageInfo pkgInfo = pm.getPackageInfo(pkg, PackageManager.GET_PERMISSIONS);
+            ApplicationInfo info = pkgInfo.applicationInfo;
+
+            String pkgName = info.packageName;
+            Drawable icon = null;
+            boolean canManageOwnCalls = false;
+            boolean canUseMic = false;
+            boolean canBindMedia = false ;
+            boolean canNotify = false;
+            String label = info.loadLabel(pm).toString();
+
+            int pkgFlags = info.flags;
+            if (pkgInfo.requestedPermissions == null) return;
+            if (pm.getLaunchIntentForPackage(pkgName) == null) return;
+            if ((pkgFlags & ApplicationInfo.FLAG_INSTALLED) == 0
+                    || (pkgFlags & ApplicationInfo.FLAG_PERSISTENT) != 0) return;
+            for (String perm : pkgInfo.requestedPermissions) {
+                switch (perm) {
+                    case callPermission -> canManageOwnCalls = true;
+                    case micFgPermission, audioRecordPermission -> canUseMic = true;
+                    case mediaPermission -> canBindMedia = true;
+                    case notificationPermission -> {
+                        if (info.targetSdkVersion >= Build.VERSION_CODES.TIRAMISU) {
+                            canNotify = true;
+                        }
+                    }
+                }
+            }
+
+            try {
+                icon = pm.getApplicationIcon(pkgName);
+            } catch (PackageManager.NameNotFoundException e) {
+                icon = pm.getDefaultActivityIcon();
+            }
+
+            if (info.targetSdkVersion < Build.VERSION_CODES.TIRAMISU) {
+                canNotify = true;
+            }
+
+            appDataCache.put(pkgName, new ApplicationData(
+                    label,
+                    icon,
+                    Collections.emptyList(),
+                    Collections.emptyList(),
+                    canManageOwnCalls,
+                    canUseMic,
+                    canBindMedia,
+                    canNotify)
+            );
+
+            updatePending.compareAndSet(true, false);
+        }
+
+        public static class Notification {
+            public static void setData(Context ctx, String pkg,
+                                       List<NotificationChannel> channels,
+                                       List<NotificationChannelGroup> channelGroups) {
+                updatePending.compareAndSet(false, true);
+                if (appDataCache.isEmpty()) init(ctx);
+                if (!appDataCache.containsKey(pkg)) {
+                    try {
+                        fillPackageInfo(ctx, pkg);
+                    } catch (PackageManager.NameNotFoundException e) {
+                        Log.w(TAG, "Channels found but application cannot be found");
+                        return;
+                    }
+                    Log.w(TAG, "Channels found but application is excluded from cache");
+                    return;
+                } else {
+                    appDataCache.get(pkg).channelGroups.addAll(channelGroups);
+                    appDataCache.get(pkg).channels.addAll(channels);
+                }
+                updatePending.compareAndSet(true, false);
+            }
+
+            public static void addChannel(Context ctx, String pkg, NotificationChannel channel) {
+                updatePending.compareAndSet(false, true);
+                if (appDataCache.isEmpty()) init(ctx);
+                if (!appDataCache.containsKey(pkg)) {
+                    try {
+                        fillPackageInfo(ctx, pkg);
+                    } catch (PackageManager.NameNotFoundException e) {
+                        Log.w(TAG, "Channel found but application cannot be found");
+                        return;
+                    }
+                    Log.w(TAG, "Channel found but application is excluded from cache");
+                    return;
+                } else {
+                    appDataCache.get(pkg).channels.add(channel);
+                }
+                updatePending.compareAndSet(true, false);
+            }
+
+            public static void addChannelGroup(Context ctx, String pkg, NotificationChannelGroup channelGroup) {
+                updatePending.compareAndSet(false, true);
+                if (appDataCache.isEmpty()) init(ctx);
+                if (!appDataCache.containsKey(pkg)) {
+                    try {
+                        fillPackageInfo(ctx, pkg);
+                    } catch (PackageManager.NameNotFoundException e) {
+                        Log.w(TAG, "Channel found but application cannot be found");
+                        return;
+                    }
+                    Log.w(TAG, "Channel found but application is excluded from cache");
+                    return;
+                } else {
+                    appDataCache.get(pkg).channelGroups.add(channelGroup);
+                }
+                updatePending.compareAndSet(true, false);
+            }
+
+
+            public static void removeChannel(Context ctx, String pkg, NotificationChannel channel) {
+                updatePending.compareAndSet(false, true);
+                if (appDataCache.isEmpty()) init(ctx);
+                if (!appDataCache.containsKey(pkg)) {
+                    try {
+                        fillPackageInfo(ctx, pkg);
+                    } catch (PackageManager.NameNotFoundException e) {
+                        Log.w(TAG, "Channel found but application cannot be found");
+                        return;
+                    }
+                    Log.w(TAG, "Channel found but application is excluded from cache");
+                    return;
+                } else {
+                    appDataCache.get(pkg).channels.remove(channel);
+                }
+                updatePending.compareAndSet(true, false);
+            }
+
+            public static void removeChannelGroup(Context ctx, String pkg, NotificationChannelGroup channelGroup) {
+                updatePending.compareAndSet(false, true);
+                if (appDataCache.isEmpty()) init(ctx);
+                if (!appDataCache.containsKey(pkg)) {
+                    try {
+                        fillPackageInfo(ctx, pkg);
+                    } catch (PackageManager.NameNotFoundException e) {
+                        Log.w(TAG, "Channel found but application cannot be found");
+                        return;
+                    }
+                    Log.w(TAG, "Channel found but application is excluded from cache");
+                    return;
+                } else {
+                    appDataCache.get(pkg).channelGroups.remove(channelGroup);
+                }
+                updatePending.compareAndSet(true, false);
+            }
+        }
+
+
+    };
+
 
 }
